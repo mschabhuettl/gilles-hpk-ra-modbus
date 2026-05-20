@@ -1,14 +1,10 @@
-# Gilles Touch -- Home Assistant Lovelace Dashboard v0.3.0
+# Gilles Touch -- Home Assistant Lovelace Dashboard
 # Drop into Settings > Dashboards > "Raw configuration editor".
 #
-# v0.3.0: Major rework after burner cycle observation:
-#   - Brenn Phase shown as plain text on Overview
-#   - REG[62] renamed: was "Brennraumtuer Raw" -> now "Saugzug Ist"
-#   - Door detection now uses StatusBitmap=35 (REG[46]) instead of REG[62]
-#   - Most unknowns identified; "Detektivarbeit" view much smaller now
-#
-# HA generates entity IDs from `name` field, replacing umlauts as
+# Important: HA generates entity IDs from `name`, replacing umlauts as
 # a/o/u (NOT ae/oe/ue). The IDs below match what HA creates from modbus.yaml.
+#
+# The "Statistik" view requires gilles-derived.yaml to be installed.
 
 title: Gilles Heizung
 views:
@@ -42,6 +38,10 @@ views:
             entity: sensor.gilles_rucklauftemperatur
             name: Rücklauf
             icon: mdi:arrow-u-down-left
+          - type: entity
+            entity: sensor.gilles_spreizung
+            name: Spreizung
+            icon: mdi:thermometer-lines
 
       - type: horizontal-stack
         cards:
@@ -159,6 +159,144 @@ views:
             name: Phase-Code
           - entity: sensor.gilles_boiler_status_code
             name: BoilerStatus-Code
+
+  # ============================================================
+  - title: Statistik & Effizienz
+    path: statistik
+    icon: mdi:chart-line
+    cards:
+      - type: markdown
+        content: |
+          ## Effizienz & Statistik
+
+          **Voraussetzung:** Package `gilles-derived.yaml` muss installiert
+          sein, sonst zeigen die Karten "Sensor not available".
+
+      # === Effizienz ===
+      - type: horizontal-stack
+        cards:
+          - type: gauge
+            entity: sensor.gilles_wirkungsgrad
+            name: Wirkungsgrad
+            min: 70
+            max: 100
+            severity:
+              green: 90
+              yellow: 85
+              red: 0
+          - type: gauge
+            entity: sensor.gilles_rauchgasverlust
+            name: Rauchgasverlust
+            min: 0
+            max: 20
+            severity:
+              green: 0
+              yellow: 10
+              red: 15
+          - type: gauge
+            entity: sensor.gilles_modulationsgrad
+            name: Modulationsgrad
+            min: 0
+            max: 100
+
+      - type: history-graph
+        title: Wirkungsgrad 24h (nur während Brennbetrieb sinnvoll)
+        hours_to_show: 24
+        refresh_interval: 30
+        entities:
+          - entity: sensor.gilles_wirkungsgrad
+          - entity: sensor.gilles_wirkungsgrad_24h_mean
+            name: Mittel 24h
+
+      # === Brennzyklus ===
+      - type: entities
+        title: Aktueller Zyklus
+        entities:
+          - entity: sensor.gilles_brenn_phase
+            name: Aktuelle Phase
+          - entity: sensor.gilles_phase_dauer
+            name: Dauer in dieser Phase
+          - entity: sensor.gilles_zeit_seit_brennstart
+            name: Zeit seit Brennstart
+          - entity: sensor.gilles_letzter_brennzyklus_dauer
+            name: Letzter Zyklus Dauer
+          - entity: sensor.gilles_brennstart_letzter
+            name: Letzter Brennstart
+
+      # === Brennstarts heute/Woche/Monat ===
+      - type: entities
+        title: Brennstart-Zähler
+        entities:
+          - entity: sensor.gilles_brennstarts_heute
+            name: Heute
+          - entity: sensor.gilles_brennstarts_woche
+            name: Diese Woche
+          - entity: sensor.gilles_brennstarts_monat
+            name: Diesen Monat
+          - entity: counter.gilles_brennstarts_total
+            name: Gesamt
+          - entity: sensor.gilles_brennstarts_7d_anzahl
+            name: 7-Tage-Schnitt (rolling)
+
+      # === Pelletverbrauch ===
+      - type: entities
+        title: Pelletverbrauch (geschätzt, ±30%)
+        entities:
+          - entity: sensor.gilles_pellet_fluss_aktuell
+            name: Aktueller Fluss
+          - entity: sensor.gilles_pellet_verbrauch_heute
+            name: Heute
+          - entity: sensor.gilles_pellet_verbrauch_monat
+            name: Diesen Monat
+          - entity: sensor.gilles_pellet_verbrauch_kumuliert
+            name: Gesamt (seit HA-Start)
+
+      - type: markdown
+        content: |
+          ⚠️ Pelletverbrauch ist eine **grobe Schätzung** anhand
+          Förderschnecke-Soll × ~3.5 kg/h. Echter Wert kann um ±30%
+          abweichen. Verlässlicher wäre nur ein Pellet-Lager-Sensor.
+
+      # === Brennzeit & Spreizung ===
+      - type: entities
+        title: Betriebszeiten
+        entities:
+          - entity: sensor.gilles_brennzeit_heute
+            name: Brennzeit heute
+          - entity: sensor.gilles_brennzeit_7d
+            name: Brennzeit letzte 7 Tage
+          - entity: sensor.gilles_heizphase_dauer_7d
+            name: Heizphase Σ 7 Tage
+          - entity: sensor.gilles_zuendphase_dauer_7d
+            name: Zündphase Σ 7 Tage
+
+      # === Tages-Statistiken ===
+      - type: entities
+        title: 24h-Statistiken
+        entities:
+          - entity: sensor.gilles_kessel_24h_min
+            name: Kessel Min
+          - entity: sensor.gilles_kessel_24h_max
+            name: Kessel Max
+          - entity: sensor.gilles_abgas_24h_max
+            name: Abgas Max
+          - entity: sensor.gilles_o2_24h_min
+            name: O₂ Min
+
+      # === Wartung ===
+      - type: entities
+        title: Wartung
+        entities:
+          - entity: sensor.gilles_ascheaustragungen_heute
+            name: Ascheaustragungen heute
+          - entity: counter.gilles_ascheaustragungen_total
+            name: Ascheaustragungen gesamt
+          - entity: sensor.gilles_zeit_seit_aschenaustragung
+            name: Zeit seit letzter
+          - entity: sensor.gilles_tuer_offen_heute_anzahl
+            name: Tür-Öffnungen heute
+          - entity: sensor.gilles_tuer_offen_heute_dauer
+            name: Tür-offen Dauer heute
 
   # ============================================================
   - title: Detektivarbeit
