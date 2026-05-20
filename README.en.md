@@ -4,7 +4,7 @@
 
 A community effort to document the Modbus TCP interface of the **Gilles Touch** controller used in Gilles biomass boilers (HPK-RA series), and to integrate them into Home Assistant.
 
-> **Status v0.3.0:** 29 of 40 registers empirically verified (✓✓), 4 strongly suspected (✓), 3 likely permanently inactive, 4 still unknown.
+> **Status:** 26 of 40 registers empirically verified (✓✓), 8 strongly suspected (✓), 3 with values but unclear semantics (?), 3 likely permanently inactive. Total: 40.
 
 ## Background
 

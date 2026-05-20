@@ -8,10 +8,12 @@
 
 ## Stand
 
-- **29 von 40 Registern** sicher identifiziert (✓✓)
-- **4 weitere** stark vermutet (✓)
-- **3 Register** wahrscheinlich permanent inaktiv in dieser Anlagenkonfiguration
-- **4 Register** noch komplett unklar (REG[56, 68, 72] + REG[46]-Detailcodes)
+- **26 von 40 Registern** sicher identifiziert (✓✓)
+- **8 weitere** stark vermutet (✓)
+- **3 Register** zeigen Werte, aber die Semantik ist noch unklar (REG[56], REG[68], REG[72])
+- **3 Register** wahrscheinlich permanent inaktiv in dieser Anlagenkonfiguration (REG[70], REG[74], REG[76])
+
+Summe: 26 + 8 + 3 + 3 = 40 ✓
 
 ## Verbindungsparameter
 

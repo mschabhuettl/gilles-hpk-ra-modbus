@@ -8,10 +8,12 @@
 
 ## Status
 
-- **29 of 40 registers** firmly identified (✓✓)
-- **4 more** strongly suspected (✓)
-- **3 registers** likely permanently inactive in this installation
-- **4 registers** still entirely unclear (REG[56, 68, 72] + REG[46] sub-codes)
+- **26 of 40 registers** firmly identified (✓✓)
+- **8 more** strongly suspected (✓)
+- **3 registers** show values but their semantics are still unclear (REG[56], REG[68], REG[72])
+- **3 registers** likely permanently inactive in this installation (REG[70], REG[74], REG[76])
+
+Total: 26 + 8 + 3 + 3 = 40 ✓
 
 ## Connection details
 

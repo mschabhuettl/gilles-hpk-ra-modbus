@@ -4,7 +4,7 @@
 
 Community-Projekt zur Dokumentation der Modbus-TCP-Schnittstelle der **Gilles Touch** Steuerung in Gilles-Biomasse-Heizungen (HPK-RA-Serie) — inklusive Home-Assistant-Integration.
 
-> **Stand v0.3.0:** 29 von 40 Registern empirisch verifiziert (✓✓), 4 stark vermutet (✓), 3 wahrscheinlich permanent inaktiv, 4 noch unklar.
+> **Stand:** 26 von 40 Registern empirisch verifiziert (✓✓), 8 stark vermutet (✓), 3 mit Werten aber unklarer Semantik (?), 3 wahrscheinlich permanent inaktiv. Summe: 40.
 
 ## Hintergrund
 
