@@ -1,0 +1,119 @@
+# Sample LASAL parameter export
+
+This is an example of what the `parameter.txt` file looks like when exported via USB
+from a Gilles Touch (Allgemeines → Load/Save → Save to USB).
+
+Each line: `<parameter.path>,<current_value>,<unit_descriptor>,...`
+
+The format is:
+
+- Parameter path uses LASAL namespace (e.g., `LSE_KesselPara_Temp1.sKesselSollTag`)
+- Values are integers (multiplied by 10 for ÷0.1 scaling, etc.)
+- Unit descriptor tells you the scaling: `Temp3_0` = temperature × 10, `Prozent_3_1` = percent × 10
+
+This file is **invaluable** for matching Modbus values to parameter names —
+search for the value you see at REG[xx] and you'll often find a unique match.
+
+---
+
+## Sample content (sanitized — IPs and serial-specific data redacted)
+
+```
+[VERSION: 2]
+[CRC: 16#181624BD]
+SCL_UserList1.Server0,0,,{1},{1},255,
+LSE_KesselPara_Temp1.sKesselSollTag,750,Temp3_0,{1},{1},255,
+LSE_KesselPara_Temp1.sKesselSollNacht,700,Temp3_0,{1},{1},255,
+LSE_KesselPara_Temp1.sRuecklaufSoll,580,Temp3_0,{1},{1},255,
+LSE_KesselPara_Temp1.sTempDiffStop,30,Temp3_0,{1},{1},255,
+LSE_KesselPara_Temp1.sTempDiffStart,50,Temp3_0,{1},{1},255,
+LSE_KesselPara_Temp1.sAbgasTempZuend,700,Temp3_0,{1},{1},255,
+LSE_KesselPara_Temp1.sAbgasTempMax,2400,Temp3_0,{1},{1},255,
+LSE_KesselPara_Temp1.sAbgasTempMin,900,Temp3_0,{1},{1},255,
+LSE_KesselPara_Temp1.sAbgasTempMaxLimit,2700,Temp3_0,{1},{1},255,
+LSE_KesselPara_Temp1.sTempDiffTeillast,30,Temp3_0,{1},{1},255,
+LSE_KesselPara_Lambda1.sO2Max,85,Prozent_3_1,{1},{1},255,
+LSE_KesselPara_Lambda1.sO2Min,105,Prozent_3_1,{1},{1},255,
+LSE_KesselPara_Lambda1.sPrimaerMax,700,1/10%_3_0,{1},{1},255,
+LSE_KesselPara_Lambda1.sPrimaerMin,350,1/10%_3_0,{1},{1},255,
+LSE_KesselPara_Lambda1.sSekundaerMax,500,1/10%_3_0,{1},{1},255,
+LSE_KesselPara_Lambda1.sSekundaerMin,300,1/10%_3_0,{1},{1},255,
+LSE_KesselPara_Lambda1.sSaugzugMax,800,1/10%_3_0,{1},{1},255,
+LSE_KesselPara_Lambda1.sSaugzugMin,350,1/10%_3_0,{1},{1},255,
+LSE_KesselPara_Lambda1.sPrimaerZuendung,1000,1/10%_3_0,{1},{1},255,
+LSE_KesselPara_Lambda1.sStartSekundaer,200,1/10%_3_0,{1},{1},255,
+LSE_KesselPara_Lambda1.sFreigabeSaugzug,1,,{1},{1},255,
+KaskadenSteuerung1.sMindesttempMaster,700,Temp3_0,{1},{1},254,
+KaskadenSteuerung1.sEinschaltverzClient,20,Zeitmin_3_0,{1},{1},254,
+KaskadenSteuerung1.sKesselstartAussentemp,-50,Temp3_0,{1},{1},254,
+FreigabeMaterialschnecke1.sNurAustragung1,0,,{1},{1},254,
+Rostablauf1.sRostPause,9,Sek_3_0,{1},{1},254,
+LSE_KesselPara_Sauganlage1.sPelletZeitVerz,50,Zeitsek_3_0_Div10,{1},{1},255,
+LSE_KesselPara_Sauganlage1.sPelletZeitSaugerEin,300,Zeitsek_3_0_Div10,{1},{1},255,
+LSE_KesselPara_Sauganlage1.sPelletSaugAustrEin,50,Zeitsek_3_0_Div10,{1},{1},255,
+LSE_KesselPara_Sauganlage1.sPelletSaugAustrAus,20,Zeitsek_3_0_Div10,{1},{1},255,
+LSE_KesselPara_Sauganlage1.sPelletFuellzyklen,3,Digit2_0,{1},{1},255,
+LSE_KesselPara_Sauganlage1.sLfzDosierschnecke,120,Zeitmin_3_0,{1},{1},255,
+BrennerVerwaltung.sZwangsnachlueftenAktivVisu,1,,{1},{1},254,
+PufferPumpenManager1.sNachlaufdauerPufferladepumpe,0,ZeitMin_2,{1},{1},254,
+LSE_KesselKonfig1.sRegisterreinigungTag,0,,{1},{1},255,
+LSE_KesselKonfig1.sAschenaustragungTag,1,,{1},{1},255,
+LSE_KesselKonfig1.sO2Vorhanden,1,,{1},{1},255,
+LSE_KesselKonfig1.sSekundaerVorhanden,0,,{1},{1},255,
+LSE_KesselKonfig1.sZuendungBeiEinschub,1,,{1},{1},255,
+LSE_KesselKonfig1.sSummenStoerungHupe,0,,{1},{1},255,
+LSE_KesselKonfig1.sPelletSauger,0,,{1},{1},255,
+LSE_KesselKonfig1.sSaugzugGewichtung,1000,1/10%_3_0,{1},{1},255,
+LSE_KesselKonfig1.sZellenradDauerlauf,0,,{1},{1},255,
+LSE_KesselKonfig1.sPufferstarts,5,Digit2_0,{1},{1},255,
+LSE_KesselKonfig1.sAnzahlSchnecken,0,Stk,{1},{1},255,
+LSE_KesselKonfig1.sKaskadeVorhanden,0,,{1},{1},255,
+LSE_KesselKonfig1.sGsmVorhanden,0,,{1},{1},255,
+LSE_KesselKonfig1.sEMailVorhanden,1,,{1},{1},255,
+LSE_KesselKonfig1.sZuendeinschubGetaktet,1,,{1},{1},255,
+LSE_KesselKonfig1.sBetriebsartLichtschranke,0,,{1},{1},255,
+LSE_KesselKonfig1.sNGKLambdasondeVorhanden,1,,{1},{1},255,
+LSE_KesselKonfig1.sRegisterreinigungVorhanden,0,,{1},{1},255,
+LSE_KesselKonfig1.sMischerVorhanden,0,,{1},{1},255,
+LSE_KesselKonfig1.sBunkerraumfuehlerVorhanden,0,,{1},{1},255,
+LSE_KesselKonfig1.sSchluesselschalterVorhanden,0,,{1},{1},255,
+LSE_KesselPara_Zeiten1.sEsDauerMax,200,Zeitsek_3_0_Div10,{1},{1},255,
+LSE_KesselPara_Zeiten1.sZuendEinschub,750,Zeitsek_3_0_Div10,{1},{1},255,
+LSE_KesselPara_Zeiten1.sZuendDauer,6000,ZeitSek4_0_Div10,{1},{1},255,
+LSE_KesselPara_Zeiten1.sAnbrenndauer,600,Zeitsek_3_0_Div10,{1},{1},255,
+LSE_KesselPara_Zeiten1.sAschenaustrDauer,300,Zeitsek_3_0_Div10,{1},{1},255,
+LSE_KesselPara_Zeiten1.sAschenaustrPause,15,Zeitmin_4_0,{1},{1},255,
+LSE_KesselPara_Zeiten1.sZeitVorlueften,3,Zeitmin_3_0,{1},{1},255,
+LSE_KesselPara_Zeiten1.sZeitNachlueften,3,Zeitmin_3_0,{1},{1},255,
+LSE_KesselPara_Allgemein1.sProzFoerderSchnecke,400,1/10%_3_0,{1},{1},255,
+LSE_KesselPara_Allgemein1.sMaterialTyp,0,,{1},{1},255,
+LSE_KesselPara_Allgemein1.sMotor_Prim,1,,{1},{1},255,
+LSE_KesselPara_Allgemein1.sMotor_Sek,1,,{1},{1},255,
+LSE_KesselPara_Allgemein1.sMotor_Saug,2,,{1},{1},255,
+LSE_KesselPara_Allgemein1.sBetriebsart_Bypassp,1,,{1},{1},255,
+LSE_KesselPara_Allgemein1.sPufferpVorhanden,0,,{1},{1},255,
+HandleIPAdress1.IP1,192,Digit3_0,{1},{1},255,
+HandleIPAdress1.IP2,0,Digit3_0,{1},{1},255,
+HandleIPAdress1.IP3,2,Digit3_0,{1},{1},255,
+HandleIPAdress1.IP4,1,Digit3_0,{1},{1},255,
+HandleIPAdress1.Port,1954,Digit4_0,{1},{1},255,
+Fernwaerme1.sFernwaermeAktiv,0,,{1},{1},255,
+```
+
+## Unit descriptors observed
+
+| Descriptor | Meaning |
+|---|---|
+| `Temp3_0` | Temperature × 10 (display divides by 10 for °C) |
+| `Prozent_3_1` | Percent × 10 |
+| `1/10%_3_0` | Percent × 10 (1/10 of a percent precision) |
+| `Sek_3_0` | Seconds |
+| `Zeitsek_3_0_Div10` | Seconds × 10 |
+| `ZeitSek4_0_Div10` | Seconds × 10 (4-digit) |
+| `Zeitmin_3_0`, `Zeitmin_4_0` | Minutes |
+| `ZeitMin_2` | Minutes (2-digit) |
+| `ZeitStd_2_0`, `ZeitStd_Kask` | Hours |
+| `Digit2_0`, `Digit3_0` | Plain integer (no scaling) |
+| `Stk` | Count (Stück) |
+| `mS` | Milliseconds |
+| (empty) | Boolean (0 or 1) |

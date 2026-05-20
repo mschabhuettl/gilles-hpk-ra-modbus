@@ -1,0 +1,252 @@
+# Gilles Touch -- Home Assistant Lovelace Dashboard v0.3.0
+# Drop into Settings > Dashboards > "Raw configuration editor".
+#
+# v0.3.0: Major rework after burner cycle observation:
+#   - Brenn Phase shown as plain text on Overview
+#   - REG[62] renamed: was "Brennraumtuer Raw" -> now "Saugzug Ist"
+#   - Door detection now uses StatusBitmap=35 (REG[46]) instead of REG[62]
+#   - Most unknowns identified; "Detektivarbeit" view much smaller now
+#
+# HA generates entity IDs from `name` field, replacing umlauts as
+# a/o/u (NOT ae/oe/ue). The IDs below match what HA creates from modbus.yaml.
+
+title: Gilles Heizung
+views:
+  # ============================================================
+  - title: Übersicht
+    path: uebersicht
+    icon: mdi:fire
+    cards:
+      - type: horizontal-stack
+        cards:
+          - type: entity
+            entity: sensor.gilles_kesseltemperatur
+            name: Kessel
+            icon: mdi:thermometer
+          - type: entity
+            entity: sensor.gilles_kessel_soll_live
+            name: Soll aktiv
+            icon: mdi:thermometer-chevron-up
+          - type: entity
+            entity: sensor.gilles_o2_ist
+            name: O₂
+            icon: mdi:gas-cylinder
+
+      - type: horizontal-stack
+        cards:
+          - type: entity
+            entity: sensor.gilles_abgastemperatur
+            name: Abgas
+            icon: mdi:smoke
+          - type: entity
+            entity: sensor.gilles_rucklauftemperatur
+            name: Rücklauf
+            icon: mdi:arrow-u-down-left
+
+      - type: horizontal-stack
+        cards:
+          - type: entity
+            entity: sensor.gilles_boiler_status
+            name: Modus
+          - type: entity
+            entity: sensor.gilles_brenn_phase
+            name: Phase
+          - type: entity
+            entity: sensor.gilles_zeitprofil
+            name: Tag/Nacht
+          - type: entity
+            entity: binary_sensor.gilles_brennraumtur
+            name: Tür
+
+      - type: horizontal-stack
+        cards:
+          - type: entity
+            entity: binary_sensor.gilles_brenner_aktiv
+            name: Brenner
+          - type: entity
+            entity: binary_sensor.gilles_ascheaustragung_lauft
+            name: Aschen-Austr.
+          - type: entity
+            entity: sensor.gilles_anlagen_zustand
+            name: Anlagen-Zustand
+
+      - type: history-graph
+        title: Temperaturen 24h
+        hours_to_show: 24
+        refresh_interval: 30
+        entities:
+          - entity: sensor.gilles_kesseltemperatur
+            name: Kessel
+          - entity: sensor.gilles_kessel_soll_live
+            name: Soll Live
+          - entity: sensor.gilles_abgastemperatur
+            name: Abgas
+          - entity: sensor.gilles_rucklauftemperatur
+            name: Rücklauf
+
+      - type: history-graph
+        title: O₂ 24h
+        hours_to_show: 24
+        refresh_interval: 30
+        entities:
+          - entity: sensor.gilles_o2_ist
+          - entity: sensor.gilles_o2_min
+          - entity: sensor.gilles_o2_max
+
+  # ============================================================
+  - title: Brenner
+    path: brenner
+    icon: mdi:fan
+    cards:
+      - type: markdown
+        content: |
+          ## Drehzahlen & Verbrennung
+
+          Wenn der Brenner läuft, sollten Primär und Saugzug Werte zwischen
+          Min und Max zeigen. Sekundär bleibt 0 in dieser Anlage (Konfig).
+
+      - type: history-graph
+        title: Primärluft
+        hours_to_show: 12
+        refresh_interval: 30
+        entities:
+          - entity: sensor.gilles_primaer_ist
+            name: Primär Ist
+          - entity: sensor.gilles_primaer_min
+            name: Primär Min
+          - entity: sensor.gilles_primaer_max
+            name: Primär Max
+
+      - type: history-graph
+        title: Saugzug
+        hours_to_show: 12
+        refresh_interval: 30
+        entities:
+          - entity: sensor.gilles_saugzug_ist
+            name: Saugzug Ist
+          - entity: sensor.gilles_saugzug_min
+            name: Saugzug Min
+          - entity: sensor.gilles_saugzug_max
+            name: Saugzug Max
+
+      - type: history-graph
+        title: Sekundärluft (in dieser Anlage immer 0%)
+        hours_to_show: 12
+        refresh_interval: 30
+        entities:
+          - entity: sensor.gilles_sekundaer_ist
+          - entity: sensor.gilles_sekundaer_min
+          - entity: sensor.gilles_sekundaer_max
+
+      - type: history-graph
+        title: Abgas-Verlauf
+        hours_to_show: 12
+        refresh_interval: 30
+        entities:
+          - entity: sensor.gilles_abgastemperatur
+            name: Abgas Ist
+          - entity: sensor.gilles_abgas_soll_live
+            name: Abgas Soll Live
+          - entity: sensor.gilles_abgas_soll_min
+            name: Abgas Soll Min (Param)
+
+      - type: history-graph
+        title: Brennphase-Verlauf
+        hours_to_show: 24
+        refresh_interval: 30
+        entities:
+          - entity: sensor.gilles_brenn_phase_code
+            name: Phase-Code
+          - entity: sensor.gilles_boiler_status_code
+            name: BoilerStatus-Code
+
+  # ============================================================
+  - title: Detektivarbeit
+    path: detektiv
+    icon: mdi:magnify
+    cards:
+      - type: markdown
+        content: |
+          ## Noch unklare Register
+
+          Nach Beobachtung des vollständigen Brennzyklus sind nur noch
+          wenige Register unklar:
+
+          - **REG[56]** — Kurzer Spike beim Übergang Heizen→Ausbrennen
+          - **REG[68] Zähler** — Steigt während Heizphase
+          - **REG[72] BinarFlag** — Toggelt während Brennzyklus
+          - **REG[70, 74, 76]** — Bisher immer 0, vermutlich permanent inaktiv
+
+      - type: history-graph
+        title: REG[56] - kurzer Spike bei Heizen→Ausbrennen
+        hours_to_show: 24
+        entities:
+          - entity: sensor.gilles_reg56
+
+      - type: history-graph
+        title: REG[68] Zähler - steigt in Heizphase
+        hours_to_show: 24
+        entities:
+          - entity: sensor.gilles_zaehler
+
+      - type: history-graph
+        title: REG[72] BinarFlag - toggelt während Brennzyklus
+        hours_to_show: 24
+        entities:
+          - entity: sensor.gilles_binarflag
+
+      - type: history-graph
+        title: REG[70, 74, 76] - sollten 0 bleiben
+        hours_to_show: 24
+        entities:
+          - entity: sensor.gilles_reg70
+          - entity: sensor.gilles_reg74
+          - entity: sensor.gilles_reg76
+
+  # ============================================================
+  - title: Parameter
+    path: parameter
+    icon: mdi:cog
+    cards:
+      - type: markdown
+        content: |
+          ## Konfigurationsparameter
+          Sollwerte und Grenzen — ändern sich nur, wenn jemand am Touch
+          oder per Servicetechniker etwas umstellt.
+
+      - type: entities
+        title: Kessel-Sollwerte
+        entities:
+          - entity: sensor.gilles_kessel_soll_tag
+          - entity: sensor.gilles_kessel_soll_nacht
+          - entity: sensor.gilles_tempdiff_start
+          - entity: sensor.gilles_tempdiff_stop
+          - entity: sensor.gilles_tempdiff_teillast
+
+      - type: entities
+        title: Abgas-Sollwerte
+        entities:
+          - entity: sensor.gilles_abgas_soll_min
+          - entity: sensor.gilles_abgas_soll_max
+          - entity: sensor.gilles_abgas_soll_maxlimit
+
+      - type: entities
+        title: Lambda / Gebläse-Grenzen
+        entities:
+          - entity: sensor.gilles_primaer_min
+          - entity: sensor.gilles_primaer_max
+          - entity: sensor.gilles_sekundaer_min
+          - entity: sensor.gilles_sekundaer_max
+          - entity: sensor.gilles_saugzug_min
+          - entity: sensor.gilles_saugzug_max
+          - entity: sensor.gilles_sekundaer_start
+          - entity: sensor.gilles_o2_min
+          - entity: sensor.gilles_o2_max
+
+      - type: entities
+        title: Zeiten / Materialfluss
+        entities:
+          - entity: sensor.gilles_forderschnecke_soll
+          - entity: sensor.gilles_aschenaustragung_dauer
+          - entity: sensor.gilles_aschenaustragung_pause
+          - entity: sensor.gilles_zundung_einschub
