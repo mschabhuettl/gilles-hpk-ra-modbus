@@ -83,7 +83,7 @@ automation:
     description: Inkrementiert bei jedem Ascheaustragungs-Start
     trigger:
       - platform: state
-        entity_id: binary_sensor.gilles_ascheaustragung_lauft
+        entity_id: binary_sensor.gilles_ascheaustragung_laeuft
         from: "off"
         to: "on"
     action:
@@ -164,7 +164,7 @@ template:
         unique_id: gilles_spreizung
         state: >
           {% set k = states('sensor.gilles_kesseltemperatur') | float(0) %}
-          {% set r = states('sensor.gilles_rucklauftemperatur') | float(0) %}
+          {% set r = states('sensor.gilles_ruecklauftemperatur') | float(0) %}
           {{ (k - r) | round(1) }}
         unit_of_measurement: "°C"
         device_class: temperature
@@ -202,7 +202,7 @@ template:
       - name: "Gilles Zeit Seit Aschenaustragung"
         unique_id: gilles_zeit_seit_aschenaustragung
         state: >
-          {% set last = states.binary_sensor.gilles_ascheaustragung_lauft.last_changed %}
+          {% set last = states.binary_sensor.gilles_ascheaustragung_laeuft.last_changed %}
           {% if last %}
             {{ ((now() - last).total_seconds() / 60) | round(0) }}
           {% else %}
@@ -277,7 +277,7 @@ template:
         unique_id: gilles_pellet_fluss_aktuell
         state: >
           {% set phase = states('sensor.gilles_brenn_phase_code') | int(0) %}
-          {% set soll = states('sensor.gilles_forderschnecke_soll') | float(0) %}
+          {% set soll = states('sensor.gilles_foerderschnecke_soll') | float(0) %}
           {% if phase in [6, 7] %}
             {{ (soll / 100 * 3.5) | round(3) }}
           {% else %}
@@ -381,7 +381,7 @@ sensor:
   - platform: history_stats
     name: "Gilles Tuer offen heute Dauer"
     unique_id: gilles_tuer_offen_heute_dauer
-    entity_id: binary_sensor.gilles_brennraumtur
+    entity_id: binary_sensor.gilles_brennraumtuer
     state: "on"
     type: time
     start: "{{ today_at('00:00') }}"
@@ -390,7 +390,7 @@ sensor:
   - platform: history_stats
     name: "Gilles Tuer offen heute Anzahl"
     unique_id: gilles_tuer_offen_heute_anzahl
-    entity_id: binary_sensor.gilles_brennraumtur
+    entity_id: binary_sensor.gilles_brennraumtuer
     state: "on"
     type: count
     start: "{{ today_at('00:00') }}"

@@ -35,7 +35,7 @@ views:
             name: Abgas
             icon: mdi:smoke
           - type: entity
-            entity: sensor.gilles_rucklauftemperatur
+            entity: sensor.gilles_ruecklauftemperatur
             name: Rücklauf
             icon: mdi:arrow-u-down-left
           - type: entity
@@ -55,7 +55,7 @@ views:
             entity: sensor.gilles_zeitprofil
             name: Tag/Nacht
           - type: entity
-            entity: binary_sensor.gilles_brennraumtur
+            entity: binary_sensor.gilles_brennraumtuer
             name: Tür
 
       - type: horizontal-stack
@@ -64,7 +64,7 @@ views:
             entity: binary_sensor.gilles_brenner_aktiv
             name: Brenner
           - type: entity
-            entity: binary_sensor.gilles_ascheaustragung_lauft
+            entity: binary_sensor.gilles_ascheaustragung_laeuft
             name: Aschen-Austr.
           - type: entity
             entity: sensor.gilles_anlagen_zustand
@@ -81,7 +81,7 @@ views:
             name: Soll Live
           - entity: sensor.gilles_abgastemperatur
             name: Abgas
-          - entity: sensor.gilles_rucklauftemperatur
+          - entity: sensor.gilles_ruecklauftemperatur
             name: Rücklauf
 
       - type: history-graph
@@ -384,7 +384,7 @@ views:
       - type: entities
         title: Zeiten / Materialfluss
         entities:
-          - entity: sensor.gilles_forderschnecke_soll
+          - entity: sensor.gilles_foerderschnecke_soll
           - entity: sensor.gilles_aschenaustragung_dauer
           - entity: sensor.gilles_aschenaustragung_pause
-          - entity: sensor.gilles_zundung_einschub
+          - entity: sensor.gilles_zuendung_einschub
