@@ -74,10 +74,24 @@
     "starts_today": "sensor.gilles_brennstarts_heute",
     "starts_week": "sensor.gilles_brennstarts_woche",
     "starts_month": "sensor.gilles_brennstarts_monat",
-    "ash_today": "sensor.gilles_ascheaustragungen_heute"
+    "ash_today": "sensor.gilles_ascheaustragungen_heute",
+    "diagnose_brennstarts_warnschwelle": "input_number.gilles_brennstarts_warnschwelle",
+    "diagnose_zuenddauer_warnschwelle": "input_number.gilles_zuenddauer_warnschwelle",
+    "diagnose_temperaturanstieg_mindestwert": "input_number.gilles_temperaturanstieg_mindestwert",
+    "diagnose_kesseltemperatur_bei_brennstart": "input_number.gilles_kesseltemperatur_bei_brennstart",
+    "diagnose_letzter_brennstart": "input_datetime.gilles_letzter_brennstart",
+    "diagnose_brennstarts_24h": "sensor.gilles_brennstarts_24h",
+    "diagnose_brennstart_beobachtet": "input_boolean.gilles_brennstart_beobachtet",
+    "diagnose_messwerte_unplausibel": "binary_sensor.gilles_messwerte_unplausibel",
+    "diagnose_haeufige_brennstarts": "binary_sensor.gilles_haeufige_brennstarts",
+    "diagnose_startphase_minuten": "sensor.gilles_startphase_minuten",
+    "diagnose_startphase_zu_lang": "binary_sensor.gilles_startphase_zu_lang",
+    "diagnose_temperaturanstieg_fehlt": "binary_sensor.gilles_temperaturanstieg_fehlt"
   },
   "automations": {
     "Gilles Brennstarts erfassen": "automation.gilles_brennstarts_erfassen",
-    "Gilles Ascheaustragungen erfassen": "automation.gilles_ascheaustragungen_erfassen"
+    "Gilles Ascheaustragungen erfassen": "automation.gilles_ascheaustragungen_erfassen",
+    "Gilles Brennstart Diagnosebasis": "automation.gilles_brennstart_diagnosebasis",
+    "Gilles Registerbeobachtung im Brennbetrieb": "automation.gilles_registerbeobachtung_im_brennbetrieb"
   }
 }

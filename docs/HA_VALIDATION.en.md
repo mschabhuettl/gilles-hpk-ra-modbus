@@ -40,3 +40,7 @@ The scripts use `device_id=`, which replaced `slave=` in [PyModbus 3.10](https:/
 ## Open questions
 
 The boiler was in cold standby during this validation. A natural combustion cycle and a longer stability assessment remain outstanding. REG62 scaling especially needs another synchronized Touch comparison: the earlier description and the HA scale were not consistent with one door observation. The existing scale remains until that comparison. REG56, REG68 and REG72 retain unknown semantics; earlier hypotheses are not promoted to confirmed measurements.
+
+## Operating-diagnostics follow-up
+
+On 2026-09-07, reference validation passed with 35 native helpers, four automations and 78 dashboard references. `homeassistant.check_config` succeeded. Both counter statistics units were consistent. Fourteen verified orphan entries were removed without purging Recorder. The new startup diagnostics have not yet encountered a real firing cycle during the observed standby period.

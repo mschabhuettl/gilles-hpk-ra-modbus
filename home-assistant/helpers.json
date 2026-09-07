@@ -425,6 +425,172 @@
         "helper_type": "utility_meter",
         "name": "Gilles Ascheaustragungen heute"
       }
+    },
+    {
+      "key": "diagnose_brennstarts_warnschwelle",
+      "entity_id": "input_number.gilles_brennstarts_warnschwelle",
+      "parameters": {
+        "helper_type": "input_number",
+        "icon": "mdi:counter",
+        "initial": 10,
+        "max_value": 100,
+        "min_value": 1,
+        "mode": "box",
+        "name": "Gilles Brennstarts Warnschwelle",
+        "step": 1
+      }
+    },
+    {
+      "key": "diagnose_zuenddauer_warnschwelle",
+      "entity_id": "input_number.gilles_zuenddauer_warnschwelle",
+      "parameters": {
+        "helper_type": "input_number",
+        "icon": "mdi:timer-alert",
+        "initial": 20,
+        "max_value": 120,
+        "min_value": 5,
+        "mode": "box",
+        "name": "Gilles Zuenddauer Warnschwelle",
+        "step": 1,
+        "unit_of_measurement": "min"
+      }
+    },
+    {
+      "key": "diagnose_temperaturanstieg_mindestwert",
+      "entity_id": "input_number.gilles_temperaturanstieg_mindestwert",
+      "parameters": {
+        "helper_type": "input_number",
+        "icon": "mdi:thermometer-chevron-up",
+        "initial": 2,
+        "max_value": 20,
+        "min_value": 0.5,
+        "mode": "box",
+        "name": "Gilles Temperaturanstieg Mindestwert",
+        "step": 0.5,
+        "unit_of_measurement": "°C"
+      }
+    },
+    {
+      "key": "diagnose_kesseltemperatur_bei_brennstart",
+      "entity_id": "input_number.gilles_kesseltemperatur_bei_brennstart",
+      "parameters": {
+        "helper_type": "input_number",
+        "icon": "mdi:thermometer",
+        "max_value": 150,
+        "min_value": -20,
+        "mode": "box",
+        "name": "Gilles Kesseltemperatur bei Brennstart",
+        "step": 0.1,
+        "unit_of_measurement": "°C"
+      }
+    },
+    {
+      "key": "diagnose_letzter_brennstart",
+      "entity_id": "input_datetime.gilles_letzter_brennstart",
+      "parameters": {
+        "has_date": true,
+        "has_time": true,
+        "helper_type": "input_datetime",
+        "name": "Gilles Letzter Brennstart"
+      }
+    },
+    {
+      "key": "diagnose_brennstarts_24h",
+      "entity_id": "sensor.gilles_brennstarts_24h",
+      "parameters": {
+        "config": {
+          "entity_id": "sensor.gilles_brennstarts_erfasst",
+          "keep_last_sample": true,
+          "max_age": {
+            "hours": 24
+          },
+          "percentile": 50,
+          "precision": 0,
+          "sampling_size": 10000,
+          "state_characteristic": "sum_differences_nonnegative"
+        },
+        "helper_type": "statistics",
+        "name": "Gilles Brennstarts 24h"
+      }
+    },
+    {
+      "key": "diagnose_brennstart_beobachtet",
+      "entity_id": "input_boolean.gilles_brennstart_beobachtet",
+      "parameters": {
+        "helper_type": "input_boolean",
+        "name": "Gilles Brennstart beobachtet"
+      }
+    },
+    {
+      "key": "diagnose_messwerte_unplausibel",
+      "entity_id": "binary_sensor.gilles_messwerte_unplausibel",
+      "parameters": {
+        "config": {
+          "device_class": "problem",
+          "next_step_id": "binary_sensor",
+          "state": "{{ is_state('binary_sensor.gilles_messdaten_verfuegbar','on') and (not (-20 <= states('sensor.gilles_kesseltemperatur')|float(0) <= 120) or not (-20 <= states('sensor.gilles_abgastemperatur')|float(0) <= 400) or not (-20 <= states('sensor.gilles_rucklauftemperatur')|float(0) <= 120)) }}"
+        },
+        "helper_type": "template",
+        "name": "Gilles Messwerte unplausibel"
+      }
+    },
+    {
+      "key": "diagnose_haeufige_brennstarts",
+      "entity_id": "binary_sensor.gilles_haeufige_brennstarts",
+      "parameters": {
+        "config": {
+          "additional_options": {
+            "availability": "{{ is_number(states('sensor.gilles_brennstarts_24h')) }}"
+          },
+          "device_class": "problem",
+          "next_step_id": "binary_sensor",
+          "state": "{{ states('sensor.gilles_brennstarts_24h')|float(0) > states('input_number.gilles_brennstarts_warnschwelle')|float(10) }}"
+        },
+        "helper_type": "template",
+        "name": "Gilles Haeufige Brennstarts"
+      }
+    },
+    {
+      "key": "diagnose_startphase_minuten",
+      "entity_id": "sensor.gilles_startphase_minuten",
+      "parameters": {
+        "config": {
+          "additional_options": {
+            "availability": "{{ is_state('input_boolean.gilles_brennstart_beobachtet','on') and has_value('sensor.gilles_brenn_phase_code') }}"
+          },
+          "next_step_id": "sensor",
+          "state": "{{ ((as_timestamp(now()) - as_timestamp(states('input_datetime.gilles_letzter_brennstart'),as_timestamp(now())))/60)|round(1) if states('sensor.gilles_brenn_phase_code') in ['1','3','5'] else 0 }}",
+          "unit_of_measurement": "min"
+        },
+        "helper_type": "template",
+        "name": "Gilles Startphase Minuten"
+      }
+    },
+    {
+      "key": "diagnose_startphase_zu_lang",
+      "entity_id": "binary_sensor.gilles_startphase_zu_lang",
+      "parameters": {
+        "config": {
+          "device_class": "problem",
+          "next_step_id": "binary_sensor",
+          "state": "{{ states('sensor.gilles_startphase_minuten')|float(0) > states('input_number.gilles_zuenddauer_warnschwelle')|float(20) }}"
+        },
+        "helper_type": "template",
+        "name": "Gilles Startphase zu lang"
+      }
+    },
+    {
+      "key": "diagnose_temperaturanstieg_fehlt",
+      "entity_id": "binary_sensor.gilles_temperaturanstieg_fehlt",
+      "parameters": {
+        "config": {
+          "device_class": "problem",
+          "next_step_id": "binary_sensor",
+          "state": "{{ is_state('input_boolean.gilles_brennstart_beobachtet','on') and states('sensor.gilles_brenn_phase_code') in ['6','7'] and as_timestamp(now()) - as_timestamp(states('input_datetime.gilles_letzter_brennstart'),as_timestamp(now())) > 1800 and states('sensor.gilles_kesseltemperatur')|float(0) - states('input_number.gilles_kesseltemperatur_bei_brennstart')|float(0) < states('input_number.gilles_temperaturanstieg_mindestwert')|float(2) and is_state('binary_sensor.gilles_messdaten_verfuegbar','on') }}"
+        },
+        "helper_type": "template",
+        "name": "Gilles Temperaturanstieg fehlt"
+      }
     }
   ]
 }

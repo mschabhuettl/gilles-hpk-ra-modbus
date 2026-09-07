@@ -4,6 +4,15 @@
 
 Alle nennenswerten Erkenntnisse während des Reverse Engineerings der Gilles-Touch-Modbus-Map.
 
+## [0.5.0] — 2026-09-07 — Betriebsdiagnose und Bereinigung
+
+- 14 verwaiste Registereinträge nach vollständiger Suche in aktiven Helfern, Automationen, Dashboards, YAML und AppDaemon entfernt. Recorder-Historien wurden nicht gelöscht.
+- Native Helfer von 23 auf 35 und Automationen von zwei auf vier erweitert. Hinweise für häufige beobachtete Starts, lange Startphase, fehlenden Kesseltemperaturanstieg und unplausible Temperaturen ergänzt; Schwellen sind in HA einstellbar.
+- Startdiagnose nur nach direkt beobachtetem Übergang 0→1; Neustart, Standby oder Datenlücke verwerfen die laufende Diagnose. Startphase umfasst Vorlüften und beide Zündphasen. Temperaturvergleich gilt erst nach 30 Minuten in Phase 6 oder 7.
+- Registerstände während regulärer Brennläufe werden alle fünf Minuten und bei Phasenwechseln im Aktivitätenprotokoll festgehalten. Ein erneuter synchronisierter Touch-Abgleich ist weiterhin offen; kein Brennlauf wurde ausgelöst und keine Registersemantik geändert.
+- Zähler-Statistikeinheiten `Starts` und `Vorgänge` ohne Konflikt geprüft. TCP-Maßnahmen aus 0.4.0 beibehalten; kein neuer Langzeitnachweis behauptet.
+- Live-Konfiguration geprüft; Offline-Konsistenzprüfung: 40 Rohsensoren, 49 YAML-Entitäten, 35 Helfer, vier Automationen, 78 Dashboard-Verweise. Neue Brenndiagnosen konnten wegen Standby noch nicht im Brennbetrieb geprüft werden.
+
 ## [0.4.0] — 2026-09-07 — Home Assistant abgeglichen
 
 - TCP-Leerlaufgrenze an der Referenzanlage zweimal gemessen: 3,010 bzw. 3,060 Sekunden. REG42 wird in HA nun alle zwei Sekunden gelesen; 200 ms Abstand zwischen einzelnen Anfragen. Die kurze Nachprüfung war lückenlos, ein Langzeitnachweis steht aus.

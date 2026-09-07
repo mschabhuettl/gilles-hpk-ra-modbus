@@ -10,8 +10,8 @@ These files reproduce the behavior validated on the reference installation on 7 
 |---|---|
 | `modbus.yaml` | HA package: 40 raw sensors and seven state templates with availability checks |
 | `gilles_derived.yaml` | HA package: timestamps of the last directly observed start and ash discharge |
-| `helpers.json` | 23 native helper definitions for the HA UI or Home Assistant MCP |
-| `automations.yaml` | Two native counter automations to create or update individually |
+| `helpers.json` | 35 native helper definitions for the HA UI or Home Assistant MCP |
+| `automations.yaml` | Four native counter/diagnostic automations to create or update individually |
 | `entity_ids.json` | Entity IDs used by the examples and their YAML `unique_id` mapping |
 | `dashboard.yaml` | Overview, burner, operating statistics, investigation and parameter views |
 
@@ -33,7 +33,7 @@ The helper JSON is **not an HA YAML package** or a `.storage` export. Installing
 5. Create helpers from `helpers.json` **in list order** using Settings → Devices & services → Helpers. `parameters.helper_type` selects the type, `name` its name and `config` its fields. For templates, `next_step_id` selects sensor or binary sensor, while `additional_options.availability` is the availability template. Map `max_age`/`duration` to the relevant hours/days fields. Counter fields `initial`, `step`, `restore` and `icon` sit directly under `parameters`.
 
    With Home Assistant MCP, read its current best practices and pass each helper's `parameters` to `ha_config_set_helper(action="create", ...)`. `key` and `entity_id` are reference metadata, not creation arguments. Resolve and update existing helpers instead of creating duplicates. Set the `Starts` or `Vorgänge` units on initial creation.
-6. Create the two automations individually in the HA automation editor using `automations.yaml`. Preserve the identity when updating an existing automation. Do **not** replace the installation's entire `automations.yaml` file. Both automations only increment HA counters.
+6. Create the four automations individually in the HA automation editor using `automations.yaml`. Preserve the identity when updating an existing automation. Do **not** replace the installation's entire `automations.yaml` file. The counter automations only increment HA counters.
 7. Create a dashboard or update the existing Gilles dashboard using `dashboard.yaml` in the raw configuration editor. Adjust the displayed installation date when deploying on another system. The reference dashboard uses URL path `dashboard-gilles`.
 
 ## Migration from the previous example
@@ -60,3 +60,11 @@ python3 scripts/validate_config.py
 ```
 
 Back up the affected HA files and UI configurations before deployment. Check configuration and entity references, reload the relevant integrations and inspect real readings afterwards. A structurally valid dashboard is not a visual check; the initial validation had no screenshot feature available.
+
+## Added operating diagnostics (0.5.0)
+
+The rolling 24-hour buffer of observed counter changes provides an advisory start-frequency indicator. Default thresholds are more than 10 observed starts, startup longer than 20 minutes, and less than 2 °C boiler temperature rise after 30 minutes in phases 6 or 7. These are editable review thresholds, not manufacturer fault limits. Missing observations are never invented.
+
+The diagnostic cycle is invalidated on restart, standby or missing phase data. Startup includes pre-purge and both ignition phases; burnout does not trigger the temperature-rise advisory. The two additional automations update HA helpers and write activity-log snapshots only. A synchronized Touch reading is still required to validate unclear register meanings or scaling.
+
+The reference installation removed the orphaned REG20, 42, 46, 50, 52, 58, 60, 62, 64, 66, 68, 72, 78 and `gilles_brennraumtur_raw` entries after checking all consumers. Active renamed sensors and Recorder history were preserved. Check each installation's own references before cleanup.

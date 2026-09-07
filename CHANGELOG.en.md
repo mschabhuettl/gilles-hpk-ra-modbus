@@ -4,6 +4,15 @@
 
 All notable findings during the reverse engineering of the Gilles Touch Modbus map.
 
+## [0.5.0] — 2026-09-07 — Operating diagnostics and cleanup
+
+- Removed 14 orphaned register entries after checking active helpers, automations, dashboards, YAML and AppDaemon. Recorder history was retained.
+- Expanded native helpers from 23 to 35 and automations from two to four. Added advisory flags for frequent observed starts, a long startup phase, insufficient boiler temperature rise and implausible temperatures; thresholds remain editable in HA.
+- Startup diagnostics require an observed 0→1 transition. Restart, standby or missing phase data invalidate the current diagnostic cycle. Startup includes pre-purge and both ignition phases; temperature rise is checked after 30 minutes only in phases 6 and 7.
+- During normal firing, register snapshots are recorded in the activity log every five minutes and at phase transitions. Synchronized Touch verification remains pending; no firing cycle was initiated and no register semantics changed.
+- Verified the `Starts` and `Vorgänge` statistics units without conflicts. Kept the TCP mitigation from 0.4.0; no new long-term reliability claim.
+- Live HA configuration check and offline reference validation passed: 40 raw sensors, 49 YAML entities, 35 helpers, four automations and 78 dashboard references. New firing diagnostics remain untested during combustion because the boiler was in standby.
+
 ## [0.4.0] — 2026-09-07 — Home Assistant synchronized
 
 - Measured the reference installation's TCP idle limit twice: 3.010 and 3.060 seconds. HA now reads REG42 every two seconds with 200 ms spacing between requests. The short follow-up had no gaps; long-term validation remains open.

@@ -40,3 +40,7 @@ Die Skripte verwenden `device_id=`, das seit [PyModbus 3.10](https://pymodbus.re
 ## Offen
 
 Die Anlage war bei dieser Prüfung im kalten Standby. Ein natürlicher Brennzyklus und eine längere Stabilitätsauswertung stehen aus. Insbesondere die Skalierung von REG62 muss erneut mit dem Touch abgeglichen werden: Die frühere Beschreibung und die HA-Skalierung passen bei einer Türbeobachtung nicht eindeutig zusammen. Bis zur synchronisierten Messung bleibt die vorhandene Skalierung erhalten. REG56, REG68 und REG72 behalten ihre unbekannte Semantik; frühere Vermutungen werden nicht zu bestätigten Messgrößen aufgewertet.
+
+## Nachprüfung Betriebsdiagnose
+
+Am 07.09.2026 wurden 35 native Helfer, vier Automationen und 78 Dashboard-Verweise konsistent geprüft. `homeassistant.check_config` war erfolgreich. Die beiden Zähler-Statistikeinheiten sind konfliktfrei. 14 geprüfte Waisen wurden ohne Recorder-Löschung entfernt. Die neue Startdiagnose war im aktuellen Standby noch keinem realen Brennlauf ausgesetzt.

@@ -10,8 +10,8 @@ Diese Dateien entsprechen funktional dem am 7. September 2026 geprüften Stand d
 |---|---|
 | `modbus.yaml` | HA-Paket: 40 Rohsensoren und sieben Zustandsvorlagen mit Verfügbarkeitsprüfung |
 | `gilles_derived.yaml` | HA-Paket: Zeitstempel des letzten direkt beobachteten Starts und der letzten Ascheaustragung |
-| `helpers.json` | 23 native Helfer: Definitionen für die HA-Oberfläche bzw. Home Assistant MCP |
-| `automations.yaml` | Zwei native Zählautomationen; einzeln in der Automationsverwaltung anlegen oder aktualisieren |
+| `helpers.json` | 35 native Helfer: Definitionen für die HA-Oberfläche bzw. Home Assistant MCP |
+| `automations.yaml` | Vier native Zähl-/Diagnoseautomationen; einzeln in der Automationsverwaltung anlegen oder aktualisieren |
 | `entity_ids.json` | Verwendete Entity-IDs und Zuordnung zu den YAML-`unique_id` |
 | `dashboard.yaml` | Dashboard mit Übersicht, Brenner, Betriebsstatistik, Detektivarbeit und Parametern |
 
@@ -33,7 +33,7 @@ Die JSON-Helferdefinition ist **kein HA-YAML-Paket** und kein `.storage`-Export.
 5. Die Helfer aus `helpers.json` **in Listenreihenfolge** anlegen. In HA: Einstellungen → Geräte & Dienste → Helfer. `parameters.helper_type` bestimmt den Helfertyp, `name` den Namen und `config` die Fachfelder. Beim Template-Helfer wählt `next_step_id` Sensor oder Binärsensor; `additional_options.availability` gehört zur Verfügbarkeitsvorlage. Zeitfenster wie `max_age` bzw. `duration` in die entsprechenden Stunden-/Tagesfelder übertragen. Beim Counter stehen `initial`, `step`, `restore` und `icon` direkt unter `parameters`.
 
    Mit Home Assistant MCP können die jeweiligen `parameters` nach Lesen der aktuellen Best Practices als Argumente an `ha_config_set_helper(action="create", ...)` übergeben werden. `key` und `entity_id` sind Referenzmetadaten, keine Create-Argumente. Bei bestehenden Helfern zuerst den vorhandenen Eintrag auflösen und aktualisieren; nicht erneut anlegen. Einheiten `Starts` bzw. `Vorgänge` bereits beim Erstellen setzen.
-6. Die zwei Automationen aus `automations.yaml` einzeln in der HA-Automationsverwaltung anlegen. Beim Bearbeiten vorhandener Automationen deren Identität beibehalten. Die Datei ersetzt **nicht** die gesamte bestehende `automations.yaml`. Beide Automationen schreiben ausschließlich HA-Zähler.
+6. Die vier Automationen aus `automations.yaml` einzeln in der HA-Automationsverwaltung anlegen. Beim Bearbeiten vorhandener Automationen deren Identität beibehalten. Die Datei ersetzt **nicht** die gesamte bestehende `automations.yaml`. Die Automationen schreiben ausschließlich HA-Zähler, Diagnose-Helfer und das Aktivitätenprotokoll; keine Kesselregister.
 7. Ein Dashboard erstellen bzw. das bestehende Gilles-Dashboard im Rohkonfigurationseditor mit `dashboard.yaml` aktualisieren. Das dort genannte Einrichtungsdatum gehört zur Referenzanlage; bei einer neuen Installation anpassen. Die Referenz verwendet den URL-Pfad `dashboard-gilles`.
 
 ## Migration vom bisherigen Beispiel
@@ -60,3 +60,11 @@ python3 scripts/validate_config.py
 ```
 
 Vor Live-Änderungen die betroffenen HA-Dateien und UI-Konfigurationen sichern. Nach einem Update Konfiguration und Entity-Verweise prüfen, gezielt neu laden und echte Messwerte kontrollieren. Ein syntaktisch gültiges Dashboard ersetzt keine Sichtprüfung; die initiale Prüfung hatte keine Screenshot-Funktion verfügbar.
+
+## Ergänzte Betriebsdiagnose (0.5.0)
+
+- Die letzten 24 Stunden beobachteter Zähleränderungen dienen als Hinweis auf häufige Starts. Messlücken und Ereignisse außerhalb der Beobachtung werden nicht ergänzt.
+- Voreinstellungen: mehr als 10 beobachtete Starts/24 h, Startphase über 20 Minuten, weniger als 2 °C Anstieg nach 30 Minuten im Anbrenn-/Heizbetrieb. Dies sind einstellbare Prüfschwellen, keine vom Hersteller bestätigten Fehlergrenzen.
+- Standby und Datenlücken verwerfen den für eine laufende Startdiagnose gespeicherten Beginn. Ausbrennen wird nicht als fehlender Temperaturanstieg bewertet.
+- Die Registerbeobachtung speichert Werte mit Zeitpunkt im Aktivitätenprotokoll. Eine zeitgleiche Touch-Anzeige ist weiterhin erforderlich, um unklare Register oder Skalierungen zu bestätigen.
+- In der Referenz wurden 14 verwaiste Einträge entfernt: REG20, 42, 46, 50, 52, 58, 60, 62, 64, 66, 68, 72, 78 sowie `gilles_brennraumtur_raw`. Die aktiven, umbenannten Rohsensoren und ihre Messhistorien bleiben erhalten. Andere Installationen müssen ihre Verweise vor einer vergleichbaren Bereinigung selbst prüfen.

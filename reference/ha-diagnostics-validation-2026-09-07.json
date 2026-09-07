@@ -1,0 +1,18 @@
+{
+  "home_assistant_version": "2026.9.1",
+  "date": "2026-09-07",
+  "raw_sensors": 40,
+  "yaml_entities": 49,
+  "native_helpers": 35,
+  "native_automations": 4,
+  "dashboard_entity_references": 78,
+  "orphaned_entries_removed": 14,
+  "recorder_history_purged": false,
+  "configuration_check": "passed",
+  "counter_unit_conflicts": [],
+  "boiler_state_during_validation": "standby",
+  "combustion_validation": "pending",
+  "touch_register_validation": "pending",
+  "modbus_writes": false,
+  "dashboard_screenshot": "unavailable: feature disabled"
+}

@@ -56,7 +56,7 @@ Mit der HA-Integration auf einen Blick sichtbar:
    python3 scripts/gilles_snapshot.py <deine-boiler-ip>
    ```
 4. **Werte mit** [docs/REGISTER_MAP.md](docs/REGISTER_MAP.md) **vergleichen**
-5. **Home Assistant einrichten/aktualisieren:** [home-assistant/README.md](home-assistant/README.md) erklärt beide Pakete, die 23 nativen Helfer, zwei Zählautomationen und das Dashboard einschließlich Entity-IDs und Migration.
+5. **Home Assistant einrichten/aktualisieren:** [home-assistant/README.md](home-assistant/README.md) erklärt beide Pakete, die 35 nativen Helfer, vier Zähl-/Diagnoseautomationen und das Dashboard einschließlich Entity-IDs und Migration.
 
 ## Aktueller HA-Stand und Entwicklungsablauf
 

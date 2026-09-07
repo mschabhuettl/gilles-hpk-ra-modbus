@@ -1,6 +1,3 @@
-# Current five-view dashboard; install the packages AND native helpers first.
-# Existing entity IDs are preserved. See README.md and entity_ids.json.
-# The displayed start date refers to the reference installation; adjust on a new install.
 title: Gilles Heizung
 views:
 - cards:
@@ -9,8 +6,8 @@ views:
     name: Alle 40 Messwerte
     type: tile
   - card:
-      content: '**Messdaten unvollständig.** Mindestens ein Wert ist derzeit nicht verfügbar. Die betroffenen Zustände
-        und Messwerte können erst nach Wiederherstellung der Verbindung beurteilt werden.'
+      content: '**Messdaten unvollständig.** Mindestens ein Wert ist derzeit nicht verfügbar. Die betroffenen Zustände und
+        Messwerte können erst nach Wiederherstellung der Verbindung beurteilt werden.'
       type: markdown
     conditions:
     - condition: state
@@ -98,8 +95,8 @@ views:
   - content: '## Drehzahlen & Verbrennung
 
 
-      Die Zuordnung und Skalierung der als „vermutet“ bezeichneten Werte muss noch am Touch-Display abgeglichen
-      werden. Sekundärluft war in den bisherigen Beobachtungen 0; daraus folgt keine feste Anlagenfunktion.'
+      Die Zuordnung und Skalierung der als „vermutet“ bezeichneten Werte muss noch am Touch-Display abgeglichen werden. Sekundärluft
+      war in den bisherigen Beobachtungen 0; daraus folgt keine feste Anlagenfunktion.'
     type: markdown
   - entities:
     - entity: sensor.gilles_primar_ist_vermutet
@@ -158,9 +155,9 @@ views:
   - content: '## Erfasster Betrieb
 
 
-      Start- und Aschezähler erfassen Ereignisse seit **7. September 2026**. Der erste Tag, die erste Woche und
-      der erste Monat sind deshalb unvollständig. Messlücken werden nicht aufgefüllt. Pelletverbrauch und Wirkungsgrad
-      benötigen zusätzliche Messdaten und Kalibrierung.'
+      Start- und Aschezähler erfassen Ereignisse seit **7. September 2026**. Der erste Tag, die erste Woche und der erste
+      Monat sind deshalb unvollständig. Messlücken werden nicht aufgefüllt. Pelletverbrauch und Wirkungsgrad benötigen zusätzliche
+      Messdaten und Kalibrierung.'
     type: markdown
   - entities:
     - entity: binary_sensor.gilles_messdaten_verfuegbar
@@ -185,8 +182,8 @@ views:
     title: Brennstarts · direkt beobachtet
     type: entities
   - card:
-      content: '**Noch kein Brennstart erfasst.** Der Zeitpunkt erscheint nach dem nächsten beobachteten Wechsel
-        von Standby zu Vorbelüftung.'
+      content: '**Noch kein Brennstart erfasst.** Der Zeitpunkt erscheint nach dem nächsten beobachteten Wechsel von Standby
+        zu Vorbelüftung.'
       type: markdown
     conditions:
     - condition: state
@@ -223,8 +220,8 @@ views:
     show_header_toggle: false
     title: Betriebszeiten · bekannte Phasen
     type: entities
-  - content: Die Brennzyklus-Zeit umfasst Vorbelüftung, Zünden, Heizen, Ausbrennen und Nachlauf. Sie ist kein Nachweis
-      einer durchgehenden Flamme. Historische Zeiten berücksichtigen nur vorhandene Aufzeichnungen.
+  - content: Die Brennzyklus-Zeit umfasst Vorbelüftung, Zünden, Heizen, Ausbrennen und Nachlauf. Sie ist kein Nachweis einer
+      durchgehenden Flamme. Historische Zeiten berücksichtigen nur vorhandene Aufzeichnungen.
     type: markdown
   - entities:
     - entity: sensor.gilles_kessel_24h_min
@@ -274,6 +271,28 @@ views:
       - unknown
       - unavailable
     type: conditional
+  - entities:
+    - sensor.gilles_brennstarts_24h
+    - binary_sensor.gilles_haeufige_brennstarts
+    - sensor.gilles_startphase_minuten
+    - binary_sensor.gilles_startphase_zu_lang
+    - binary_sensor.gilles_temperaturanstieg_fehlt
+    - binary_sensor.gilles_messwerte_unplausibel
+    show_header_toggle: false
+    title: Brennstart-Diagnose
+    type: entities
+  - entities:
+    - input_number.gilles_brennstarts_warnschwelle
+    - input_number.gilles_zuenddauer_warnschwelle
+    - input_number.gilles_temperaturanstieg_mindestwert
+    show_header_toggle: false
+    title: Einstellbare Hinweisschwellen
+    type: entities
+  - content: Die Startdiagnose gilt nur für direkt beobachtete Starts von 0 auf 1. Neustart oder Datenlücke verwerfen die
+      laufende Diagnose. Die Startphase schließt Vorlüften ein; der Temperaturvergleich erfolgt ab 30 Minuten im Anbrenn-
+      oder Heizbetrieb. Ein Hinweis ist eine Aufforderung zur Prüfung, keine bestätigte Kesselstörung. Während regulärer Brennläufe
+      erscheinen alle fünf Minuten und bei Phasenwechseln Registerstände im Aktivitätenprotokoll für den späteren Touch-Abgleich.
+    type: markdown
   icon: mdi:chart-line
   path: statistik
   title: Betriebsstatistik

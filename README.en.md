@@ -56,7 +56,7 @@ With the HA integration you can monitor:
    python3 scripts/gilles_snapshot.py <your-boiler-ip>
    ```
 4. **Compare to** [docs/REGISTER_MAP.en.md](docs/REGISTER_MAP.en.md) — your values should look similar to ours
-5. **Install/update Home Assistant:** follow [home-assistant/README.en.md](home-assistant/README.en.md). It covers both packages, 23 native helpers, two counter automations and the dashboard, including entity IDs and migration.
+5. **Install/update Home Assistant:** follow [home-assistant/README.en.md](home-assistant/README.en.md). It covers both packages, 35 native helpers, four counter/diagnostic automations and the dashboard, including entity IDs and migration.
 
 ## Current HA status and development workflow
 
