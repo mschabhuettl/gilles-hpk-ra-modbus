@@ -30,7 +30,8 @@ The Gilles Touch controller used in HPK-RA boilers is based on **industrial-grad
   - Map exposes exactly 40 logical values (80 16-bit registers) starting at address 0. Higher addresses return no response.
   - The TCP connection is closed after each Modbus exception. Clients must reconnect.
   - Minimum count for reads appears to be 2 registers (1-register reads return "Illegal Data Value" exception).
-  - Default pymodbus retry count of 3 can put the controller into a "stuck" state — set `retries=1`.
+  - The reference installation closes TCP after about three idle seconds (measured 2026-09-07). HA therefore reads REG42 every two seconds.
+  - The Python logger sets `retries=1` directly on its client and reconnects per reading. HA 2026.9.1 sets retries internally to three; YAML `retries: 1` does not override it. [Evidence and limitations](HA_VALIDATION.en.md).
 
 ## Firmware versions
 

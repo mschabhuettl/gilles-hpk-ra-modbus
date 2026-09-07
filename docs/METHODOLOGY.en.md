@@ -135,3 +135,7 @@ With the observed burner cycle, ~82% of the map is understood. Remaining:
 - **REG[46] StatusBitmap**: full bitfield schema
 
 Registers **REG[70, 74, 76]** will likely stay 0 forever in this installation — reserved for subsystems not present (cascade master, mixers, district heating, additional HZS modules).
+
+## Phase 9 — Home Assistant and connection lifetime (2026-09-07)
+
+Comparing the repository, HA packages, entity registry and dashboard exposed rejected packages, historical naming differences and hidden data gaps. Two read-only TCP experiments showed an idle limit of about three seconds; a control experiment reading every two seconds kept the same connection open beyond that limit. [HA_VALIDATION.en.md](HA_VALIDATION.en.md) records the cleanup and its limitations. It does not replace a new burner-cycle observation or confirm additional register meanings.

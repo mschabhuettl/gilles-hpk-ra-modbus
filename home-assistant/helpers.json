@@ -1,0 +1,430 @@
+{
+  "schema_version": 1,
+  "validated_home_assistant_version": "2026.9.1",
+  "description": "Native helper creation recipes in dependency order; not an HA YAML package or .storage export.",
+  "helpers": [
+    {
+      "key": "quality",
+      "entity_id": "binary_sensor.gilles_messdaten_verfuegbar",
+      "parameters": {
+        "config": {
+          "device_class": "connectivity",
+          "next_step_id": "binary_sensor",
+          "state": "{{ [\"sensor.gilles_forderschnecke_soll\",\"sensor.gilles_primar_max\",\"sensor.gilles_primar_min\",\"sensor.gilles_sekundar_max\",\"sensor.gilles_sekundar_min\",\"sensor.gilles_saugzug_max\",\"sensor.gilles_saugzug_min\",\"sensor.gilles_o2_max\",\"sensor.gilles_o2_min\",\"sensor.gilles_kessel_soll_tag\",\"sensor.gilles_aschenaustragung_dauer\",\"sensor.gilles_aschenaustragung_pause\",\"sensor.gilles_sekundar_start\",\"sensor.gilles_zundung_einschub\",\"sensor.gilles_temp_diff_start\",\"sensor.gilles_temp_diff_stop\",\"sensor.gilles_temp_diff_teillast\",\"sensor.gilles_kessel_soll_nacht\",\"sensor.gilles_abgas_soll_min\",\"sensor.gilles_abgas_soll_max\",\"sensor.gilles_abgas_soll_maxlimit\",\"sensor.gilles_brenn_phase_code\",\"sensor.gilles_boiler_status_code\",\"sensor.gilles_status_bitmap\",\"sensor.gilles_kesseltemperatur\",\"sensor.gilles_abgastemperatur\",\"sensor.gilles_rucklauftemperatur\",\"sensor.gilles_o2_ist\",\"sensor.gilles_reg56\",\"sensor.gilles_primar_ist_vermutet\",\"sensor.gilles_sekundar_ist_vermutet\",\"sensor.gilles_saugzug_ist_vermutet\",\"sensor.gilles_kessel_soll_live\",\"sensor.gilles_abgas_soll_live_vermutet\",\"sensor.gilles_zaehler\",\"sensor.gilles_reg70\",\"sensor.gilles_binarflag\",\"sensor.gilles_reg74\",\"sensor.gilles_reg76\",\"sensor.gilles_ascheaustragung_aktiv\"] | select('has_value') | list | count == 40 }}"
+        },
+        "helper_type": "template",
+        "name": "Gilles Messdaten verfuegbar"
+      }
+    },
+    {
+      "key": "spread",
+      "entity_id": "sensor.gilles_spreizung",
+      "parameters": {
+        "config": {
+          "additional_options": {
+            "availability": "{{ is_number(states('sensor.gilles_kesseltemperatur')) and is_number(states('sensor.gilles_rucklauftemperatur')) }}"
+          },
+          "device_class": "temperature",
+          "next_step_id": "sensor",
+          "state": "{{ (states('sensor.gilles_kesseltemperatur') | float(0) - states('sensor.gilles_rucklauftemperatur') | float(0)) | round(1) }}",
+          "state_class": "measurement",
+          "unit_of_measurement": "°C"
+        },
+        "helper_type": "template",
+        "name": "Gilles Spreizung"
+      }
+    },
+    {
+      "key": "kessel_min",
+      "entity_id": "sensor.gilles_kessel_24h_min",
+      "parameters": {
+        "config": {
+          "entity_id": "sensor.gilles_kesseltemperatur",
+          "keep_last_sample": false,
+          "max_age": {
+            "hours": 24
+          },
+          "precision": 1,
+          "sampling_size": 4000,
+          "state_characteristic": "value_min"
+        },
+        "helper_type": "statistics",
+        "name": "Gilles Kessel 24h Min"
+      }
+    },
+    {
+      "key": "kessel_max",
+      "entity_id": "sensor.gilles_kessel_24h_max",
+      "parameters": {
+        "config": {
+          "entity_id": "sensor.gilles_kesseltemperatur",
+          "keep_last_sample": false,
+          "max_age": {
+            "hours": 24
+          },
+          "precision": 1,
+          "sampling_size": 4000,
+          "state_characteristic": "value_max"
+        },
+        "helper_type": "statistics",
+        "name": "Gilles Kessel 24h Max"
+      }
+    },
+    {
+      "key": "abgas_max",
+      "entity_id": "sensor.gilles_abgas_24h_max",
+      "parameters": {
+        "config": {
+          "entity_id": "sensor.gilles_abgastemperatur",
+          "keep_last_sample": false,
+          "max_age": {
+            "hours": 24
+          },
+          "precision": 1,
+          "sampling_size": 4000,
+          "state_characteristic": "value_max"
+        },
+        "helper_type": "statistics",
+        "name": "Gilles Abgas 24h Max"
+      }
+    },
+    {
+      "key": "o2_min",
+      "entity_id": "sensor.gilles_o2_24h_min",
+      "parameters": {
+        "config": {
+          "entity_id": "sensor.gilles_o2_ist",
+          "keep_last_sample": false,
+          "max_age": {
+            "hours": 24
+          },
+          "precision": 1,
+          "sampling_size": 4000,
+          "state_characteristic": "value_min"
+        },
+        "helper_type": "statistics",
+        "name": "Gilles O2 24h Min"
+      }
+    },
+    {
+      "key": "cycle_today",
+      "entity_id": "sensor.gilles_brennzeit_heute",
+      "parameters": {
+        "config": {
+          "end": "{{ now() }}",
+          "entity_id": "sensor.gilles_brenn_phase_code",
+          "start": "{{ today_at('00:00') }}",
+          "state": [
+            "1",
+            "3",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9"
+          ],
+          "state_class": "measurement",
+          "type": "time"
+        },
+        "helper_type": "history_stats",
+        "name": "Gilles Brennzeit heute"
+      }
+    },
+    {
+      "key": "cycle_7d",
+      "entity_id": "sensor.gilles_brennzeit_7d",
+      "parameters": {
+        "config": {
+          "duration": {
+            "days": 7
+          },
+          "end": "{{ now() }}",
+          "entity_id": "sensor.gilles_brenn_phase_code",
+          "state": [
+            "1",
+            "3",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9"
+          ],
+          "state_class": "measurement",
+          "type": "time"
+        },
+        "helper_type": "history_stats",
+        "name": "Gilles Brennzeit 7d"
+      }
+    },
+    {
+      "key": "heating_7d",
+      "entity_id": "sensor.gilles_heizphase_dauer_7d",
+      "parameters": {
+        "config": {
+          "duration": {
+            "days": 7
+          },
+          "end": "{{ now() }}",
+          "entity_id": "sensor.gilles_brenn_phase_code",
+          "state": [
+            "7"
+          ],
+          "state_class": "measurement",
+          "type": "time"
+        },
+        "helper_type": "history_stats",
+        "name": "Gilles Heizphase Dauer 7d"
+      }
+    },
+    {
+      "key": "ignition_7d",
+      "entity_id": "sensor.gilles_zuendphase_dauer_7d",
+      "parameters": {
+        "config": {
+          "duration": {
+            "days": 7
+          },
+          "end": "{{ now() }}",
+          "entity_id": "sensor.gilles_brenn_phase_code",
+          "state": [
+            "3",
+            "5"
+          ],
+          "state_class": "measurement",
+          "type": "time"
+        },
+        "helper_type": "history_stats",
+        "name": "Gilles Zuendphase Dauer 7d"
+      }
+    },
+    {
+      "key": "door_today",
+      "entity_id": "sensor.gilles_tuer_offen_heute_dauer",
+      "parameters": {
+        "config": {
+          "end": "{{ now() }}",
+          "entity_id": "binary_sensor.gilles_brennraumtur",
+          "start": "{{ today_at('00:00') }}",
+          "state": [
+            "on"
+          ],
+          "state_class": "measurement",
+          "type": "time"
+        },
+        "helper_type": "history_stats",
+        "name": "Gilles Tuer offen heute Dauer"
+      }
+    },
+    {
+      "key": "coverage_24h",
+      "entity_id": "sensor.gilles_phasendaten_abdeckung_24h",
+      "parameters": {
+        "config": {
+          "duration": {
+            "hours": 24
+          },
+          "end": "{{ now() }}",
+          "entity_id": "sensor.gilles_brenn_phase_code",
+          "state": [
+            "0",
+            "1",
+            "3",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9"
+          ],
+          "state_class": "measurement",
+          "type": "ratio"
+        },
+        "helper_type": "history_stats",
+        "name": "Gilles Phasendaten Abdeckung 24h"
+      }
+    },
+    {
+      "key": "gaps_24h",
+      "entity_id": "sensor.gilles_phasendaten_luecken_24h",
+      "parameters": {
+        "config": {
+          "duration": {
+            "hours": 24
+          },
+          "end": "{{ now() }}",
+          "entity_id": "sensor.gilles_brenn_phase_code",
+          "state": [
+            "unavailable"
+          ],
+          "state_class": "measurement",
+          "type": "count"
+        },
+        "helper_type": "history_stats",
+        "name": "Gilles Phasendaten Luecken 24h"
+      }
+    },
+    {
+      "key": "starts_total",
+      "entity_id": "counter.gilles_brennstarts_gesamt",
+      "parameters": {
+        "helper_type": "counter",
+        "icon": "mdi:fire",
+        "initial": 0,
+        "name": "Gilles Brennstarts gesamt",
+        "restore": true,
+        "step": 1
+      }
+    },
+    {
+      "key": "ash_total",
+      "entity_id": "counter.gilles_ascheaustragungen_gesamt",
+      "parameters": {
+        "helper_type": "counter",
+        "icon": "mdi:trash-can-outline",
+        "initial": 0,
+        "name": "Gilles Ascheaustragungen gesamt",
+        "restore": true,
+        "step": 1
+      }
+    },
+    {
+      "key": "since_start",
+      "entity_id": "sensor.gilles_zeit_seit_brennstart",
+      "parameters": {
+        "config": {
+          "additional_options": {
+            "availability": "{{ as_timestamp(states('sensor.gilles_brennstart_letzter'), none) is not none }}"
+          },
+          "device_class": "duration",
+          "next_step_id": "sensor",
+          "state": "{% set start = as_timestamp(states('sensor.gilles_brennstart_letzter'), none) %}{{ ((as_timestamp(now()) - start) / 60) | round(0) if start is not none else none }}",
+          "unit_of_measurement": "min"
+        },
+        "helper_type": "template",
+        "name": "Gilles Zeit Seit Brennstart"
+      }
+    },
+    {
+      "key": "since_ash",
+      "entity_id": "sensor.gilles_zeit_seit_aschenaustragung",
+      "parameters": {
+        "config": {
+          "additional_options": {
+            "availability": "{{ as_timestamp(states('sensor.gilles_ascheaustragung_letzte'), none) is not none }}"
+          },
+          "device_class": "duration",
+          "next_step_id": "sensor",
+          "state": "{% set start = as_timestamp(states('sensor.gilles_ascheaustragung_letzte'), none) %}{{ ((as_timestamp(now()) - start) / 60) | round(0) if start is not none else none }}",
+          "unit_of_measurement": "min"
+        },
+        "helper_type": "template",
+        "name": "Gilles Zeit Seit Aschenaustragung"
+      }
+    },
+    {
+      "key": "starts_recorded",
+      "entity_id": "sensor.gilles_brennstarts_erfasst",
+      "parameters": {
+        "config": {
+          "additional_options": {
+            "availability": "{{ is_number(states('counter.gilles_brennstarts_gesamt')) }}"
+          },
+          "next_step_id": "sensor",
+          "state": "{{ states('counter.gilles_brennstarts_gesamt') | int(none) }}",
+          "state_class": "total_increasing",
+          "unit_of_measurement": "Starts"
+        },
+        "helper_type": "template",
+        "name": "Gilles Brennstarts erfasst"
+      }
+    },
+    {
+      "key": "ash_recorded",
+      "entity_id": "sensor.gilles_ascheaustragungen_erfasst",
+      "parameters": {
+        "config": {
+          "additional_options": {
+            "availability": "{{ is_number(states('counter.gilles_ascheaustragungen_gesamt')) }}"
+          },
+          "next_step_id": "sensor",
+          "state": "{{ states('counter.gilles_ascheaustragungen_gesamt') | int(none) }}",
+          "state_class": "total_increasing",
+          "unit_of_measurement": "Vorgänge"
+        },
+        "helper_type": "template",
+        "name": "Gilles Ascheaustragungen erfasst"
+      }
+    },
+    {
+      "key": "starts_today",
+      "entity_id": "sensor.gilles_brennstarts_heute",
+      "parameters": {
+        "config": {
+          "always_available": false,
+          "cycle": "daily",
+          "delta_values": false,
+          "net_consumption": false,
+          "offset": 0,
+          "periodically_resetting": false,
+          "source": "sensor.gilles_brennstarts_erfasst",
+          "tariffs": []
+        },
+        "helper_type": "utility_meter",
+        "name": "Gilles Brennstarts heute"
+      }
+    },
+    {
+      "key": "starts_week",
+      "entity_id": "sensor.gilles_brennstarts_woche",
+      "parameters": {
+        "config": {
+          "always_available": false,
+          "cycle": "weekly",
+          "delta_values": false,
+          "net_consumption": false,
+          "offset": 0,
+          "periodically_resetting": false,
+          "source": "sensor.gilles_brennstarts_erfasst",
+          "tariffs": []
+        },
+        "helper_type": "utility_meter",
+        "name": "Gilles Brennstarts Woche"
+      }
+    },
+    {
+      "key": "starts_month",
+      "entity_id": "sensor.gilles_brennstarts_monat",
+      "parameters": {
+        "config": {
+          "always_available": false,
+          "cycle": "monthly",
+          "delta_values": false,
+          "net_consumption": false,
+          "offset": 0,
+          "periodically_resetting": false,
+          "source": "sensor.gilles_brennstarts_erfasst",
+          "tariffs": []
+        },
+        "helper_type": "utility_meter",
+        "name": "Gilles Brennstarts Monat"
+      }
+    },
+    {
+      "key": "ash_today",
+      "entity_id": "sensor.gilles_ascheaustragungen_heute",
+      "parameters": {
+        "config": {
+          "always_available": false,
+          "cycle": "daily",
+          "delta_values": false,
+          "net_consumption": false,
+          "offset": 0,
+          "periodically_resetting": false,
+          "source": "sensor.gilles_ascheaustragungen_erfasst",
+          "tariffs": []
+        },
+        "helper_type": "utility_meter",
+        "name": "Gilles Ascheaustragungen heute"
+      }
+    }
+  ]
+}

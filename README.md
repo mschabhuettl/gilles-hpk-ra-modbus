@@ -4,7 +4,7 @@
 
 Community-Projekt zur Dokumentation der Modbus-TCP-Schnittstelle der **Gilles Touch** Steuerung in Gilles-Biomasse-Heizungen (HPK-RA-Serie) — inklusive Home-Assistant-Integration.
 
-> **Stand:** 26 von 40 Registern empirisch verifiziert (✓✓), 8 stark vermutet (✓), 3 mit Werten aber unklarer Semantik (?), 3 wahrscheinlich permanent inaktiv. Summe: 40.
+> **Stand:** 26 von 40 Registern empirisch verifiziert (✓✓), 8 stark vermutet (✓), 3 mit Werten aber unklarer Semantik (?), 3 bisher 0 mit unbestätigter Funktion. Summe: 40.
 
 ## Hintergrund
 
@@ -16,22 +16,15 @@ Obwohl Hargassner Gilles 2020 übernommen hat, sind die existierenden HPK-RA-Ste
 
 ## Was steckt drin
 
-```
-.
-├── docs/
-│   ├── REGISTER_MAP.md      — die eigentliche Register-Tabelle (Herzstück)
-│   ├── METHODOLOGY.md       — wie wir reverse engineered haben
-│   └── CONTROLLER_INFO.md   — Hintergrund Sigmatek / LASAL II
-├── scripts/
-│   ├── gilles_logger.py     — langläufiger Change-Detection-Logger mit CSV-Output
-│   ├── gilles_snapshot.py   — einmaliger Register-Dump
-│   └── requirements.txt
-├── home-assistant/
-│   ├── modbus.yaml          — HA-Modbus-Integration für alle 40 Register
-│   └── dashboard.yaml       — Lovelace-Dashboard
-└── reference/
-    └── parameter-export-sample.txt — Beispiel LASAL-Parameter-Export
-```
+| Pfad | Inhalt |
+|---|---|
+| `docs/REGISTER_MAP.md` | Registertabelle und Vertrauensgrade |
+| `docs/METHODOLOGY.md` | Vorgehen beim Reverse Engineering |
+| `docs/CONTROLLER_INFO.md` | Hintergrund der Steuerung |
+| `docs/HA_VALIDATION.md` | HA-Bereinigung, TCP-Leerlaufmessung und offene Prüfungen |
+| `home-assistant/` | Pakete, native Helfer, Automationen, Entity-Zuordnung und Dashboard |
+| `scripts/` | Logger, Snapshot und Konfigurationsprüfung |
+| `reference/` | Parameterbeispiel und bereinigte Prüfbelege |
 
 Englische Übersetzungen aller Dokumente sind als `*.en.md` parallel verfügbar.
 
@@ -43,7 +36,7 @@ Mit der HA-Integration auf einen Blick sichtbar:
 - **Abgastemperatur** und **Rücklauftemperatur** (Live)
 - **Restsauerstoff (O₂)** und alle Verbrennungs-Parameter
 - **Brennzyklus-Phase** als Klartext: Vorlüften, Zündung, Anbrennen, Heizen regeln, Ausbrennen, Auskühlen
-- **Drehzahlen Primär/Saugzug** (Sekundär bleibt 0 in dieser Anlagenkonfiguration)
+- **Primär-/Saugzug-Werte** (REG62-Skalierung noch am Touch abgleichen; Sekundär war bisher 0)
 - **Brennraumtür-Zustand** (über StatusBitmap erkannt)
 - **Ascheaustragung** läuft gerade ja/nein
 - **Betriebsmodus**: Handbetrieb, Puffer/Boiler, Automatik (weitere noch nicht beobachtet)
@@ -57,14 +50,23 @@ Mit der HA-Integration auf einen Blick sichtbar:
    ```
 3. **Snapshot ziehen:**
    ```bash
-   pip install pymodbus
+   python3 -m venv .venv
+   source .venv/bin/activate
+   python3 -m pip install -r scripts/requirements.txt
    python3 scripts/gilles_snapshot.py <deine-boiler-ip>
    ```
 4. **Werte mit** [docs/REGISTER_MAP.md](docs/REGISTER_MAP.md) **vergleichen**
-5. **HA-Konfiguration einbauen:** Inhalt von `home-assistant/modbus.yaml` in `configuration.yaml` integrieren, IP anpassen, HA neu starten
+5. **Home Assistant einrichten/aktualisieren:** [home-assistant/README.md](home-assistant/README.md) erklärt beide Pakete, die 23 nativen Helfer, zwei Zählautomationen und das Dashboard einschließlich Entity-IDs und Migration.
+
+## Aktueller HA-Stand und Entwicklungsablauf
+
+Die Bereinigung vom 7. September 2026 ergänzt Verfügbarkeitsprüfungen, erfasste Betriebsstatistiken und korrigierte Dashboard-Verweise. Die Referenzsteuerung schließt inaktive TCP-Verbindungen nach ungefähr drei Sekunden; ein Lesezugriff auf REG42 alle zwei Sekunden hält die HA-Verbindung aktiv. Siehe [Messung und Grenzen](docs/HA_VALIDATION.md).
+
+Bei weiteren Gilles-Änderungen werden Konfiguration, deutsche/englische Dokumentation und Changelog im selben Arbeitsschritt aktualisiert und auf GitHub veröffentlicht. Der dauerhafte Arbeitsablauf steht in [AGENTS.md](AGENTS.md).
 
 ## Getestet mit
 
+- Home Assistant 2026.9.1 (Konfigurationsprüfung September 2026)
 - Gilles HPK-RA Pelletkessel
 - Gilles Touch mit LASAL II v5.36.4 (Januar 2024)
 - Anlagenkonfiguration: Heizkreis 1, Warmwasser 2, Puffer 3, O2-Sonde vorhanden

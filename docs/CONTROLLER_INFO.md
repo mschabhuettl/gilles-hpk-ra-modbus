@@ -30,7 +30,8 @@ Die Gilles-Touch-Steuerung in den HPK-RA-Kesseln basiert auf **industrieller Sig
   - Map exportiert genau 40 logische Werte (80 16-bit-Register) ab Adresse 0. Höhere Adressen liefern keine Antwort.
   - Die TCP-Verbindung wird nach jeder Modbus-Exception geschlossen. Clients müssen neu verbinden.
   - Mindest-Count für Reads scheint 2 Register zu sein (1-Register-Reads liefern „Illegal Data Value"-Exception).
-  - Default pymodbus-Retry-Count von 3 kann den Controller in einen „hängenden" Zustand bringen — `retries=1` setzen.
+  - Die Referenzanlage schließt TCP nach etwa drei Sekunden Leerlauf (Messung 2026-09-07). HA liest deshalb REG42 alle zwei Sekunden.
+  - Der Python-Logger setzt `retries=1` direkt am Client und verbindet pro Abfrage neu. HA 2026.9.1 setzt Wiederholungen intern auf drei; der YAML-Schlüssel `retries: 1` überschreibt das nicht. [Messbeleg und Grenzen](HA_VALIDATION.md).
 
 ## Firmware-Versionen
 

@@ -161,3 +161,7 @@ Mit dem beobachteten Brennzyklus sind ~82% der Map verstanden. Was noch fehlt:
 - **REG[46] StatusBitmap**: vollständiges Bitfeld-Schema
 
 Die Register **REG[70, 74, 76]** werden voraussichtlich in dieser Installation für immer 0 bleiben — sie sind vermutlich für Subsysteme reserviert, die diese Anlage nicht hat.
+
+## Phase 9 — Home Assistant und Verbindungslebensdauer (2026-09-07)
+
+Der Abgleich von Repository, HA-Paketen, Entity-Registry und Dashboard deckte verworfene Pakete, historische Namensabweichungen und verdeckte Messausfälle auf. Zwei ausschließlich lesende TCP-Versuche zeigten eine Leerlaufgrenze von ungefähr drei Sekunden; ein Kontrollversuch mit Zwei-Sekunden-Abfragen hielt dieselbe Verbindung darüber hinaus offen. Die Bereinigung und ihre Grenzen sind in [HA_VALIDATION.md](HA_VALIDATION.md) dokumentiert. Sie ersetzt keine neue Brennzyklusbeobachtung und bestätigt keine weitere Registersemantik.

@@ -4,6 +4,17 @@
 
 Alle nennenswerten Erkenntnisse während des Reverse Engineerings der Gilles-Touch-Modbus-Map.
 
+## [0.4.0] — 2026-09-07 — Home Assistant abgeglichen
+
+- TCP-Leerlaufgrenze an der Referenzanlage zweimal gemessen: 3,010 bzw. 3,060 Sekunden. REG42 wird in HA nun alle zwei Sekunden gelesen; 200 ms Abstand zwischen einzelnen Anfragen. Die kurze Nachprüfung war lückenlos, ein Langzeitnachweis steht aus.
+- Wirkungsloses HA-YAML `retries: 1` entfernt; die Abgrenzung zum eigenständigen Python-Client dokumentiert.
+- Sieben Zustandsvorlagen mit Verfügbarkeitsprüfung: Messausfälle werden nicht mehr als Standby/Normal/geschlossene Tür dargestellt.
+- Ungültiges Paket `gilles-derived.yaml` durch `gilles_derived.yaml` ersetzt. Native Helfer (23), Zählautomationen (2) und vorhandene Entity-IDs als portable Definitionen ergänzt.
+- Dashboard mit 69 aufgelösten Entity-Verweisen abgeglichen; Betriebsstatistiken, Datenabdeckung und beobachtete Starts/Ascheaustragungen ergänzt. Nicht belegte Pelletverbrauchs-, Wirkungsgrad- und Modulationsschätzungen entfernt.
+- Bestehende Rohsensor-IDs und Skalierungen erhalten. REG62-Skalierung bleibt bis zum erneuten synchronisierten Touch-Vergleich offen; keine neue Registersemantik behauptet.
+- Installations-/Migrationsanleitung und Messbeleg auf Deutsch/Englisch ergänzt. Repository-Abgleich bei jeder Gilles-Änderung als Arbeitsregel in `AGENTS.md` festgehalten.
+- Mindestversion für die von den Skripten verwendete `device_id=`-API auf `pymodbus>=3.10.0,<4` korrigiert; lokale Konsistenzprüfung der HA-Beispiele ergänzt.
+
 ## [0.3.0] — 2026-05-20 — Brennzyklus beobachtet
 
 Vollständiger Brennzyklus (Vorlüften → Zündung → Anbrennphase → Heizen regeln → Ausbrennen → Auskühlphase) wurde mit synchronisierten Touch-Screenshots und Modbus-Logging beobachtet. Damit konnte fast die gesamte Map bestimmt werden.

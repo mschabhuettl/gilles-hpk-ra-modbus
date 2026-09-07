@@ -2,7 +2,7 @@
 
 > [🇩🇪 Deutsch (primary)](REGISTER_MAP.md) · 🇬🇧 **English**
 
-**Last updated:** 2026-05-20 (v0.3.0 — burner cycle observed)
+**Last updated:** 2026-09-07 (v0.4.0 — HA validation; historical burner-cycle observation from 20 May)
 **Controller firmware:** LASAL II v5.36.4 (10.01.2024)
 **Confidence levels:** ✓✓ = empirically verified · ✓ = strongly indicated by value match · ? = unknown
 
@@ -11,7 +11,7 @@
 - **26 of 40 registers** firmly identified (✓✓)
 - **8 more** strongly suspected (✓)
 - **3 registers** show values but their semantics are still unclear (REG[56], REG[68], REG[72])
-- **3 registers** likely permanently inactive in this installation (REG[70], REG[74], REG[76])
+- **3 registers** observed as zero, purpose unconfirmed (REG[70], REG[74], REG[76])
 
 Total: 26 + 8 + 3 + 3 = 40 ✓
 
@@ -29,13 +29,15 @@ Total: 26 + 8 + 3 + 3 = 40 ✓
 
 **Important:** All values are 32-bit integers stored across two 16-bit registers. To read value at logical position N, read holding registers at addresses N×2 and N×2+1, then combine as `(reg[N*2] << 16) | reg[N*2+1]`.
 
-**Bus quirk:** The Sigmatek Modbus implementation closes the TCP connection after each Modbus exception. Always reconnect fresh on error and use `retries=1` (not 3, which is the pymodbus default).
+**Bus quirks:** Connection closure was observed after Modbus exceptions. The reference installation also closes TCP after about three seconds without a request (measured twice). The standalone logger reconnects for each reading and sets `retries=1` on its client. HA 2026.9.1 sets retries internally; YAML `retries: 1` does not override them. HA now reads REG42 every two seconds. [Measurements and configuration](HA_VALIDATION.en.md).
 
 ## ⚠️ Important correction (v0.3.0)
 
 **REG[62] is NOT the combustion chamber door**, it's **SaugzugIst** (induced-draft fan actual %). The misidentification in v0.1.0/v0.2.0 happened because opening the combustion chamber door automatically forces the induced draft to 100% (safety smoke extraction). During the observed burner cycle REG[62] clearly tracked Saugzug values like 71%, 76%, 80% — matching the Touch display.
 
 The combustion chamber door itself is **not directly** exported via Modbus — it is only indirectly visible via REG[46]=35.
+
+**Scaling review, 2026-09-07:** REG62 retains its historical identification as induced draft. The existing HA scale ×0.1 does not clearly agree with the earlier percentage description for a newer door observation. It remains unchanged pending a synchronized raw-register/HA/Touch comparison. The phase values below record the earlier observation, not new scaling evidence.
 
 ## Register table
 

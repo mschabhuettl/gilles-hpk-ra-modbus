@@ -1,6 +1,7 @@
 # Logs from the logger script
 gilles_log.txt
 *.log
+gilles_data.csv
 
 # Python
 __pycache__/

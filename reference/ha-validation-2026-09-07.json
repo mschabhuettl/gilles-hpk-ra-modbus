@@ -1,0 +1,80 @@
+{
+  "home_assistant_version": "2026.9.1",
+  "raw_sensor_count": 40,
+  "dashboard_entity_count": 69,
+  "dashboard_missing_entities": [],
+  "helpers_created": 23,
+  "counter_automations_created": 2,
+  "tcp_idle_probe": {
+    "extra_data": "",
+    "function": 3,
+    "idle_seconds": 3.01,
+    "initial_response_ms": 54.3,
+    "peer_closed": true,
+    "value": 0
+  },
+  "tcp_idle_probe_confirm": {
+    "idle": {
+      "idle_s": 3.06,
+      "peer_closed": true
+    },
+    "reads": [
+      {
+        "elapsed_s": 0.077,
+        "phase": 0,
+        "response_ms": 76.9,
+        "transaction": 1
+      },
+      {
+        "elapsed_s": 2.107,
+        "phase": 0,
+        "response_ms": 29.5,
+        "transaction": 2
+      },
+      {
+        "elapsed_s": 4.119,
+        "phase": 0,
+        "response_ms": 11.9,
+        "transaction": 3
+      }
+    ]
+  },
+  "keepalive_observation": {
+    "period": {
+      "end": "2026-09-07T05:52:02.648460+00:00",
+      "start": "2026-09-07T07:46:57.141505+02:00"
+    },
+    "entities": [
+      {
+        "entity_id": "binary_sensor.gilles_messdaten_verfuegbar",
+        "states": [
+          {
+            "last_changed": "2026-09-07T07:46:57.141505+02:00",
+            "last_updated": "2026-09-07T07:46:57.141505+02:00",
+            "state": "on"
+          }
+        ],
+        "has_more": false
+      },
+      {
+        "entity_id": "sensor.gilles_brenn_phase_code",
+        "states": [
+          {
+            "last_changed": "2026-09-07T07:46:57.141505+02:00",
+            "last_updated": "2026-09-07T07:46:57.141505+02:00",
+            "state": "0"
+          }
+        ],
+        "has_more": false
+      }
+    ]
+  },
+  "config_check_passed": true,
+  "counter_statistics_metadata_consistent": true,
+  "limitations": [
+    "No natural combustion cycle observed in this session.",
+    "One sensor intentionally polls at 2 seconds; HA logs its generic below-5-seconds warning.",
+    "Short observation is not a long-term stability guarantee.",
+    "No dashboard screenshot: rendering feature disabled."
+  ]
+}

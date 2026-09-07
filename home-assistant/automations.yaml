@@ -1,0 +1,39 @@
+# Two native counter automations. Edit/create each via the HA automation editor.
+# Keep the existing automation identity when updating; do not replace all automations.yaml.
+# Targets are HA counters; no boiler registers are written.
+- actions:
+  - action: counter.increment
+    target:
+      entity_id: counter.gilles_brennstarts_gesamt
+  alias: Gilles Brennstarts erfassen
+  conditions:
+  - condition: trigger
+    id: observed_transition
+  description: Erfasst seit 07.09.2026 direkt beobachtete Übergänge von Standby (0) zu Vorbelüftung (1). Lücken
+    oder Wiederverbindungen werden nicht als Start gezählt.
+  max: 5
+  mode: queued
+  triggers:
+  - entity_id: sensor.gilles_brenn_phase_code
+    from: '0'
+    id: observed_transition
+    to: '1'
+    trigger: state
+- actions:
+  - action: counter.increment
+    target:
+      entity_id: counter.gilles_ascheaustragungen_gesamt
+  alias: Gilles Ascheaustragungen erfassen
+  conditions:
+  - condition: trigger
+    id: observed_transition
+  description: Erfasst seit 07.09.2026 direkt beobachtete Wechsel der Ascheaustragung von 0 zu 1. Lücken oder Wiederverbindungen
+    werden nicht als Austragung gezählt.
+  max: 5
+  mode: queued
+  triggers:
+  - entity_id: sensor.gilles_ascheaustragung_aktiv
+    from: '0'
+    id: observed_transition
+    to: '1'
+    trigger: state

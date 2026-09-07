@@ -4,6 +4,17 @@
 
 All notable findings during the reverse engineering of the Gilles Touch Modbus map.
 
+## [0.4.0] — 2026-09-07 — Home Assistant synchronized
+
+- Measured the reference installation's TCP idle limit twice: 3.010 and 3.060 seconds. HA now reads REG42 every two seconds with 200 ms spacing between requests. The short follow-up had no gaps; long-term validation remains open.
+- Removed ineffective HA YAML `retries: 1` and documented the distinction from the standalone Python client.
+- Added availability checks to seven state templates; data loss no longer appears as standby, normal state or a closed door.
+- Replaced invalid `gilles-derived.yaml` with `gilles_derived.yaml`. Added portable definitions for 23 native helpers, two counter automations and existing entity IDs.
+- Synchronized the dashboard with 69 resolved entity references, operating statistics, data coverage and observed start/ash counters. Removed unsupported pellet-consumption, efficiency and modulation estimates.
+- Preserved raw-sensor identities and scales. REG62 scaling remains open pending another synchronized Touch comparison; no new register meanings are claimed.
+- Added German/English installation, migration and measurement documentation. Recorded the standing per-change repository synchronization workflow in `AGENTS.md`.
+- Corrected the scripts' `device_id=` minimum dependency to `pymodbus>=3.10.0,<4`; added an offline HA example consistency check.
+
 ## [0.3.0] — 2026-05-20 — Burner cycle observed
 
 A complete burner cycle (pre-purge → ignition → initial combustion → full load heating → burn-out → cooldown) was observed with synchronized Touch screenshots and Modbus logging. This revealed almost the entire map.

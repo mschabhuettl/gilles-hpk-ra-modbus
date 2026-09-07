@@ -2,7 +2,7 @@
 
 > 🇩🇪 **Deutsch** · [🇬🇧 English](REGISTER_MAP.en.md)
 
-**Letzte Aktualisierung:** 2026-05-20 (v0.3.0 — Brennzyklus beobachtet)
+**Letzte Aktualisierung:** 2026-09-07 (v0.4.0 — HA-Abgleich; historische Brennzyklusbeobachtung vom 20. Mai)
 **Steuerungs-Firmware:** LASAL II v5.36.4 (10.01.2024)
 **Vertrauensgrade:** ✓✓ = empirisch verifiziert · ✓ = stark vermutet via Werte-Match · ? = unbekannt
 
@@ -11,7 +11,7 @@
 - **26 von 40 Registern** sicher identifiziert (✓✓)
 - **8 weitere** stark vermutet (✓)
 - **3 Register** zeigen Werte, aber die Semantik ist noch unklar (REG[56], REG[68], REG[72])
-- **3 Register** wahrscheinlich permanent inaktiv in dieser Anlagenkonfiguration (REG[70], REG[74], REG[76])
+- **3 Register** bisher 0, Funktion nicht belegt (REG[70], REG[74], REG[76])
 
 Summe: 26 + 8 + 3 + 3 = 40 ✓
 
@@ -29,13 +29,15 @@ Summe: 26 + 8 + 3 + 3 = 40 ✓
 
 **Wichtig:** Alle Werte sind 32-bit Integers, gespeichert über zwei 16-bit Register. Um den logischen Wert N zu lesen, lese die Register an Adresse N×2 und N×2+1 und kombiniere als `(reg[N*2] << 16) | reg[N*2+1]`.
 
-**Bus-Eigenheit:** Die Sigmatek-Modbus-Implementierung schließt die TCP-Verbindung nach jeder Modbus-Exception. Immer eine frische Verbindung nach Fehler aufbauen und `retries=1` setzen (nicht 3, der pymodbus-Default).
+**Bus-Eigenheiten:** Nach Modbus-Exceptions wurde ein Verbindungsende beobachtet. Zusätzlich schließt die Referenzanlage TCP nach etwa drei Sekunden ohne Anfrage (zweimal gemessen). Der Python-Logger verbindet pro Abfrage neu und setzt `retries=1` direkt am Client. HA 2026.9.1 setzt Wiederholungen dagegen intern; die YAML-Zeile `retries: 1` wirkt dort nicht. REG42 wird in HA alle zwei Sekunden gelesen. [Messung und Konfiguration](HA_VALIDATION.md).
 
 ## ⚠️ Wichtige Korrektur (v0.3.0)
 
 **REG[62] ist NICHT die Brennraumtür**, sondern **SaugzugIst** (Saugzug-Drehzahl Ist in %). Der Beobachtungsfehler in v0.1.0/v0.2.0 entstand, weil beim Öffnen der Brennraumtür der Saugzug automatisch auf 100% fährt (Sicherheits-Rauchabzug). Beim Brennzyklus zeigte REG[62] dann eindeutig die Werte 71%, 76%, 80% — passend zur Touch-Anzeige des Saugzugs.
 
 Die Brennraumtür selbst ist **nicht direkt** in der Modbus-Map exportiert, sondern nur indirekt über REG[46]=35 erkennbar.
+
+**Skalierungsprüfung 2026-09-07:** Die historische Identifikation von REG62 als Saugzug bleibt erhalten. Die vorhandene HA-Skalierung ×0,1 passt bei einer neueren Türbeobachtung nicht eindeutig zur früheren Prozentbeschreibung. Sie bleibt vorerst unverändert, benötigt aber einen erneuten synchronisierten Vergleich von Rohwert, HA und Touch. Die folgenden Phasenwerte dokumentieren die frühere Beobachtung, keinen neuen Skalierungsnachweis.
 
 ## Register-Tabelle
 
