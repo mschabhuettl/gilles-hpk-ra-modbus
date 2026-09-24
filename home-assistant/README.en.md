@@ -78,3 +78,11 @@ The four statistics helpers for boiler minimum, boiler maximum, flue-gas maximum
 **REG78 remains a hypothesis:** Extended active intervals contradict its previous interpretation as the ash screw's immediate running state. Existing IDs containing `asche…` remain for compatibility. Their values and timestamps represent observed REG78 edges, not verified physical ash discharge operations. Further anonymized findings and pending Touch comparisons are documented in [REGISTER_FINDINGS](../docs/REGISTER_FINDINGS.en.md).
 
 The buffer and difference semantics are documented in the [official Statistics documentation](https://www.home-assistant.io/integrations/statistics/); the different state-counting rather than transition-counting semantics are described in [History Stats](https://www.home-assistant.io/integrations/history_stats/).
+
+## Touch comparison: targets, inputs and counters
+
+The Touch actual/target page separately displays “Restsauerstoff – Ist/Soll” (oxygen actual/target), “aktuelle Einschubmenge” (current feed amount), boiler/flue targets and the blowers. It is the relevant comparison page for REG56 and the more specific REG68 feed candidate. Matching zero values in standby establish neither register identity nor scale. Current percentage conversions remain unchanged pending a nonzero comparison; no newly verified target or consumption sensor is introduced.
+
+REG64 can be zero while Puffer/Boiler mode remains selected. Use REG44 for operating mode; do not infer “controller off” from a missing active boiler target. Thermal/motor-protection indications on the X-contact pages do not indicate motor operation; color alone does not establish contact polarity. Cleaning time parameters alone do not prove that cleaning is enabled.
+
+The Touch “Laufzeiten” (runtimes) and “Anzahl Zündungen” (ignition count) have no established common counting or reset scope with the HA helpers. Do not overwrite or initialize HA counters from a screenshot. The known rolling 24-hour start-counter defect remains unresolved. Further limitations and the focused comparison procedure are in [REGISTER_FINDINGS](../docs/REGISTER_FINDINGS.en.md).

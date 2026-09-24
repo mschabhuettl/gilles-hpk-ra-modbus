@@ -74,13 +74,13 @@ Die Brennraumtür selbst ist **nicht direkt** in der Modbus-Map exportiert, sond
 | **50** | **`AbgasTemp_Ist`** | int32 | ×0.1 | °C | ✓✓ | Abgastemperatur (live). |
 | **52** | **`RuecklaufTemp_Ist`**| int32 | ×0.1 | °C | ✓✓ | Rücklauftemperatur (live) |
 | **54** | **`O2_Ist`**           | int32 | ×0.1 | %  | ✓✓ | Restsauerstoff (live; 21% bei Brennerstart, ~12% im Vollbetrieb) |
-| 56 | `?O2Soll_Live` | int32 | ×0.1? | %? | ✓ | Passt im Regelbetrieb eng zu einem abgastemperaturabhängigen O₂-Soll. Parametrisierte Formel und Grenzen in den Registerbefunden; keine Touch-Bestätigung. |
+| 56 | `?O2Soll_Live` | int32 | ×0.1? | %? | ✓ | Passt im Regelbetrieb eng zu einem abgastemperaturabhängigen O₂-Soll. Touch-Ist/Soll-Seite gefunden; übereinstimmender Nullzustand bestätigt weder Zuordnung noch Skala. Nichtnull-Abgleich offen. |
 | **58** | **`PrimaerIst`** | int32 | ×0.1 HA; ? real | %? | ✓✓ | Historischer Primärluft-Match. Funktionszuordnung bleibt, Skala offen. |
 | **60** | **`SekundaerIst`**     | int32 | ×0.1 | %  | ✓✓ | **Sekundärluft Ist (live)** — bleibt 0 in dieser Anlage (Touch zeigt durchgehend 0%) |
 | **62** | **`SaugzugIst`** | int32 | ×0.1 HA; ? real | %? | ✓✓ | Historischer Saugzug-Match. Funktionszuordnung bleibt, Skala offen. |
-| **64** | **`KesselSoll_Live`**  | int32 | ×0.1 | °C | ✓✓ | Aktiv wirksamer Sollwert (70/75/80°C je nach Modus & Tageszeit) |
+| **64** | **`KesselSoll_Live`**  | int32 | ×0.1 | °C | ✓✓ | Aktiver Kessel-Sollwert; kann im Standby auch bei weiter ausgewähltem Puffer/Boiler-Modus null sein. |
 | **66** | **`AbgasSoll_Live`** | int32 | ×0.1 | °C | ✓✓ | Aktiver Abgas-Sollwert; verändert sich auch innerhalb Phase 7. Kein fester Zweizustandswert. |
-| 68 | `?REG68` | int32 | ? | ? | ? | Steigt und fällt mit wiederholten Nullintervallen. Stell-/Modulationsgröße als Kandidat; kein monotoner Verbrauchs-/Laufzeitzähler. |
+| 68 | `?REG68` | int32 | ? | ? | ? | Steigt und fällt. Konkreter Kandidat: Touch-Anzeige „aktuelle Einschubmenge“. Nichtnull-Abgleich und Skala offen; kein monotoner Verbrauchs-/Laufzeitzähler. |
 | 70 | `?`                        | int32 | ?    | ?  | ? | In allen Beobachtungen 0 |
 | 72 | `?BinaerFlag` | int32 | bool | — | ? | Während Zündung/Anbrennen aktiv; Kandidat für zündungsbezogenen Ausgang. Konkreter Aktor unbekannt. |
 | 74 | `?`                        | int32 | ?    | ?  | ? | In allen Beobachtungen 0 |
@@ -111,23 +111,23 @@ Das Drop-Down am Touch zeigt 7 Modi (Steuerung Aus, Handbetrieb, Zeitbetrieb, Pu
 | Code | Modus | Touch-Anzeige | KesselSoll_Live (REG[64]) |
 |------|-------|---------------|---------------------------|
 | 1 | Handbetrieb | „Handbetrieb" | Tag 75°C / Nacht 70°C |
-| 3 | Puffer/Boiler | „Puffer/Boiler" | **80°C** (= Puffer-Lade-Sollwert) |
+| 3 | Puffer/Boiler | „Puffer/Boiler" | Zustandsabhängig; ein aktiver Lade-Sollwert oder null bei Brenner aus. Modus allein legt REG64 nicht fest. |
 | 5 | Automatik | „Automatik" | Tag 75°C / Nacht 70°C |
 | ? | Steuerung Aus | noch nicht beobachtet | — |
 | ? | Zeitbetrieb | noch nicht beobachtet | — |
 | ? | Puffer/Boiler Gluterhaltung | noch nicht beobachtet | — |
 | ? | Notbetrieb | noch nicht beobachtet | — |
 
-## Enum: `KesselSoll_Live` (REG[64])
+## Aktiver Kessel-Sollwert (REG[64])
 
-Aktiv wirksamer Sollwert. Wechselt je nach Modus und Tageszeit:
+Numerischer Sollwert, kein Modus-Enum. Die folgenden Nichtnullwerte sind historische Beispiele; Betriebsmodus, Zeitprofil und aktuelle Anforderung sind getrennt zu beurteilen:
 
 | Wert | Bedeutung |
 |------|-----------|
 | 70,0°C | Nacht-Profil aktiv (= REG[34] sKesselSollNacht) |
 | 75,0°C | Tag-Profil aktiv (= REG[18] sKesselSollTag) |
 | 80,0°C | Puffer-Lade-Sollwert (in BoilerStatus=3) |
-| 0,0°C | Modus deaktiviert |
+| 0,0°C | Auch bei ausgewähltem Puffer/Boiler-Modus mit Brenner aus beobachtet; kein Nachweis eines ausgeschalteten Betriebsmodus. |
 
 ## Verifizierte Test-Events
 
@@ -164,11 +164,11 @@ Frühere gezielte Touch-Tests ergaben für diese Werte keine zuordenbare Modbus-
 
 | Register | Nächster benötigter Beleg |
 |---|---|
-| REG56 | Kandidatenwert gleichzeitig mit O₂-Soll am Touch und den Parameter-Endpunkten vergleichen. |
+| REG56 | „Restsauerstoff – Soll“ auf der Ist/Soll-Seite während natürlichem Regelbetrieb mit Nichtnullwerten gleichzeitig vergleichen. |
 | REG58/62 | Rohinteger, HA-Wert und Touch-Prozent gleichzeitig ablesen, bevor die Skala geändert wird. |
-| REG68 | Touch-Anzeigen für Stellgröße/Leistung/Einschub bei natürlichem Nullintervall und Modulation abgleichen. Keine Verbrauchsberechnung daraus. |
-| REG72 | Zündungsausgang am Touch während eines natürlichen Starts abgleichen. |
-| REG76 | Ausgang identifizieren; gespeicherte High-Dauer belegt keinen gleich langen Motorlauf. |
+| REG68 | „aktuelle Einschubmenge“ auf derselben Ist/Soll-Seite bei Nichtnullwerten und Modulation abgleichen. Skala offen; keine Verbrauchsberechnung daraus. |
+| REG72 | Zündungs- und Dosierausgänge während eines natürlichen Starts abgleichen; getakteten Zündeinschub von Zündheizung unterscheiden. |
+| REG76 | Tatsächlichen Ausgang und Funktionsfreigabe identifizieren; Reinigungszeitparameter und Thermokontakte belegen keinen Reinigungslauf. |
 | REG78 | Pumpen-/Freigabe-/Asche-Anzeigen bei natürlichem Übergang vergleichen. Nur rohe steigende Flanken zählen, keine bestätigten Aschezyklen. |
 | REG42/44/46 | Fehlende Phasen-/Moduscodes und Struktur der Statuscodes bleiben offen; REG46=61 bei wechselnder Touch-Meldung prüfen. |
 

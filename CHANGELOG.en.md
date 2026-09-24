@@ -4,6 +4,14 @@
 
 All notable findings during the reverse engineering of the Gilles Touch Modbus map.
 
+## [0.6.1] — 2026-09-24 — Touch diagnostic pages compared
+
+Rechecked ten previously mapped parameters against Touch and HA; their scales agree. The newly identified actual/target page provides a specific comparison for REG56 (O₂ target) and REG68 (“aktuelle Einschubmenge”, current feed amount). Matching standby zero values are insufficient for verification; confidence counts remain unchanged.
+
+Corrected REG64 documentation: zero does not automatically mean that the operating mode is disabled. Contact indications, function enables and actual motor states are distinguished; existing cleaning parameters do not establish a cleaning cycle. The Touch ignition counter's reset scope and Modbus addresses for the additional displayed quantities remain unresolved.
+
+Anonymized documentation only; no new private parameter values, readings, runtimes, images or operating timestamps published. HA runtime configuration and counters are unchanged.
+
 ## [0.6.0] — 2026-09-24 — Anonymized register findings and statistics guidance
 
 Added anonymized findings and open checks in [REGISTER_FINDINGS](docs/REGISTER_FINDINGS.en.md). Private measurements, operating timestamps and screenshots are excluded from publication.

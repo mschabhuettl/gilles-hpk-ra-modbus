@@ -78,3 +78,11 @@ Die vier Statistikhelfer für Kesselminimum, Kesselmaximum, Abgasmaximum und O�
 **REG78 bleibt eine Hypothese:** Längere Aktivintervalle widersprechen der bisherigen Deutung als unmittelbarer Laufzustand der Ascheschnecke. Bestehende IDs mit `asche…` bleiben aus Kompatibilitätsgründen erhalten. Ihre Werte und Zeitstempel stehen für beobachtete REG78-Flanken, nicht für nachgewiesene mechanische Austragungsvorgänge. Weitere anonymisierte Erkenntnisse und offene Touch-Abgleiche stehen in [REGISTER_FINDINGS](../docs/REGISTER_FINDINGS.md).
 
 Die Puffer- und Differenzsemantik ist in der [offiziellen Statistik-Dokumentation](https://www.home-assistant.io/integrations/statistics/) beschrieben; die abweichende Zählweise von Zuständen statt Übergängen in [History Stats](https://www.home-assistant.io/integrations/history_stats/).
+
+## Touch-Abgleich: Sollwerte, Eingänge und Zähler
+
+Die Touch-Ist/Soll-Seite zeigt getrennt „Restsauerstoff – Ist/Soll“, „aktuelle Einschubmenge“, Kessel-/Abgas-Soll und die Gebläse. Sie ist die passende Vergleichsseite für REG56 und den konkreteren REG68-Einschub-Kandidaten. Gleiche Nullwerte im Standby verifizieren weder eine Registerzuordnung noch einen Skalierungsfaktor. Aktuelle Prozentanzeigen bleiben bis zum Nichtnull-Abgleich unverändert; es wird kein neuer bestätigter Sollwert- oder Verbrauchssensor angelegt.
+
+REG64 kann auch bei weiterhin ausgewähltem Puffer/Boiler-Modus null sein. Für den Betriebsmodus REG44 verwenden und nicht aus einem fehlenden aktiven Kessel-Sollwert „Steuerung aus“ ableiten. Thermo-/Motorschutzanzeigen auf den X-Kontaktseiten sind keine Motorlaufanzeigen; die Kontaktpolarität lässt sich nicht aus der Farbe bestimmen. Reinigungszeitparameter allein beweisen keine freigegebene Reinigungsfunktion.
+
+Die Touch-Seite „Laufzeiten“ und „Anzahl Zündungen“ hat keinen belegten gemeinsamen Zähl- oder Rücksetzzeitraum mit den HA-Helfern. Vorhandene HA-Zähler daher weder anhand eines Screenshots überschreiben noch auf den Touch-Wert initialisieren. Der bekannte Fehler der rollierenden 24-h-Startstatistik bleibt offen. Weitere Grenzen und der gezielte Vergleichsablauf stehen in [REGISTER_FINDINGS](../docs/REGISTER_FINDINGS.md).

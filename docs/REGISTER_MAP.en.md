@@ -74,13 +74,13 @@ The combustion chamber door itself is **not directly** exported via Modbus — i
 | **50** | **`AbgasTemp_Ist`** | int32 | ×0.1 | °C | ✓✓ | Flue gas temperature (live). |
 | **52** | **`RuecklaufTemp_Ist`**| int32 | ×0.1 | °C | ✓✓ | Return temperature (live) |
 | **54** | **`O2_Ist`**           | int32 | ×0.1 | %  | ✓✓ | Residual oxygen (live; 21% at start, ~12% during burn) |
-| 56 | `?O2Soll_Live` | int32 | ×0.1? | %? | ✓ | Closely matches an exhaust-temperature-based O₂ target during regulation. Parameterized formula and limits in the register findings; no Touch confirmation. |
+| 56 | `?O2Soll_Live` | int32 | ×0.1? | %? | ✓ | Closely matches an exhaust-temperature-based O₂ target during regulation. The Touch actual/target page is identified; matching zero values establish neither identity nor scale. Nonzero comparison remains open. |
 | **58** | **`PrimaerIst`** | int32 | ×0.1 HA; ? actual | %? | ✓✓ | Historical primary-air match. Functional identification retained, scale uncertain. |
 | **60** | **`SekundaerIst`**     | int32 | ×0.1 | %  | ✓✓ | **Secondary air actual (live)** — stays 0 in this installation (Touch shows 0% throughout) |
 | **62** | **`SaugzugIst`** | int32 | ×0.1 HA; ? actual | %? | ✓✓ | Historical induced-draft match. Functional identification retained, scale uncertain. |
-| **64** | **`KesselSoll_Live`**  | int32 | ×0.1 | °C | ✓✓ | Currently active setpoint (70/75/80°C depending on mode & time of day) |
+| **64** | **`KesselSoll_Live`**  | int32 | ×0.1 | °C | ✓✓ | Active boiler target; can be zero in standby while Puffer/Boiler mode remains selected. |
 | **66** | **`AbgasSoll_Live`** | int32 | ×0.1 | °C | ✓✓ | Active flue target; changes within phase 7. Not a fixed binary value. |
-| 68 | `?REG68` | int32 | ? | ? | ? | Increases and decreases with repeated zero intervals. Command/modulation candidate; not a monotonic consumption or runtime counter. |
+| 68 | `?REG68` | int32 | ? | ? | ? | Increases and decreases. Specific candidate: Touch “aktuelle Einschubmenge” (current feed amount). Nonzero comparison and scale remain open; not a monotonic consumption/runtime counter. |
 | 70 | `?`                        | int32 | ?    | ?  | ? | Always 0 in all observations |
 | 72 | `?BinaryFlag` | int32 | bool | — | ? | Active during ignition/startup; candidate ignition-related output. Exact actuator unknown. |
 | 74 | `?`                        | int32 | ?    | ?  | ? | Always 0 in all observations |
@@ -111,23 +111,23 @@ The Touch's dropdown shows 7 modes (Steuerung Aus, Handbetrieb, Zeitbetrieb, Puf
 | Code | Mode | Touch display | KesselSoll_Live (REG[64]) |
 |------|------|---------------|---------------------------|
 | 1 | Handbetrieb (Manual) | "Handbetrieb" | Day 75°C / Night 70°C |
-| 3 | Puffer/Boiler | "Puffer/Boiler" | **80°C** (= buffer charge setpoint) |
+| 3 | Puffer/Boiler | "Puffer/Boiler" | State-dependent: an active charging target or zero with the burner off. Mode alone does not determine REG64. |
 | 5 | Automatik | "Automatik" | Day 75°C / Night 70°C |
 | ? | Steuerung Aus (controller off) | not yet observed | — |
 | ? | Zeitbetrieb (time mode) | not yet observed | — |
 | ? | Puffer/Boiler Gluterhaltung | not yet observed | — |
 | ? | Notbetrieb (emergency) | not yet observed | — |
 
-## Enum: `KesselSoll_Live` (REG[64])
+## Active boiler target (REG[64])
 
-Active setpoint. Switches by mode and time of day:
+A numeric target, not a mode enum. The following nonzero values are historical examples; operating mode, time profile and current demand must be considered separately:
 
 | Value | Meaning |
 |-------|---------|
 | 70.0°C | Night profile active (= REG[34] sKesselSollNacht) |
 | 75.0°C | Day profile active (= REG[18] sKesselSollTag) |
 | 80.0°C | Buffer charge setpoint (in BoilerStatus=3) |
-| 0.0°C | Mode disabled |
+| 0.0°C | Also observed with Puffer/Boiler still selected and the burner off; not evidence that the operating mode is disabled. |
 
 ## Verified test events
 
@@ -143,7 +143,7 @@ In chronological order of observations:
 | Ignition starts | REG[42]: 1→3, REG[54]: 1→21% (O2 rises with fresh air) |
 | Combustion chamber door opened during ignition | REG[46]: 0→35, REG[62]: 80→100 (Saugzug to max) |
 | Initial combustion phase | REG[42]: 5→6, REG[58]: 0→70 (Primary air) |
-| Full load heating | REG[42]: 6→7, REG[50]: ~30→105°C, REG[66]: 90→240°C, REG[68]: 0→500 |
+| Regulating heat | REG[42]: 6→7, REG[50]: ~30→105°C, REG[66]: 90→240°C, REG[68]: 0→500 |
 | Burner stop initiated | REG[44]: 3→1, REG[42]: 7→8 (burn-out) |
 | Cooldown phase | REG[42]: 8→9 |
 
@@ -164,11 +164,11 @@ Earlier targeted Touch tests produced no attributable Modbus changes for these v
 
 | Register | Next evidence needed |
 |---|---|
-| REG56 | Compare candidate target against the Touch O₂ target and configuration endpoints at the same time. |
+| REG56 | Compare “Restsauerstoff – Soll” on the actual/target page simultaneously during natural regulation with nonzero values. |
 | REG58/62 | Compare raw integers, HA values and Touch percentages simultaneously before changing the scale. |
-| REG68 | Match Touch output/load/feed indications, including a natural zero interval and modulation. No consumption calculation from this value. |
-| REG72 | Match the ignition output on Touch during a natural startup. |
-| REG76 | Identify the output; recorded high-state duration does not establish an equally long physical pulse. |
+| REG68 | Compare “aktuelle Einschubmenge” on the same actual/target page at nonzero values and during modulation. Scale remains open; no consumption calculation. |
+| REG72 | Compare ignition and dosing outputs during a natural startup; distinguish pulsed ignition feed from ignition heating. |
+| REG76 | Identify the actual output and function enable; cleaning time parameters and thermal contacts do not establish a cleaning cycle. |
 | REG78 | Compare pump/release/ash indicators during a natural transition. Count raw rising edges only, not confirmed ash cycles. |
 | REG42/44/46 | Missing phase/mode codes and status-code structure remain unresolved; test REG46=61 across changes of the Touch banner. |
 

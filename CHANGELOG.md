@@ -4,6 +4,14 @@
 
 Alle nennenswerten Erkenntnisse während des Reverse Engineerings der Gilles-Touch-Modbus-Map.
 
+## [0.6.1] — 2026-09-24 — Touch-Diagnoseseiten abgeglichen
+
+Zehn bereits zugeordnete Parameter erneut mit Touch und HA verglichen; ihre Skalierungen passen. Die neu identifizierte Ist/Soll-Seite liefert die konkrete Vergleichsanzeige für REG56 (O₂-Soll) und REG68 („aktuelle Einschubmenge“). Übereinstimmende Nullwerte im Standby reichen nicht zur Verifikation; die Vertrauensverteilung bleibt unverändert.
+
+REG64-Dokumentation korrigiert: Ein Nullwert bedeutet nicht automatisch einen ausgeschalteten Betriebsmodus. Kontaktanzeigen, Funktionsfreigaben und tatsächliche Motorzustände werden getrennt; vorhandene Reinigungsparameter bestätigen keinen Reinigungslauf. Rücksetzbereich des Touch-Zündungszählers und Modbus-Adressen der zusätzlich sichtbaren Größen bleiben offen.
+
+Nur anonymisierte Dokumentation ergänzt; keine neuen privaten Parameterwerte, Messstände, Laufzeiten, Bilder oder Betriebszeitpunkte veröffentlicht. HA-Laufzeitkonfiguration und Zähler unverändert.
+
 ## [0.6.0] — 2026-09-24 — Anonymisierte Register-Erkenntnisse und Statistikhinweise
 
 Anonymisierte Erkenntnisse und offene Prüfungen in [REGISTER_FINDINGS](docs/REGISTER_FINDINGS.md) ergänzt. Private Messreihen, Betriebszeitpunkte und Screenshots sind nicht Teil der Veröffentlichung.
