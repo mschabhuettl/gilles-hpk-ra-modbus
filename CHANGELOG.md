@@ -4,6 +4,16 @@
 
 Alle nennenswerten Erkenntnisse während des Reverse Engineerings der Gilles-Touch-Modbus-Map.
 
+## [0.6.0] — 2026-09-24 — Anonymisierte Register-Erkenntnisse und Statistikhinweise
+
+Anonymisierte Erkenntnisse und offene Prüfungen in [REGISTER_FINDINGS](docs/REGISTER_FINDINGS.md) ergänzt. Private Messreihen, Betriebszeitpunkte und Screenshots sind nicht Teil der Veröffentlichung.
+
+REG56 passt zu einem aus Abgastemperatur und O₂-Parametern interpolierten Sollwert; bleibt bis zum Touch-Abgleich stark vermutet. REG68 ist nichtmonoton und kein fortlaufender Zähler. REG72 zeigt Zündungsbezug. REG76 kann aktiv sein. Längere Aktivintervalle von REG78 widersprechen seiner bisherigen gesicherten Aschemotor-Zuordnung. REG46=61 ist ein Kandidat für „Puffertemperatur erreicht“, kein allgemeiner Indikator für Betriebsmodus 3. HA-Registerskalierungen und Entity-IDs bleiben erhalten; der Logger kennzeichnet ungesicherte Werte und zeigt REG56 ohne vorweggenommene Prozentumrechnung.
+
+Live-Dashboard und portables Beispiel kennzeichnen offene Bedeutungen und die unzuverlässige 24-h-Startstatistik. Vier Extremwert-Helfer erhalten 10.000 statt 4.000 Stichproben; der Fehler bei seltenen Startzähleränderungen bleibt bis zu einer gesondert validierten Ereigniszählung offen. Bestehendes Diagnoseprotokoll um Modus, REG46, Kessel-Soll, Rücklauf und REG78 erweitert. Die Ascheautomation zählt unverändert beobachtete REG78-Flanken; ihre Beschreibung wurde präzisiert.
+
+HA-Änderungen gespeichert und zurückgelesen; Konfigurationsprüfung ohne neue Konfigurationsfehler im abgefragten Systemlog. Offline-Konsistenzprüfung, Python-Kompilierung und isolierte Prüfung der Logger-Ausgabe ohne Modbus-Verbindung erfolgreich. Keine Kesselregister geschrieben, kein Brennlauf ausgelöst und keine Zähler zurückgesetzt. Die Pflicht zur anonymisierten Veröffentlichung ist in `AGENTS.md` festgehalten.
+
 ## [0.5.0] — 2026-09-07 — Betriebsdiagnose und Bereinigung
 
 - 14 verwaiste Registereinträge nach vollständiger Suche in aktiven Helfern, Automationen, Dashboards, YAML und AppDaemon entfernt. Recorder-Historien wurden nicht gelöscht.

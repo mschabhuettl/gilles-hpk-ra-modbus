@@ -2,7 +2,7 @@
 
 ## Standing maintainer request
 
-Matthias requested that this repository be kept up to date whenever we improve the Gilles integration in Home Assistant. Treat the repository update as part of each authorized Gilles change, including changes made through Home Assistant MCP.
+The maintainer requested that this repository be kept up to date whenever we improve the Gilles integration in Home Assistant. Treat the repository update as part of each authorized Gilles change, including changes made through Home Assistant MCP.
 
 - Read the current default-branch revision and the relevant live Gilles configuration before editing. Preserve unrelated work and existing entity identities/history.
 - Update the relevant files under `home-assistant/`, register documentation, and both German and English changelogs in the same work session. New findings must state their evidence and remaining uncertainty.
@@ -11,6 +11,12 @@ Matthias requested that this repository be kept up to date whenever we improve t
 - Finish with the GitHub commit or pull-request link and the actual validation result. Do not claim synchronization if the remote update failed.
 
 This is a workflow requirement for integration work, not an unattended mirror of arbitrary Home Assistant edits. Do not add a polling job, publish unrelated HA configuration, or change heating controls to satisfy it.
+
+## Public updates must be anonymized
+
+Publish general register findings, portable configuration and the limits of the evidence. Keep private source data out of public changes: no installation or personal identifiers, internal addresses, credentials, real telemetry exports, screenshots, charts of private operation, or concrete operating dates, times and durations. Release dates and generic configuration parameters are fine. Describe observed relationships qualitatively and express hypotheses using variables where possible.
+
+Check the complete outgoing commit range, including new files and commit ancestry. A private-data commit must not become an ancestor of a public update, even if a later commit removes its files. Retain existing public history; use a clean branch from the public default branch when preparing anonymized findings from private work.
 
 ## Source and deployment conventions
 

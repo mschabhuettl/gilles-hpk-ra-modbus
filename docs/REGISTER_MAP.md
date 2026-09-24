@@ -2,18 +2,21 @@
 
 > 🇩🇪 **Deutsch** · [🇬🇧 English](REGISTER_MAP.en.md)
 
-**Letzte Aktualisierung:** 2026-09-07 (v0.4.0 — HA-Abgleich; historische Brennzyklusbeobachtung vom 20. Mai)
+**Stand:** Erweiterte passive Auswertung; historische Touch-Zuordnungen mit ausdrücklich offener Unsicherheit
 **Steuerungs-Firmware:** LASAL II v5.36.4 (10.01.2024)
 **Vertrauensgrade:** ✓✓ = empirisch verifiziert · ✓ = stark vermutet via Werte-Match · ? = unbekannt
 
 ## Stand
 
-- **26 von 40 Registern** sicher identifiziert (✓✓)
-- **8 weitere** stark vermutet (✓)
-- **3 Register** zeigen Werte, aber die Semantik ist noch unklar (REG[56], REG[68], REG[72])
-- **3 Register** bisher 0, Funktion nicht belegt (REG[70], REG[74], REG[76])
+| Vertrauen | Anzahl | Bedeutung |
+|---|---:|---|
+| ✓✓ | 25 | Historisch identifiziert; Skalierung von REG58/62 weiterhin zu prüfen |
+| ✓ | 9 | Starke Hypothese, jetzt einschließlich REG56 als berechneter O₂-Sollwert |
+| ? — Wert ungleich null beobachtet | 4 | REG68, REG72, REG76, REG78 |
+| ? — bisher nur null beobachtet | 2 | REG70, REG74; Funktion weiterhin offen |
+| **Summe** | **40** | |
 
-Summe: 26 + 8 + 3 + 3 = 40 ✓
+Die [anonymisierte Zusammenfassung der Registerbefunde](REGISTER_FINDINGS.md) ersetzt die früheren Aussagen, REG56 zeige nur einen Impuls, REG68 sei ein Zähler, REG76 sei inaktiv und REG78 sei ein verifizierter Aschemotor. Das Vertrauenszeichen beschreibt die Funktionszuordnung, keine pauschale Bestätigung jeder Skalierung oder Firmwarevariante.
 
 ## Verbindungsparameter
 
@@ -37,7 +40,7 @@ Summe: 26 + 8 + 3 + 3 = 40 ✓
 
 Die Brennraumtür selbst ist **nicht direkt** in der Modbus-Map exportiert, sondern nur indirekt über REG[46]=35 erkennbar.
 
-**Skalierungsprüfung 2026-09-07:** Die historische Identifikation von REG62 als Saugzug bleibt erhalten. Die vorhandene HA-Skalierung ×0,1 passt bei einer neueren Türbeobachtung nicht eindeutig zur früheren Prozentbeschreibung. Sie bleibt vorerst unverändert, benötigt aber einen erneuten synchronisierten Vergleich von Rohwert, HA und Touch. Die folgenden Phasenwerte dokumentieren die frühere Beobachtung, keinen neuen Skalierungsnachweis.
+**Skalierungsprüfung:** Die historischen Funktionszuordnungen von REG58/62 zu Primärluft/Saugzug bleiben bestehen. Die HA-Skalierung ×0,1 passt nicht eindeutig zu den historischen Touch-Zuordnungen und den beobachteten Beziehungen zu den Parametergrenzen. Ein Faktor-10-Anzeigefehler ist möglich, aber nicht bewiesen. Rohwert-Skala ×1 bleibt ein Kandidat. Die HA-Skalierung wird erst nach gleichzeitigem Rohwert-/HA-/Touch-Vergleich geändert; die historischen Prozentangaben unten sind kein neuer Skalierungsnachweis.
 
 ## Register-Tabelle
 
@@ -66,27 +69,27 @@ Die Brennraumtür selbst ist **nicht direkt** in der Modbus-Map exportiert, sond
 | 40 | `sAbgasTempMaxLimit`       | int32 | ×0.1 | °C | ✓ | Abgastemp-Sicherheitslimit (270°C) |
 | **42** | **`BrennPhase`**       | int32 | enum | —  | ✓✓ | **Brennzyklus-Phase** (siehe Enum unten) |
 | **44** | **`BoilerStatus`**     | int32 | enum | —  | ✓✓ | Kessel-Betriebsmodus (siehe Enum unten) |
-| 46 | `StatusBitmap`             | int32 | bitfield | — | ✓ | Anlagen-Zustand: 0=normal, 35=Brennraumtür offen, 61=Puffer/Boiler-Modus |
+| 46 | `StatusBitmap` | int32 | enum/bitfield? | — | ✓ | 0/35/61 beobachtet; 35 historisch bei offener Tür. 61 passt zur Touch-Meldung „Puffertemperatur erreicht“; vorläufige Zustandszuordnung, kein exakt synchroner Nachweis. Bitfeldstruktur nicht belegt. |
 | **48** | **`KesselTemp_Ist`**   | int32 | ×0.1 | °C | ✓✓ | Kesseltemperatur (live) |
-| **50** | **`AbgasTemp_Ist`**    | int32 | ×0.1 | °C | ✓✓ | Abgastemperatur (live; bis 110°C beim Brennen beobachtet) |
+| **50** | **`AbgasTemp_Ist`** | int32 | ×0.1 | °C | ✓✓ | Abgastemperatur (live). |
 | **52** | **`RuecklaufTemp_Ist`**| int32 | ×0.1 | °C | ✓✓ | Rücklauftemperatur (live) |
 | **54** | **`O2_Ist`**           | int32 | ×0.1 | %  | ✓✓ | Restsauerstoff (live; 21% bei Brennerstart, ~12% im Vollbetrieb) |
-| 56 | `?REG56`                   | int32 | ×0.1 | %? | ? | Sehr kurzer Spike auf 10,3% beim Übergang Heizen→Ausbrennen (30 Sek lang) — Funktion unklar |
-| **58** | **`PrimaerIst`**       | int32 | ×0.1 | %  | ✓✓ | **Primärluft Ist (live)** — korreliert exakt mit Touch (63/67/70%) |
+| 56 | `?O2Soll_Live` | int32 | ×0.1? | %? | ✓ | Passt im Regelbetrieb eng zu einem abgastemperaturabhängigen O₂-Soll. Parametrisierte Formel und Grenzen in den Registerbefunden; keine Touch-Bestätigung. |
+| **58** | **`PrimaerIst`** | int32 | ×0.1 HA; ? real | %? | ✓✓ | Historischer Primärluft-Match. Funktionszuordnung bleibt, Skala offen. |
 | **60** | **`SekundaerIst`**     | int32 | ×0.1 | %  | ✓✓ | **Sekundärluft Ist (live)** — bleibt 0 in dieser Anlage (Touch zeigt durchgehend 0%) |
-| **62** | **`SaugzugIst`**       | int32 | ×0.1 | %  | ✓✓ | **Saugzug Ist (live)** — wechselt zwischen 71/72/76/80/100% je nach Phase |
+| **62** | **`SaugzugIst`** | int32 | ×0.1 HA; ? real | %? | ✓✓ | Historischer Saugzug-Match. Funktionszuordnung bleibt, Skala offen. |
 | **64** | **`KesselSoll_Live`**  | int32 | ×0.1 | °C | ✓✓ | Aktiv wirksamer Sollwert (70/75/80°C je nach Modus & Tageszeit) |
-| **66** | **`AbgasSoll_Live`**   | int32 | ×0.1 | °C | ✓✓ | Aktiv wirksamer Abgas-Sollwert (90°C Standby / 240°C Brennbetrieb) |
-| 68 | `?Zaehler`                 | int32 | ?    | ?  | ? | Steigt während Heizphase von 500 auf 600 in unregelmäßigen Schritten — vermutlich Pellet- oder Brennzeit-Zähler |
+| **66** | **`AbgasSoll_Live`** | int32 | ×0.1 | °C | ✓✓ | Aktiver Abgas-Sollwert; verändert sich auch innerhalb Phase 7. Kein fester Zweizustandswert. |
+| 68 | `?REG68` | int32 | ? | ? | ? | Steigt und fällt mit wiederholten Nullintervallen. Stell-/Modulationsgröße als Kandidat; kein monotoner Verbrauchs-/Laufzeitzähler. |
 | 70 | `?`                        | int32 | ?    | ?  | ? | In allen Beobachtungen 0 |
-| 72 | `?BinarFlag`               | int32 | bool | —  | ? | Binär 0/1, wechselt während Brennzyklus — vermutlich Zellenrad-Status |
+| 72 | `?BinaerFlag` | int32 | bool | — | ? | Während Zündung/Anbrennen aktiv; Kandidat für zündungsbezogenen Ausgang. Konkreter Aktor unbekannt. |
 | 74 | `?`                        | int32 | ?    | ?  | ? | In allen Beobachtungen 0 |
-| 76 | `?`                        | int32 | ?    | ?  | ? | In allen Beobachtungen 0 |
-| **78** | **`AscheaustragungAktiv`** | int32 | bool | — | ✓✓ | **Ascheaustragung läuft** (1=aktiv, 0=Pause) — 30-Sek-Spike entspricht exakt `sAschenaustrDauer` |
+| 76 | `?BinaerFlag` | int32 | bool | — | ? | Wiederkehrende High-Intervalle beobachtet. Funktion, Periodizität und physische Impulsdauer offen. |
+| **78** | **`?BinaerFlag`** | int32 | bool | — | ? | Frühere Asche-Zuordnung wegen eines langen High-Intervalls zurückgenommen. Pumpe/Freigabe als Kandidat; historische HA-IDs bleiben erhalten. |
 
 ## Enum: `BrennPhase` (REG[42])
 
-Aus einem vollständig beobachteten Brennzyklus abgeleitet:
+Historische Phasenzuordnung; die vollständige Folge wurde in einer weiteren passiven Beobachtung bestätigt. Code 7 umfasst auch Modulation und belegt daher keine Volllast:
 
 | Code | Phase | Touch-Anzeige | Typische Werte zum Zeitpunkt |
 |------|-------|---------------|------------------------------|
@@ -95,7 +98,7 @@ Aus einem vollständig beobachteten Brennzyklus abgeleitet:
 | 3 | Zündung | „Zündung 589" | Primär 70%, Saugzug 80-100%, O₂ steigt auf 21% |
 | 5 | Spät-Zündung / Übergang | (zwischen 3 und 6) | Saugzug 100%, O₂ noch ~21% |
 | 6 | Anbrennphase | „Anbrennphase 34" | Saugzug 80%, Abgas steigt schnell |
-| 7 | Heizen regeln (Volllast) | „Heizen regeln" | Primär 63%, Saugzug 71%, O₂ 12-14%, Abgas 100+°C, REG[66] springt auf 240°C |
+| 7 | Heizen regeln (Regelbetrieb) | „Heizen regeln" | Primär 63%, Saugzug 71%, O₂ 12-14%, Abgas 100+°C, REG[66] springt auf 240°C |
 | 8 | Ausbrennen | „Ausbrennen" | Primär+Saugzug noch laufend, Abgas fällt |
 | 9 | Nachlauf / Auskühlphase | (nach Brenner aus) | nur noch Lüfter-Nachlauf |
 
@@ -134,19 +137,19 @@ In chronologischer Reihenfolge der Beobachtungen:
 |--------|-----------------|
 | Wechsel auf Puffer/Boiler-Modus | REG[44]: 1→3 · REG[46]: 0→61 · REG[64]: 75→0°C |
 | Automatischer Tag→Nacht-Wechsel (Absenkbetrieb-Beginn) | REG[64]: 75,0°C → 70,0°C |
-| Automatische Ascheaustragung | REG[78]: 0→1 (genau 30 Sek = sAschenaustrDauer), dann zurück auf 0 |
+| Historischer REG78-Impuls | Etwa 30s high; die frühere Asche-Deutung wird durch ein später beobachtetes langes High-Intervall infrage gestellt. Gleiche Dauer allein belegt keinen Aktor. |
 | Wechsel Handbetrieb → Puffer/Boiler vor Brennzyklus | REG[44]: 1→3, REG[64]: 70→80°C |
 | Brenner startet (Vorlüften) | REG[42]: 0→1, REG[62]: 0→80% (Saugzug) |
 | Zündung beginnt | REG[42]: 1→3, REG[54]: 1→21% (O2 ↑ wegen Frischluft) |
 | Brennraumtür wird geöffnet während Zündung | REG[46]: 0→35, REG[62]: 80→100 (Saugzug-Notlauf) |
 | Anbrennphase | REG[42]: 5→6, REG[58]: 0→70 (Primärluft) |
-| Heizen regeln (Volllast) | REG[42]: 6→7, REG[50]: ~30→105°C, REG[66]: 90→240°C, REG[68]: 0→500 |
+| Heizen regeln (Regelbetrieb) | REG[42]: 6→7, REG[50]: ~30→105°C, REG[66]: 90→240°C, REG[68]: 0→500 |
 | Brenner-Stopp eingeleitet | REG[44]: 3→1, REG[42]: 7→8 (Ausbrennen) |
 | Auskühlphase | REG[42]: 8→9 |
 
-## Was definitiv NICHT in der Map ist
+## In der getesteten Map nicht identifiziert
 
-Durch gezielte Tests bestätigt — alle folgenden Änderungen am Touch lösten **keine** Modbus-Reaktion aus:
+Frühere gezielte Touch-Tests ergaben für diese Werte keine zuordenbare Modbus-Änderung. Das dokumentiert eine fehlende Identifikation, keinen Beweis, dass keinerlei Codierung existieren kann:
 
 - Heizkreis-Sollwerte (Vorlauf/Raum) — Touch zeigt HK1 28°C, HK4 27°C
 - Warmwasser-Modus und -Temperatur — Touch zeigt WW 56°C
@@ -159,17 +162,14 @@ Durch gezielte Tests bestätigt — alle folgenden Änderungen am Touch lösten 
 
 ## Offene Fragen
 
-1. Was ist **REG[56]**? Nur ein 30-Sekunden-Spike auf 10,3% beim Übergang Phase 7→8 — eine kurz aktivierte Pumpe oder ein Aktor?
-2. Was ist **REG[68]**? Steigt während Heizphase von 500 auf 600. Pellet-Eingabe-Zähler? Brennzeit-Counter?
-3. Was ist **REG[72]**? Binäres Flag, mehrfach toggelnd pro Brennzyklus. Vermutlich Zellenrad-Status (am Touch als Quadrat angezeigt).
-4. Vollständige `BrennPhase`-Codes (REG[42]) — Code 2 und 4 fehlen.
-5. Vollständige `BoilerStatus`-Codes (REG[44]) — 4 von 7 Modi noch nicht beobachtet.
-6. Vollständiges Bitfeld-Schema von REG[46] — weitere Codes für andere Anlagen-Zustände.
+| Register | Nächster benötigter Beleg |
+|---|---|
+| REG56 | Kandidatenwert gleichzeitig mit O₂-Soll am Touch und den Parameter-Endpunkten vergleichen. |
+| REG58/62 | Rohinteger, HA-Wert und Touch-Prozent gleichzeitig ablesen, bevor die Skala geändert wird. |
+| REG68 | Touch-Anzeigen für Stellgröße/Leistung/Einschub bei natürlichem Nullintervall und Modulation abgleichen. Keine Verbrauchsberechnung daraus. |
+| REG72 | Zündungsausgang am Touch während eines natürlichen Starts abgleichen. |
+| REG76 | Ausgang identifizieren; gespeicherte High-Dauer belegt keinen gleich langen Motorlauf. |
+| REG78 | Pumpen-/Freigabe-/Asche-Anzeigen bei natürlichem Übergang vergleichen. Nur rohe steigende Flanken zählen, keine bestätigten Aschezyklen. |
+| REG42/44/46 | Fehlende Phasen-/Moduscodes und Struktur der Statuscodes bleiben offen; REG46=61 bei wechselnder Touch-Meldung prüfen. |
 
-## Wahrscheinlich permanent inaktiv
-
-Die folgenden Register zeigten in **keiner** Beobachtung jemals einen Wert ≠ 0 — auch nicht während des vollständigen Brennzyklus:
-
-- **REG[70]**, **REG[74]**, **REG[76]**
-
-Vermutlich für HZS-Erweiterungsmodule oder andere Subsysteme reserviert, die diese Installation nicht hat (Kaskadenmaster, Mischer, Fernwärme). Werden voraussichtlich nie aktiv werden — außer bei einer Erweiterung der Anlagenkonfiguration.
+REG70 und REG74 blieben in der abgefragten Historie null. Das belegt weder dauerhafte Inaktivität noch eine Reservierung für ungenutzte Erweiterungen.

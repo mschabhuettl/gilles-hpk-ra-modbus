@@ -45,7 +45,7 @@
             "hours": 24
           },
           "precision": 1,
-          "sampling_size": 4000,
+          "sampling_size": 10000,
           "state_characteristic": "value_min"
         },
         "helper_type": "statistics",
@@ -63,7 +63,7 @@
             "hours": 24
           },
           "precision": 1,
-          "sampling_size": 4000,
+          "sampling_size": 10000,
           "state_characteristic": "value_max"
         },
         "helper_type": "statistics",
@@ -81,7 +81,7 @@
             "hours": 24
           },
           "precision": 1,
-          "sampling_size": 4000,
+          "sampling_size": 10000,
           "state_characteristic": "value_max"
         },
         "helper_type": "statistics",
@@ -99,7 +99,7 @@
             "hours": 24
           },
           "precision": 1,
-          "sampling_size": 4000,
+          "sampling_size": 10000,
           "state_characteristic": "value_min"
         },
         "helper_type": "statistics",

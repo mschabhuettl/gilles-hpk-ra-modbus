@@ -4,7 +4,11 @@
 
 A community effort to document the Modbus TCP interface of the **Gilles Touch** controller used in Gilles biomass boilers (HPK-RA series), and to integrate them into Home Assistant.
 
-> **Status:** 26 of 40 registers empirically verified (✓✓), 8 strongly suspected (✓), 3 with values but unclear semantics (?), 3 observed as zero with unconfirmed purpose. Total: 40.
+> **Register status:** 25 of 40 registers historically verified (✓✓), 9 strongly suspected (✓), 4 with unresolved semantics (?), 2 still observed only at zero. REG56 is a strong O₂ target candidate; the previously verified ash interpretation of REG78 has been withdrawn. REG58/60/62 scaling remains unresolved.
+
+## Anonymized register findings
+
+[Findings and open checks](docs/REGISTER_FINDINGS.en.md): O₂ target hypothesis for REG56, nonmonotonic REG68, active REG76 pulses and evidence contradicting the ash-motor interpretation of REG78. REG46=61 is a candidate for the “buffer temperature reached” message. The rolling 24-hour start statistic can undercount sparse starts and is marked unreliable on the dashboard. Private operating histories and screenshots are not published.
 
 ## Background
 
@@ -38,7 +42,7 @@ With the HA integration you can monitor:
 - **Burner cycle phase** as plain text: Vorlüften, Zündung, Anbrennen, Heizen regeln, Ausbrennen, Auskühlen
 - **Primary & induced-draft fan values** (check REG62 scaling against the Touch; secondary was 0 in previous observations)
 - **Combustion chamber door state** (detected via StatusBitmap)
-- **Ash discharge active** yes/no
+- **REG78 signal and rising edges** (previously labelled ash discharge; physical function remains unresolved)
 - **Operating mode**: Handbetrieb, Puffer/Boiler, Automatik (others not yet observed)
 
 ## Quick start

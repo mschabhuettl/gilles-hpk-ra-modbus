@@ -84,7 +84,7 @@ CHANGE: REG[46]: 35→0 | REG[62]: 100→0
 
 Diese Korrelationen identifizierten in einer Session **vier neue Register**:
 - REG[44] = Kessel-Betriebsmodus (Enum)
-- REG[46] = Status-Bitfeld
+- REG[46] = Statuscode; Bitfeldstruktur nicht belegt
 - REG[62] = (zunächst falsch interpretiert als Brennraumtür — siehe Phase 7)
 - REG[64] = Aktiver Live-Sollwert
 
@@ -120,7 +120,7 @@ In diesen 15 Minuten **bewegten sich plötzlich Register, die vorher 24 Stunden 
 - **REG[66]** sprang von 90 auf 240 als das Heizen begann — = REG[38] sAbgasTempMax. → **aktiver Abgas-Sollwert**.
 - **REG[64]** nahm den neuen Wert 80°C an im Puffer/Boiler-Modus. → **Puffer-Lade-Sollwert**.
 - **REG[44]** zeigte kurz Code 5 als die Anlage in Automatik wechselte. → **Automatik = 5**.
-- **REG[78]** zeigte einen 30-Sekunden-Spike während einer nächtlichen Ruhephase. → **Ascheaustragung aktiv** (30 Sek = sAschenaustrDauer).
+- **REG[78]** zeigte einen 30-Sekunden-Spike während einer nächtlichen Ruhephase. Daraus wurde damals „Ascheaustragung aktiv“ abgeleitet (30 Sek = sAschenaustrDauer). **Zurückgenommen:** Ein später beobachtetes langes High-Intervall widerspricht der direkten Zuordnung zum Aschemotor; der konkrete Aktor ist offen.
 
 ## Phase 8 — Korrektur falscher Annahmen
 
@@ -153,15 +153,19 @@ Vor allem **Phase 5 (Live-Korrelation)** und **Phase 7 (Brennzyklus)** waren wer
 
 ## Was noch zu tun ist
 
-Mit dem beobachteten Brennzyklus sind ~82% der Map verstanden. Was noch fehlt:
+Historischer Arbeitsstand nach dem ersten Brennzyklus; aktuelle Vertrauensgrade und offene Fragen stehen in der [Registermap](REGISTER_MAP.md). Damals noch offen:
 
 - **REG[56, 68, 72]** — aktivieren sich nur in bestimmten Phasen, Identifikation braucht weitere Beobachtung mit zeitlich präzisem Touch-Bezug
 - **REG[44] BoilerStatus**: noch 4 von 7 Modi nicht beobachtet (Steuerung Aus, Zeitbetrieb, Gluterhaltung, Notbetrieb)
 - **REG[42] BrennPhase**: Codes 2 und 4 fehlen
-- **REG[46] StatusBitmap**: vollständiges Bitfeld-Schema
+- **REG[46] StatusBitmap**: Struktur und vollständige Bedeutung der Statuscodes
 
-Die Register **REG[70, 74, 76]** werden voraussichtlich in dieser Installation für immer 0 bleiben — sie sind vermutlich für Subsysteme reserviert, die diese Anlage nicht hat.
+**Korrektur:** Die frühere Vermutung, REG[70, 74, 76] würden dauerhaft null bleiben, ist widerlegt: REG76 lieferte wiederkehrende aktive Pulse. REG70 und REG74 blieben in der abgefragten Historie null; ihre Funktion ist weiterhin unbekannt.
 
 ## Phase 9 — Home Assistant und Verbindungslebensdauer (2026-09-07)
 
 Der Abgleich von Repository, HA-Paketen, Entity-Registry und Dashboard deckte verworfene Pakete, historische Namensabweichungen und verdeckte Messausfälle auf. Zwei ausschließlich lesende TCP-Versuche zeigten eine Leerlaufgrenze von ungefähr drei Sekunden; ein Kontrollversuch mit Zwei-Sekunden-Abfragen hielt dieselbe Verbindung darüber hinaus offen. Die Bereinigung und ihre Grenzen sind in [HA_VALIDATION.md](HA_VALIDATION.md) dokumentiert. Sie ersetzt keine neue Brennzyklusbeobachtung und bestätigt keine weitere Registersemantik.
+
+## Phase 10 — Regulären Heizbetrieb passiv auswerten
+
+Der vom Betreiber gestartete Heizbetrieb wurde anhand vorhandener Home-Assistant-Recorder-Verläufe untersucht, ohne Register zu schreiben oder einen Brennlauf auszulösen. Ein längerer Verlauf widerlegte mehrere Schlussfolgerungen aus dem kurzen historischen Test: REG68 ist nichtmonoton, REG76 wird aktiv, und REG78 ist kein bestätigter Aschemotorzustand. REG56 passt zu einem berechneten O₂-Sollwert, benötigt aber noch einen zeitgleichen Touch-Abgleich. Die [anonymisierten Registerbefunde](REGISTER_FINDINGS.md) trennen qualitative Beobachtungen, Hypothesen und Grenzen durch asynchrone Abfragen. Rohbeobachtungen bleiben privat; diese Zusammenfassung allein erlaubt keine unabhängige Nachrechnung. Für neue Bestätigungen werden Register und Touch im selben natürlichen Betriebszustand verglichen, Uhrenabweichungen festgehalten und Sensoraktualisierungen berücksichtigt. Eine einzelne Aufnahme mit ausgeschalteten Aktoren identifiziert keine Ausgänge und bestätigt keine Nichtnull-Skalierung.

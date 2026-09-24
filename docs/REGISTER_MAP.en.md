@@ -2,18 +2,21 @@
 
 > [🇩🇪 Deutsch (primary)](REGISTER_MAP.md) · 🇬🇧 **English**
 
-**Last updated:** 2026-09-07 (v0.4.0 — HA validation; historical burner-cycle observation from 20 May)
+**Status:** Extended passive analysis; historical Touch identifications retained with explicit uncertainty
 **Controller firmware:** LASAL II v5.36.4 (10.01.2024)
 **Confidence levels:** ✓✓ = empirically verified · ✓ = strongly indicated by value match · ? = unknown
 
 ## Status
 
-- **26 of 40 registers** firmly identified (✓✓)
-- **8 more** strongly suspected (✓)
-- **3 registers** show values but their semantics are still unclear (REG[56], REG[68], REG[72])
-- **3 registers** observed as zero, purpose unconfirmed (REG[70], REG[74], REG[76])
+| Confidence | Count | Meaning |
+|---|---:|---|
+| ✓✓ | 25 | Historically identified; REG58/62 scaling still needs verification |
+| ✓ | 9 | Strong hypothesis, now including REG56 as a calculated O₂ target |
+| ? — nonzero observed | 4 | REG68, REG72, REG76, REG78 |
+| ? — only zero observed | 2 | REG70, REG74; purpose remains unknown |
+| **Total** | **40** | |
 
-Total: 26 + 8 + 3 + 3 = 40 ✓
+The [anonymized register findings](REGISTER_FINDINGS.en.md) supersede the former claims that REG56 only pulses, REG68 is a counter, REG76 is inactive, and REG78 is a verified ash motor. A confidence mark describes the functional identification, not automatic confirmation of every scale or firmware variant.
 
 ## Connection details
 
@@ -37,7 +40,7 @@ Total: 26 + 8 + 3 + 3 = 40 ✓
 
 The combustion chamber door itself is **not directly** exported via Modbus — it is only indirectly visible via REG[46]=35.
 
-**Scaling review, 2026-09-07:** REG62 retains its historical identification as induced draft. The existing HA scale ×0.1 does not clearly agree with the earlier percentage description for a newer door observation. It remains unchanged pending a synchronized raw-register/HA/Touch comparison. The phase values below record the earlier observation, not new scaling evidence.
+**Scaling review:** REG58/62 retain their historical primary-air/induced-draft identifications. The HA scale ×0.1 does not clearly agree with the historical Touch matches and observed relationships to parameter limits. A factor-of-ten display error is possible but unproven. Raw scale ×1 remains a candidate. The existing HA scales remain unchanged pending a simultaneous raw/HA/Touch comparison; the historical percentage values below are not fresh scaling evidence.
 
 ## Register table
 
@@ -66,27 +69,27 @@ The combustion chamber door itself is **not directly** exported via Modbus — i
 | 40 | `sAbgasTempMaxLimit`       | int32 | ×0.1 | °C | ✓ | Flue gas hard limit (270°C) |
 | **42** | **`BrennPhase`**       | int32 | enum | —  | ✓✓ | **Burner cycle phase** (see enum below) |
 | **44** | **`BoilerStatus`**     | int32 | enum | —  | ✓✓ | Boiler operating mode (see enum below) |
-| 46 | `StatusBitmap`             | int32 | bitfield | — | ✓ | Plant status: 0=normal, 35=door open, 61=Puffer/Boiler-mode |
+| 46 | `StatusBitmap` | int32 | enum/bitfield? | — | ✓ | 0/35/61 observed; 35 historically matched an open door. 61 matches the Touch banner “Puffertemperatur erreicht” (buffer temperature reached); provisional state association, not an exactly synchronized confirmation. Bitfield structure unproven. |
 | **48** | **`KesselTemp_Ist`**   | int32 | ×0.1 | °C | ✓✓ | Boiler temperature (live) |
-| **50** | **`AbgasTemp_Ist`**    | int32 | ×0.1 | °C | ✓✓ | Flue gas temperature (live; up to 110°C observed during burn) |
+| **50** | **`AbgasTemp_Ist`** | int32 | ×0.1 | °C | ✓✓ | Flue gas temperature (live). |
 | **52** | **`RuecklaufTemp_Ist`**| int32 | ×0.1 | °C | ✓✓ | Return temperature (live) |
 | **54** | **`O2_Ist`**           | int32 | ×0.1 | %  | ✓✓ | Residual oxygen (live; 21% at start, ~12% during burn) |
-| 56 | `?REG56`                   | int32 | ×0.1 | %? | ? | Brief 10.3% spike at Heizen→Ausbrennen transition (30 sec) — function unclear |
-| **58** | **`PrimaerIst`**       | int32 | ×0.1 | %  | ✓✓ | **Primary air actual (live)** — correlates exactly with Touch (63/67/70%) |
+| 56 | `?O2Soll_Live` | int32 | ×0.1? | %? | ✓ | Closely matches an exhaust-temperature-based O₂ target during regulation. Parameterized formula and limits in the register findings; no Touch confirmation. |
+| **58** | **`PrimaerIst`** | int32 | ×0.1 HA; ? actual | %? | ✓✓ | Historical primary-air match. Functional identification retained, scale uncertain. |
 | **60** | **`SekundaerIst`**     | int32 | ×0.1 | %  | ✓✓ | **Secondary air actual (live)** — stays 0 in this installation (Touch shows 0% throughout) |
-| **62** | **`SaugzugIst`**       | int32 | ×0.1 | %  | ✓✓ | **Induced draft actual (live)** — varies 71/72/76/80/100% by phase |
+| **62** | **`SaugzugIst`** | int32 | ×0.1 HA; ? actual | %? | ✓✓ | Historical induced-draft match. Functional identification retained, scale uncertain. |
 | **64** | **`KesselSoll_Live`**  | int32 | ×0.1 | °C | ✓✓ | Currently active setpoint (70/75/80°C depending on mode & time of day) |
-| **66** | **`AbgasSoll_Live`**   | int32 | ×0.1 | °C | ✓✓ | Currently active flue gas setpoint (90°C standby / 240°C during burn) |
-| 68 | `?Counter`                 | int32 | ?    | ?  | ? | Rises during heating phase from 500 to 600 in irregular steps — possibly pellet or burn-time counter |
+| **66** | **`AbgasSoll_Live`** | int32 | ×0.1 | °C | ✓✓ | Active flue target; changes within phase 7. Not a fixed binary value. |
+| 68 | `?REG68` | int32 | ? | ? | ? | Increases and decreases with repeated zero intervals. Command/modulation candidate; not a monotonic consumption or runtime counter. |
 | 70 | `?`                        | int32 | ?    | ?  | ? | Always 0 in all observations |
-| 72 | `?BinaryFlag`              | int32 | bool | —  | ? | Binary 0/1, toggles multiple times during burner cycle — possibly Zellenrad (rotary feeder) status |
+| 72 | `?BinaryFlag` | int32 | bool | — | ? | Active during ignition/startup; candidate ignition-related output. Exact actuator unknown. |
 | 74 | `?`                        | int32 | ?    | ?  | ? | Always 0 in all observations |
-| 76 | `?`                        | int32 | ?    | ?  | ? | Always 0 in all observations |
-| **78** | **`AscheaustragungAktiv`** | int32 | bool | — | ✓✓ | **Ash discharge running** (1=active, 0=pause) — 30-sec spike matches exactly `sAschenaustrDauer` |
+| 76 | `?BinaryFlag` | int32 | bool | — | ? | Recurring high intervals observed. Purpose, periodicity and physical pulse width unknown. |
+| **78** | **`?BinaryFlag`** | int32 | bool | — | ? | Former ash-discharge identification withdrawn because of a long high interval. Pump/release is a candidate; legacy HA IDs retained. |
 
 ## Enum: `BrennPhase` (REG[42])
 
-Derived from a fully observed burner cycle:
+Historical phase assignment; the full sequence was confirmed in a further passive observation. Code 7 also covers modulation, so it is not proof of full load:
 
 | Code | Phase | Touch display | Typical state |
 |------|-------|---------------|---------------|
@@ -95,7 +98,7 @@ Derived from a fully observed burner cycle:
 | 3 | Zündung (ignition) | "Zündung 589" | Primär 70%, Saugzug 80-100%, O₂ rises to 21% |
 | 5 | Late ignition / transition | (between 3 and 6) | Saugzug 100%, O₂ still ~21% |
 | 6 | Anbrennphase (initial combustion) | "Anbrennphase 34" | Saugzug 80%, exhaust rises rapidly |
-| 7 | Heizen regeln (full load) | "Heizen regeln" | Primär 63%, Saugzug 71%, O₂ 12-14%, exhaust 100+°C, REG[66] jumps to 240°C |
+| 7 | Heizen regeln (regulating heat) | "Heizen regeln" | Primär 63%, Saugzug 71%, O₂ 12-14%, exhaust 100+°C, REG[66] jumps to 240°C |
 | 8 | Ausbrennen (burn-out) | "Ausbrennen" | Primary + Saugzug still on, exhaust falling |
 | 9 | Auskühlphase (cooldown) | (after burner off) | only blower run-on |
 
@@ -134,7 +137,7 @@ In chronological order of observations:
 |--------|-----------------|
 | Switch to Puffer/Boiler mode | REG[44]: 1→3 · REG[46]: 0→61 · REG[64]: 75→0°C |
 | Automatic Day→Night transition (setback period begins) | REG[64]: 75.0°C → 70.0°C |
-| Automatic ash discharge cycle | REG[78]: 0→1 (exactly 30 sec = sAschenaustrDauer), then back to 0 |
+| Historical REG78 pulse | About 30s high; a subsequently observed long high interval challenges the former ash interpretation. Duration match alone did not establish actuator identity. |
 | Switch Handbetrieb → Puffer/Boiler before burner cycle | REG[44]: 1→3, REG[64]: 70→80°C |
 | Burner starts (pre-purge) | REG[42]: 0→1, REG[62]: 0→80% (Saugzug) |
 | Ignition starts | REG[42]: 1→3, REG[54]: 1→21% (O2 rises with fresh air) |
@@ -144,9 +147,9 @@ In chronological order of observations:
 | Burner stop initiated | REG[44]: 3→1, REG[42]: 7→8 (burn-out) |
 | Cooldown phase | REG[42]: 8→9 |
 
-## Definitely NOT in the map
+## Not identified in the tested map
 
-Confirmed by targeted tests — none of the following actions on the Touch produced any Modbus changes:
+Earlier targeted Touch tests produced no attributable Modbus changes for these values. This documents unsuccessful identification, not proof that no encoding can exist:
 
 - Heating circuit setpoints (flow / room temperature) — Touch shows HK1 28°C, HK4 27°C
 - DHW mode and temperature — Touch shows DHW 56°C
@@ -159,17 +162,14 @@ Confirmed by targeted tests — none of the following actions on the Touch produ
 
 ## Open questions
 
-1. What is **REG[56]**? Only a 30-second spike to 10.3% at the Phase 7→8 transition — a briefly activated pump or actuator?
-2. What is **REG[68]**? Rises from 500 to 600 during heating phase. Pellet feed counter? Burn-time counter?
-3. What is **REG[72]**? Binary flag, toggling several times per burner cycle. Likely Zellenrad (rotary feeder) status visible on Touch as colored square.
-4. Complete `BrennPhase` codes (REG[42]) — codes 2 and 4 missing.
-5. Complete `BoilerStatus` codes (REG[44]) — 4 of 7 modes not yet observed.
-6. Complete bitfield schema of REG[46] — likely more codes for other plant states.
+| Register | Next evidence needed |
+|---|---|
+| REG56 | Compare candidate target against the Touch O₂ target and configuration endpoints at the same time. |
+| REG58/62 | Compare raw integers, HA values and Touch percentages simultaneously before changing the scale. |
+| REG68 | Match Touch output/load/feed indications, including a natural zero interval and modulation. No consumption calculation from this value. |
+| REG72 | Match the ignition output on Touch during a natural startup. |
+| REG76 | Identify the output; recorded high-state duration does not establish an equally long physical pulse. |
+| REG78 | Compare pump/release/ash indicators during a natural transition. Count raw rising edges only, not confirmed ash cycles. |
+| REG42/44/46 | Missing phase/mode codes and status-code structure remain unresolved; test REG46=61 across changes of the Touch banner. |
 
-## Likely permanently inactive
-
-The following registers never showed any value ≠ 0 — including during the full burner cycle:
-
-- **REG[70]**, **REG[74]**, **REG[76]**
-
-Likely reserved for HZS expansion modules or subsystems this installation doesn't have (cascade master, mixers, district heating). Won't become active unless the installation is extended.
+REG70 and REG74 remained zero in the retrieved history. They are not proven to be permanently inactive or reserved for unused modules.

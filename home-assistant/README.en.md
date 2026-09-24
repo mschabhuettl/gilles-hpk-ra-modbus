@@ -9,7 +9,7 @@ These files reproduce the behavior validated on the reference installation on 7 
 | File | Purpose |
 |---|---|
 | `modbus.yaml` | HA package: 40 raw sensors and seven state templates with availability checks |
-| `gilles_derived.yaml` | HA package: timestamps of the last directly observed start and ash discharge |
+| `gilles_derived.yaml` | HA package: timestamps of the last directly observed start and REG78 rising edge |
 | `helpers.json` | 35 native helper definitions for the HA UI or Home Assistant MCP |
 | `automations.yaml` | Four native counter/diagnostic automations to create or update individually |
 | `entity_ids.json` | Entity IDs used by the examples and their YAML `unique_id` mapping |
@@ -45,7 +45,7 @@ All 40 raw sensors retain their addresses, data types, scales and `unique_id`. R
 ## Reading the dashboard
 
 - Data loss appears as unavailable. Missing readings do not imply standby, a normal system state or a closed door.
-- Start and ash counters require directly observed `0` to `1` transitions. Reconnection does not count as an event; events entirely inside a data gap may be missed.
+- Start counters and helpers historically named ash counters require directly observed `0` to `1` transitions. Reconnection does not count as an event; events entirely inside a data gap may be missed. The ash counters count REG78 rising edges; a one-to-one relationship with physical ash discharge operations has not been confirmed.
 - Counters start at installation. Initial daily, weekly and monthly periods are incomplete. Timestamps remain unknown until the first event. Newly created utility meters may also remain unknown until their first source update; do not generate artificial starts to initialize them.
 - Burner-cycle time includes pre-purge and cooldown, so it is not proof of a flame. Historical durations and extrema use existing recorder data; phase-data coverage exposes missing time.
 - Pellet consumption and efficiency require additional data and calibration and are not estimated here. Door detection remains indirect; uncertain register mappings/scales retain their labels.
@@ -63,8 +63,18 @@ Back up the affected HA files and UI configurations before deployment. Check con
 
 ## Added operating diagnostics (0.5.0)
 
-The rolling 24-hour buffer of observed counter changes provides an advisory start-frequency indicator. Default thresholds are more than 10 observed starts, startup longer than 20 minutes, and less than 2 °C boiler temperature rise after 30 minutes in phases 6 or 7. These are editable review thresholds, not manufacturer fault limits. Missing observations are never invented.
+The existing rolling 24-hour start indicator is unreliable with sparse counter changes; see the guidance below. An inactive warning therefore does not establish a low start count. Default thresholds are more than 10 observed starts, startup longer than 20 minutes, and less than 2 °C boiler temperature rise after 30 minutes in phases 6 or 7. These are editable review thresholds, not manufacturer fault limits. Missing observations are never invented.
 
 The diagnostic cycle is invalidated on restart, standby or missing phase data. Startup includes pre-purge and both ignition phases; burnout does not trigger the temperature-rise advisory. The two additional automations update HA helpers and write activity-log snapshots only. A synchronized Touch reading is still required to validate unclear register meanings or scaling.
 
 The reference installation removed the orphaned REG20, 42, 46, 50, 52, 58, 60, 62, 64, 66, 68, 72, 78 and `gilles_brennraumtur_raw` entries after checking all consumers. Active renamed sensors and Recorder history were preserved. Check each installation's own references before cleanup.
+
+## Statistics limits and unresolved registers
+
+The four statistics helpers for boiler minimum, boiler maximum, flue-gas maximum and O₂ minimum now retain up to **10,000 instead of 4,000 samples**, with `max_age: 24 h` unchanged. Frequent changes can cause the sample limit to evict older values before the time window expires. The “24 h” label therefore does not guarantee a full 24 hours. Update only the existing helpers' `sampling_size` option, preserving entity IDs and history. Check `age_coverage_ratio` and `buffer_usage_ratio` again after reloading. More buffer capacity cannot replace missing source readings.
+
+**Known rolling start-counter defect:** `sensor.gilles_brennstarts_24h` can miss sparse starts. `sum_differences_nonnegative` computes differences only between retained samples. After more than 24 hours without a change, the preceding counter value may be missing as a baseline; `keep_last_sample: true` retains only the newest sample. Increasing capacity does not fix this defect. Treat this helper and its frequent-start warning as unreliable until a separately validated event-counting design replaces the calculation. Daily, weekly and monthly counters remain separate and are neither reset nor artificially backfilled. Simply substituting `history_stats` on phase `1` would change window-boundary and reconnection semantics, so it is not an equivalent repair.
+
+**REG78 remains a hypothesis:** Extended active intervals contradict its previous interpretation as the ash screw's immediate running state. Existing IDs containing `asche…` remain for compatibility. Their values and timestamps represent observed REG78 edges, not verified physical ash discharge operations. Further anonymized findings and pending Touch comparisons are documented in [REGISTER_FINDINGS](../docs/REGISTER_FINDINGS.en.md).
+
+The buffer and difference semantics are documented in the [official Statistics documentation](https://www.home-assistant.io/integrations/statistics/); the different state-counting rather than transition-counting semantics are described in [History Stats](https://www.home-assistant.io/integrations/history_stats/).

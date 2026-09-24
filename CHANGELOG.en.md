@@ -4,6 +4,16 @@
 
 All notable findings during the reverse engineering of the Gilles Touch Modbus map.
 
+## [0.6.0] — 2026-09-24 — Anonymized register findings and statistics guidance
+
+Added anonymized findings and open checks in [REGISTER_FINDINGS](docs/REGISTER_FINDINGS.en.md). Private measurements, operating timestamps and screenshots are excluded from publication.
+
+REG56 follows a candidate O₂ target interpolated from exhaust temperature and configured O₂ parameters; it remains strongly suspected pending a Touch comparison. REG68 is nonmonotonic rather than a cumulative counter. REG72 is associated with ignition. REG76 can be active. Extended REG78 active intervals contradict its previously verified ash-motor interpretation. REG46=61 is a candidate for “buffer temperature reached”, not a general indicator of operating mode 3. Existing HA register scales and entity identities are preserved; the logger labels unresolved values and displays REG56 without assuming a percentage conversion.
+
+Live and portable dashboards mark unresolved semantics and the unreliable rolling 24-hour start count. Four extrema helpers now allow 10,000 instead of 4,000 samples. The sparse start-counter defect remains open pending separately validated event counting. Existing diagnostic logging now includes mode, REG46, boiler target, return temperature and REG78. The ash automation still counts observed REG78 rising edges; its description is clarified.
+
+HA changes were saved and read back; the configuration check produced no new configuration errors in the queried system log. Offline consistency validation, Python compilation and isolated logger-formatting checks without a Modbus connection passed. No boiler registers were written, no burner cycle was initiated and no counters were reset. `AGENTS.md` now records the requirement to anonymize public updates.
+
 ## [0.5.0] — 2026-09-07 — Operating diagnostics and cleanup
 
 - Removed 14 orphaned register entries after checking active helpers, automations, dashboards, YAML and AppDaemon. Recorder history was retained.

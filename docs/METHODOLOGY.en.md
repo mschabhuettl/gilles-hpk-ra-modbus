@@ -94,7 +94,7 @@ In these 15 minutes, **registers that had been 0 for 24 hours suddenly came aliv
 - **REG[66]** jumped from 90 to 240 when heating started — equals REG[38] sAbgasTempMax. → **active flue gas setpoint**.
 - **REG[64]** took new value 80°C in Puffer/Boiler mode. → **buffer charge setpoint**.
 - **REG[44]** briefly showed code 5 when the boiler switched to Automatik. → **Automatik = 5**.
-- **REG[78]** showed a 30-second spike during a nighttime idle period. → **Ash discharge active** (30s = sAschenaustrDauer).
+- **REG[78]** showed a 30-second spike during a nighttime idle period. This was originally interpreted as “ash discharge active” (30s = sAschenaustrDauer). **Withdrawn:** a subsequently observed long high interval contradicts direct identification as an ash-motor state; the actuator identity remains unresolved.
 
 ## Phase 8 — Correcting wrong assumptions
 
@@ -127,15 +127,19 @@ Each source covers different registers; combining them gives full coverage.
 
 ## What's left to do
 
-With the observed burner cycle, ~82% of the map is understood. Remaining:
+Historical work list after the first observed burner cycle; see the [register map](REGISTER_MAP.en.md) for current confidence levels and open questions. At the time, the remaining questions were:
 
 - **REG[56, 68, 72]** — activate only during specific phases, identification needs further observation with timestamped Touch reference
 - **REG[44] BoilerStatus**: 4 of 7 modes still unobserved (Steuerung Aus, Zeitbetrieb, Gluterhaltung, Notbetrieb)
 - **REG[42] BrennPhase**: codes 2 and 4 missing
-- **REG[46] StatusBitmap**: full bitfield schema
+- **REG[46] StatusBitmap**: structure and full meaning of status codes
 
-Registers **REG[70, 74, 76]** will likely stay 0 forever in this installation — reserved for subsystems not present (cascade master, mixers, district heating, additional HZS modules).
+**Correction:** the earlier assumption that REG[70, 74, 76] would remain zero indefinitely was contradicted: REG76 produced recurring active pulses. REG70 and REG74 remained zero in the retrieved history; their purpose is still unknown.
 
 ## Phase 9 — Home Assistant and connection lifetime (2026-09-07)
 
 Comparing the repository, HA packages, entity registry and dashboard exposed rejected packages, historical naming differences and hidden data gaps. Two read-only TCP experiments showed an idle limit of about three seconds; a control experiment reading every two seconds kept the same connection open beyond that limit. [HA_VALIDATION.en.md](HA_VALIDATION.en.md) records the cleanup and its limitations. It does not replace a new burner-cycle observation or confirm additional register meanings.
+
+## Phase 10 — Passive analysis of normal heating operation
+
+Heating started by the operator was investigated using existing Home Assistant Recorder histories, without writing registers or initiating a burner cycle. The longer trace contradicted several conclusions from the short historical test: REG68 is nonmonotonic, REG76 becomes active, and REG78 is not a confirmed ash-motor state. REG56 fits a calculated O₂ target but still needs a simultaneous Touch comparison. The [anonymized register findings](REGISTER_FINDINGS.en.md) separate qualitative observations, hypotheses and limitations introduced by asynchronous polling. Raw observations remain private; this summary alone cannot support independent recalculation. Further confirmation compares registers and Touch in the same naturally occurring operating state, records clock offsets and accounts for sensor updates. A single image with inactive actuators cannot identify outputs or confirm nonzero scales.

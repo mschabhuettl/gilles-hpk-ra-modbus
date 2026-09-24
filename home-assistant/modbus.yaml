@@ -4,7 +4,8 @@
 # REG42 polls every 2 s to keep the measured ~3 s TCP idle timeout from expiring.
 # HA 2026.9.1 logs a generic warning for polling below 5 s; only REG42 uses 2 s.
 # message_wait_milliseconds separates requests. HA sets PyModbus retries internally.
-# Register meanings/scales are unchanged; the REG62 scale still needs a Touch check.
+# Runtime scales and identities preserved. REG56 is an O2-target candidate; REG68 is not a cumulative counter.
+# REG58/60/62 scales and REG78 physical meaning remain unresolved; see REGISTER_FINDINGS.md.
 modbus:
   - name: gilles
     type: tcp

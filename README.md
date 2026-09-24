@@ -4,7 +4,11 @@
 
 Community-Projekt zur Dokumentation der Modbus-TCP-Schnittstelle der **Gilles Touch** Steuerung in Gilles-Biomasse-Heizungen (HPK-RA-Serie) — inklusive Home-Assistant-Integration.
 
-> **Stand:** 26 von 40 Registern empirisch verifiziert (✓✓), 8 stark vermutet (✓), 3 mit Werten aber unklarer Semantik (?), 3 bisher 0 mit unbestätigter Funktion. Summe: 40.
+> **Registerstatus:** 25 von 40 Registern historisch verifiziert (✓✓), 9 stark vermutet (✓), 4 mit unklarer Semantik (?), 2 bisher 0. REG56 ist ein starker O₂-Sollwert-Kandidat; die bisher sichere Asche-Zuordnung von REG78 wurde zurückgenommen. Die Skalierung von REG58/60/62 bleibt offen.
+
+## Anonymisierte Register-Erkenntnisse
+
+[Erkenntnisse und offene Prüfungen](docs/REGISTER_FINDINGS.md): O₂-Sollwert-Hypothese für REG56, nichtmonotones REG68, aktive REG76-Pulse und Widerspruch zur Aschemotor-Deutung von REG78. REG46=61 ist ein Kandidat für die Meldung „Puffertemperatur erreicht“. Die 24-h-Startstatistik kann seltene Starts unterschätzen und ist im Dashboard als unzuverlässig markiert. Private Betriebsverläufe und Screenshots werden nicht veröffentlicht.
 
 ## Hintergrund
 
@@ -38,7 +42,7 @@ Mit der HA-Integration auf einen Blick sichtbar:
 - **Brennzyklus-Phase** als Klartext: Vorlüften, Zündung, Anbrennen, Heizen regeln, Ausbrennen, Auskühlen
 - **Primär-/Saugzug-Werte** (REG62-Skalierung noch am Touch abgleichen; Sekundär war bisher 0)
 - **Brennraumtür-Zustand** (über StatusBitmap erkannt)
-- **Ascheaustragung** läuft gerade ja/nein
+- **REG78-Signal und Einschaltflanken** (bisher als Ascheaustragung bezeichnet; Funktion wieder offen)
 - **Betriebsmodus**: Handbetrieb, Puffer/Boiler, Automatik (weitere noch nicht beobachtet)
 
 ## Schnellstart

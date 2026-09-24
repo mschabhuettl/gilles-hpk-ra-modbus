@@ -9,7 +9,7 @@ Diese Dateien entsprechen funktional dem am 7. September 2026 geprüften Stand d
 | Datei | Verwendung |
 |---|---|
 | `modbus.yaml` | HA-Paket: 40 Rohsensoren und sieben Zustandsvorlagen mit Verfügbarkeitsprüfung |
-| `gilles_derived.yaml` | HA-Paket: Zeitstempel des letzten direkt beobachteten Starts und der letzten Ascheaustragung |
+| `gilles_derived.yaml` | HA-Paket: Zeitstempel des letzten direkt beobachteten Starts und der letzten REG78-Einschaltflanke |
 | `helpers.json` | 35 native Helfer: Definitionen für die HA-Oberfläche bzw. Home Assistant MCP |
 | `automations.yaml` | Vier native Zähl-/Diagnoseautomationen; einzeln in der Automationsverwaltung anlegen oder aktualisieren |
 | `entity_ids.json` | Verwendete Entity-IDs und Zuordnung zu den YAML-`unique_id` |
@@ -45,7 +45,7 @@ Die bisherigen 40 Rohsensoren behalten Adresse, Datentyp, Skalierung und `unique
 ## Bedeutung der Anzeigen
 
 - Datenverluste werden als nicht verfügbar angezeigt. Fehlende Rohwerte bedeuten nicht Standby, Normalbetrieb oder geschlossene Tür.
-- Start- und Aschezähler zählen direkt beobachtete Wechsel von `0` auf `1`; Wiederverbindungen zählen nicht als Ereignis. Ein Ereignis innerhalb einer Messlücke kann fehlen.
+- Startzähler und die historisch als Aschezähler benannten Helfer zählen direkt beobachtete Wechsel von `0` auf `1`; Wiederverbindungen zählen nicht als Ereignis. Ein Ereignis innerhalb einer Messlücke kann fehlen. Die Aschezähler zählen REG78-Einschaltflanken; dass jede Flanke genau einer Ascheaustragung entspricht, ist nicht bestätigt.
 - Zähler beginnen mit ihrer Einrichtung. Erste Tages-, Wochen- und Monatsperioden sind unvollständig. Zeitstempel bleiben bis zum ersten Ereignis unbekannt. Neue Utility-Meter-Helfer können bis zur ersten Quellenmeldung ebenfalls unbekannt sein; keine künstlichen Starts zum Initialisieren erzeugen.
 - Brennzyklus-Zeit umfasst Vorlüften und Nachlauf. Sie ist kein Flammennachweis. Historische Zeiten und Extremwerte verwenden vorhandene Recorder-Daten; die Phasendatenabdeckung macht fehlende Zeit sichtbar.
 - Pelletverbrauch und Wirkungsgrad werden ohne zusätzliche Messdaten und Kalibrierung nicht geschätzt. Türerkennung bleibt indirekt. Register mit unklarer Zuordnung oder Skalierung bleiben entsprechend gekennzeichnet.
@@ -63,8 +63,18 @@ Vor Live-Änderungen die betroffenen HA-Dateien und UI-Konfigurationen sichern. 
 
 ## Ergänzte Betriebsdiagnose (0.5.0)
 
-- Die letzten 24 Stunden beobachteter Zähleränderungen dienen als Hinweis auf häufige Starts. Messlücken und Ereignisse außerhalb der Beobachtung werden nicht ergänzt.
+- Der bisherige 24-h-Startindikator ist bei seltenen Starts unzuverlässig: siehe die Hinweise unten. Eine ausgeschaltete Warnung belegt deshalb keine niedrige Startzahl. Messlücken und Ereignisse außerhalb der Beobachtung werden nicht ergänzt.
 - Voreinstellungen: mehr als 10 beobachtete Starts/24 h, Startphase über 20 Minuten, weniger als 2 °C Anstieg nach 30 Minuten im Anbrenn-/Heizbetrieb. Dies sind einstellbare Prüfschwellen, keine vom Hersteller bestätigten Fehlergrenzen.
 - Standby und Datenlücken verwerfen den für eine laufende Startdiagnose gespeicherten Beginn. Ausbrennen wird nicht als fehlender Temperaturanstieg bewertet.
 - Die Registerbeobachtung speichert Werte mit Zeitpunkt im Aktivitätenprotokoll. Eine zeitgleiche Touch-Anzeige ist weiterhin erforderlich, um unklare Register oder Skalierungen zu bestätigen.
 - In der Referenz wurden 14 verwaiste Einträge entfernt: REG20, 42, 46, 50, 52, 58, 60, 62, 64, 66, 68, 72, 78 sowie `gilles_brennraumtur_raw`. Die aktiven, umbenannten Rohsensoren und ihre Messhistorien bleiben erhalten. Andere Installationen müssen ihre Verweise vor einer vergleichbaren Bereinigung selbst prüfen.
+
+## Statistikgrenzen und ungesicherte Register
+
+Die vier Statistikhelfer für Kesselminimum, Kesselmaximum, Abgasmaximum und O₂-Minimum speichern jetzt bis zu **10.000 statt 4.000 Stichproben** bei unverändertem `max_age: 24 h`. Bei häufigen Änderungen kann die Stichprobengrenze ältere Werte vor Ablauf des Zeitfensters verdrängen. Die Beschriftung „24 h“ garantiert daher keine vollständigen 24 Stunden. Bei bestehenden Installationen nur die Option `sampling_size` des jeweiligen Helfers aktualisieren; Entity-ID und Historie erhalten. Nach dem Neuladen `age_coverage_ratio` und `buffer_usage_ratio` erneut prüfen. Ein größerer Puffer ersetzt keine fehlenden Quelldaten.
+
+**Bekannter Fehler beim rollierenden Startzähler:** `sensor.gilles_brennstarts_24h` kann seltene Starts übersehen. `sum_differences_nonnegative` bildet nur Differenzen zwischen den im Puffer verbliebenen Stichproben. Nach mehr als 24 Stunden ohne Änderung kann der alte Zählerstand als Basis fehlen; `keep_last_sample: true` erhält nur die jüngste Stichprobe. Mehr Pufferplätze lösen diesen Fehler nicht. Dieser Helfer und die davon abhängige Warnung für häufige Starts gelten bis zu einer gesondert validierten Ereigniszählung als unzuverlässig. Tages-, Wochen- und Monatszähler bleiben davon getrennt und werden nicht zurückgesetzt oder künstlich nachgetragen. Ein einfacher Austausch gegen `history_stats` mit Phasenwert `1` hätte andere Grenz- und Wiederverbindungsregeln und ist keine gleichwertige Reparatur.
+
+**REG78 bleibt eine Hypothese:** Längere Aktivintervalle widersprechen der bisherigen Deutung als unmittelbarer Laufzustand der Ascheschnecke. Bestehende IDs mit `asche…` bleiben aus Kompatibilitätsgründen erhalten. Ihre Werte und Zeitstempel stehen für beobachtete REG78-Flanken, nicht für nachgewiesene mechanische Austragungsvorgänge. Weitere anonymisierte Erkenntnisse und offene Touch-Abgleiche stehen in [REGISTER_FINDINGS](../docs/REGISTER_FINDINGS.md).
+
+Die Puffer- und Differenzsemantik ist in der [offiziellen Statistik-Dokumentation](https://www.home-assistant.io/integrations/statistics/) beschrieben; die abweichende Zählweise von Zuständen statt Übergängen in [History Stats](https://www.home-assistant.io/integrations/history_stats/).

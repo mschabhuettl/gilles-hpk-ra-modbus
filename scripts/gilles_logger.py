@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Gilles Touch Modbus Logger v3.1
+Gilles Touch Modbus Logger v3.2
 ================================
 Long-running change-detection logger for Gilles Touch controllers.
 
@@ -8,11 +8,15 @@ Polls all 40 logical values every 10 seconds.
 Logs only changes plus a full snapshot every 10 minutes.
 Writes a parallel CSV file with all values for later analysis.
 
-v3.1 changes:
+v3.2 changes:
+- Raw labels for unresolved REG56/68/78; explicit REG58/60/62 scale uncertainty
+- REG46=61 describes the observation without asserting an operating mode
+
+Historical v3.1 identifications:
 - REG[42] now identified as BrennPhase (burner cycle phase enum)
 - REG[58]=PrimaerIst, REG[60]=SekundaerIst, REG[62]=SaugzugIst (CORRECTED — REG[62] is NOT the door)
 - REG[66]=AbgasSoll_Live (confirmed)
-- REG[78]=AscheaustragungAktiv (confirmed)
+- Historical REG[78] ash interpretation contradicted by extended active intervals; display raw signal
 - REG[44] adds Automatik=5 code
 
 Usage:
@@ -71,18 +75,18 @@ LABELS = {
     50: 'AbgasTemp_Ist',
     52: 'RuecklaufTemp_Ist',
     54: 'O2_Ist',
-    56: '?REG56',
+    56: '?O2Soll_raw',
     58: 'PrimaerIst',
     60: 'SekundaerIst',
     62: 'SaugzugIst',
     64: 'KesselSoll_Live',
     66: 'AbgasSoll_Live',
-    68: '?Zaehler',
+    68: '?Stellgroesse_raw',
     70: '?REG70',
     72: '?BinarFlag',
     74: '?REG74',
     76: '?REG76',
-    78: 'AscheaustragungAktiv',
+    78: '?REG78_Signal',
 }
 
 SCALES = {
@@ -96,7 +100,9 @@ SCALES = {
     36: ('°C', 10), 38: ('°C', 10), 40: ('°C', 10),
     48: ('°C', 10), 50: ('°C', 10), 52: ('°C', 10),
     54: ('%', 10),
-    56: ('%', 10), 58: ('%', 10), 60: ('%', 10), 62: ('%', 10),
+    # REG56: O2 target candidate; no unverified percent conversion here.
+    # REG58/60/62: preserve legacy divisor, explicitly flag scale uncertainty.
+    58: ('% [scale?]', 10), 60: ('% [scale?]', 10), 62: ('% [scale?]', 10),
     64: ('°C', 10), 66: ('°C', 10),
 }
 
@@ -125,15 +131,15 @@ ENUMS = {
     46: {  # StatusBitmap (partial)
         0:  'normal',
         35: 'Brennraumtuer offen',
-        61: 'Puffer/Boiler-Modus aktiv',
+        61: 'Code61 (Puffertemperatur erreicht?)',
     },
     72: {  # ?BinarFlag
         0: 'aus',
         1: 'ein',
     },
-    78: {  # AscheaustragungAktiv
-        0: 'Pause',
-        1: 'AKTIV',
+    78: {  # Physical meaning unresolved; not a verified ash motor state
+        0: 'Signal0',
+        1: 'Signal1',
     },
 }
 
@@ -222,7 +228,7 @@ def main():
         csv_writer.writerow(header)
 
     with open(LOGFILE, 'a', buffering=1) as fh:
-        log(f'=== Gilles Logger v3.1 started -- host={HOST} ===', fh)
+        log(f'=== Gilles Logger v3.2 started -- host={HOST} ===', fh)
 
         try:
             while True:
