@@ -4,6 +4,18 @@
 
 Alle nennenswerten Erkenntnisse während des Reverse Engineerings der Gilles-Touch-Modbus-Map.
 
+## [0.7.0] — 2026-09-25 — Weitere Phasen und Statuscodes
+
+REG42-Code `10` und REG46-Code `43` erstmals als beobachtete Codes dokumentiert, beide ohne behauptete physische Bedeutung. Ein weiterer Abschaltpfad enthält `7→9→10→0`; eine sehr kurze unaufgezeichnete Zwischenphase ist durch Polling nicht ausgeschlossen. Code 43 kann bis in den Standby bestehen bleiben und ist nicht mit dem späteren Wegfall des Kessel-Solls gleichzusetzen.
+
+Phase 10 in Phasentext, Brennzyklus-Binärsensor, Zyklusdauer heute/7 Tage, Abdeckung und Diagnoseprotokoll ergänzt. Status 43 bleibt neutral, Status 61 wird als vorläufige Meldungszuordnung markiert. Die indirekte Türanzeige bleibt bei Code 43 unbekannt. Bestehende IDs, Rohskalierungen und Abfrageintervalle bleiben erhalten.
+
+Die O₂-Sollwert-Hypothese für REG56 und der Zündungsbezug von REG72 werden durch einen weiteren Verlauf gestützt. REG76 kann auch im Standby pulsen. Wärmeverschiebungen während REG78-Aktivintervallen stützen Pumpe/Freigabe als Hypothese; die physische Zuordnung bleibt offen. Keine neue Register-Vertrauensstufe vergeben.
+
+Statistikgrenzen präzisiert: erfasste Codes sind nicht dasselbe wie lückenlose Kommunikation, Stichproben-Zeitspanne ist kein Kommunikationsnachweis, und ein über Mitternacht laufender Zyklus ist kein zusätzlicher Tagesstart. Der Fehler der rollierenden 24-h-Startstatistik bleibt offen. Dashboard-Hinweise aktualisiert; konkrete Betriebsverläufe bleiben privat.
+
+Validierung: Repository-Konfigurationsprüfung und Python-Kompilierung bestanden; Phasen- und Statusvorlagen einschließlich unbekannter/nicht verfügbarer Eingaben im HA-Renderer geprüft. Live-Konfigurationsprüfung und Template-Neuladen erfolgreich; Helfer, Beobachtungsautomation und Dashboard zurückgelesen. Keine Änderung an Modbus-Abfragen oder Kesselsteuerung.
+
 ## [0.6.1] — 2026-09-24 — Touch-Diagnoseseiten abgeglichen
 
 Zehn bereits zugeordnete Parameter erneut mit Touch und HA verglichen; ihre Skalierungen passen. Die neu identifizierte Ist/Soll-Seite liefert die konkrete Vergleichsanzeige für REG56 (O₂-Soll) und REG68 („aktuelle Einschubmenge“). Übereinstimmende Nullwerte im Standby reichen nicht zur Verifikation; die Vertrauensverteilung bleibt unverändert.

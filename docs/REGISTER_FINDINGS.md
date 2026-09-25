@@ -6,7 +6,7 @@ Eine erweiterte passive Auswertung korrigiert mehrere frühere Registerdeutungen
 
 ## REG56: berechneter O₂-Sollwert als starke Hypothese
 
-REG56 ist im Regelbetrieb anhaltend aktiv und folgt einer abgastemperaturabhängigen Beziehung. Die frühere Beschreibung als bloßer kurzer Impuls ist überholt. Eine lineare Interpolation zwischen den konfigurierten Temperatur- und O₂-Endpunkten passt qualitativ zum beobachteten Verhalten:
+REG56 ist im Regelbetrieb anhaltend aktiv und folgt einer abgastemperaturabhängigen Beziehung. Die frühere Beschreibung als bloßer kurzer Impuls ist überholt. Die Übereinstimmung mit einer linearen Interpolation zwischen den konfigurierten Temperatur- und O₂-Endpunkten zeigt sich auch in einem weiteren natürlichen Brennlauf. Damit ist die Beziehung qualitativ wiederholt beobachtet, aber noch nicht am Touch bestätigt:
 
 ```text
 T       = REG50 × 0,1              # Abgastemperatur Ist
@@ -27,14 +27,15 @@ Vertrauen: **starke Hypothese (✓)**. Eine weitere Touch-Seite zeigt „Restsau
 
 | Register | Qualitative Beobachtung | Folgerung und offene Frage |
 |---|---|---|
-| REG46 | Der Statuscode kann sich bei gleichbleibendem Betriebsmodus ändern. Ein Vergleich desselben stabilen Zustands ordnet Code 61 vorläufig der Touch-Meldung „Puffertemperatur erreicht“ zu. | Kein allgemeiner Code für „Puffer/Boiler aktiv“. Wegen nicht abgeglichener Uhren keine exakt synchrone Bestätigung; ein erneuter Vergleich beim Wechsel der Meldung fehlt. Enum oder Bitfeld bleibt offen. |
+| REG42 | Code 10 wurde im Abschaltpfad zwischen Code 9 und Standby 0 beobachtet. Im zugehörigen aufgezeichneten Pfad erschien Code 8 nicht. | Code 10 ist ein beobachteter Zykluszustand mit unbekannter Bedeutung; kein Flammennachweis. Ein sehr kurzer Schritt kann zwischen Abfragen fehlen, daher ist das Ausbleiben von Code 8 in der Aufzeichnung kein Nachweis seines physischen Ausbleibens. |
+| REG46 | Code 61 ist vorläufig mit „Puffertemperatur erreicht“ am Touch verbunden. Der zusätzlich beobachtete Code 43 beginnt im Abschaltverlauf und reicht bis in den Standby; der Kessel-Sollwert fällt erst später. | Die zugehörige Touch-Meldung für Code 43 fehlt. Weder Fehler, Übertemperatur, Pufferzustand noch „Kessel-Soll null“ sind belegt. Code 43 wird neutral als Rohcode gezeigt; die Türstellung bleibt dabei unbekannt. Für Code 61 fehlt weiterhin der exakt synchronisierte Vergleich über einen Meldungswechsel; Enum oder Bitfeld bleibt offen. |
 | REG58 / REG62 | Die bisherige HA-Skalierung passt nicht eindeutig zu historischen Touch-Zuordnungen und Parametergrenzen. | Ein Faktor-10-Unterschied ist möglich. Nichtnull-Rohwerte, HA-Anzeige und Touch-Prozent gleichzeitig vergleichen, bevor die Skalierung geändert wird. |
 | REG64 | Der aktive Kessel-Sollwert kann null sein, während REG44 weiterhin den Modus Puffer/Boiler anzeigt. | Null bedeutet hier keinen aktiven Kessel-Sollwert, nicht zwingend einen deaktivierten Betriebsmodus. Modus, Brennphase und aktuelle Anforderung getrennt betrachten. |
 | REG66 | Der aktive Abgas-Sollwert ändert sich innerhalb der Regelphase. | Kein fester Zweizustandswert; REG42=7 bedeutet Regelbetrieb und belegt keine Volllast. |
 | REG68 | Steigt und fällt, einschließlich wiederkehrender Nullintervalle. Der Touch zeigt eine „aktuelle Einschubmenge“ in Prozent, im verglichenen ruhenden Zustand ebenfalls null. | „Aktuelle Einschubmenge“ ist ein konkreter Kandidat für den nächsten Vergleich. Der Null-Match bestätigt weder die Funktion noch eine Prozent-Skalierung. Kein monotoner Verbrauchs- oder Laufzeitzähler; keine Umrechnung in Brennstoffmenge oder Energie. |
-| REG72 | Aktivität im Zusammenhang mit Zündung und Anbrennen. | Zündungsbezogener Ausgang plausibel; konkreter Aktor unbekannt. |
-| REG76 | Wiederkehrende High-Intervalle. | Frühere Einstufung als dauerhaft inaktiv zurückgenommen. Funktion, Periodizität und physische Impulsdauer offen. |
-| REG78 | Ein langes High-Intervall widerspricht der bisherigen unmittelbaren Zuordnung zum Aschemotor. | Aschemotor-Zuordnung zurückgenommen; Pumpe oder Freigabe bleiben unbestätigte Kandidaten. Historische HA-IDs bleiben erhalten, gezählte Flanken sind keine bestätigten Aschezyklen. |
+| REG72 | Aktivität im Zusammenhang mit Zündung und Anbrennen erneut beobachtet. | Der Zusammenhang mit der Zündung wird gestützt; konkreter Aktor weiterhin unbekannt. |
+| REG76 | Wiederkehrende High-Intervalle auch bei REG42=0. | Aktivität ist nicht auf den Brennbetrieb beschränkt. Funktion, Periodizität und physische Impulsdauer bleiben offen. |
+| REG78 | Lange High-Intervalle und Pulse im Standby erneut beobachtet; dabei steigt der Rücklauf bei fallender Kesseltemperatur. Dieses Muster widerspricht der bisherigen unmittelbaren Zuordnung zum Aschemotor. | Die Wärmeverschiebung stützt Pumpe oder Freigabe als Hypothese, identifiziert aber keinen Aktor. Aschemotor-Zuordnung bleibt zurückgenommen. Historische HA-IDs bleiben erhalten, gezählte Flanken sind keine bestätigten Aschezyklen. |
 | REG70 / REG74 | Bisher nur null beobachtet. | Keine Aussage über dauerhafte Inaktivität oder eine Reservierung für ungenutzte Erweiterungen. |
 
 ## Aussagekraft der zusätzlichen Touch-Seiten
@@ -53,6 +54,6 @@ HA-Verläufe enthalten Erkennungszeitpunkte asynchron abgefragter Sensoren. Unve
 
 Eine Touch-Aufnahme mit ausgeschalteten Aktoren unterstützt lediglich die Zuordnung eines ruhenden Betriebszustands. Sie identifiziert die unbekannten binären Register nicht und klärt keine Skalierung, weil null bei beiden Kandidatenskalen null bleibt. Angezeigte Puffertemperaturen belegen zudem nicht, dass diese Messwerte in der getesteten Modbus-Map exportiert werden.
 
-Die nächste besonders hilfreiche Aufnahme ist die Ist/Soll-Seite während eines natürlichen Regelbetriebs mit Nichtnullwerten: Sie vereint O₂-Soll, aktuelle Einschubmenge und die Gebläseanzeigen und ermöglicht damit einen gemeinsamen Vergleich von REG56, REG58/60/62 und REG68. Für die unbekannten binären Register werden zusätzlich die tatsächlichen Aktoranzeigen der Hauptübersicht für Zündung, Dosierung, Zellenrad, Registerreinigung, Ascheaustragung und Rücklaufpumpe benötigt. Schutzkontaktseiten ersetzen diese Ausgangsanzeigen nicht. Für REG46 ist ein natürlicher Wechsel der Statusmeldung besonders hilfreich. Dafür müssen weder Heizparameter geändert noch ein zusätzlicher Brennzyklus ausgelöst werden.
+Die nächste besonders hilfreiche Aufnahme ist die Ist/Soll-Seite während eines natürlichen Regelbetriebs mit Nichtnullwerten: Sie vereint O₂-Soll, aktuelle Einschubmenge und die Gebläseanzeigen und ermöglicht damit einen gemeinsamen Vergleich von REG56, REG58/60/62 und REG68. Für die unbekannten binären Register werden zusätzlich die tatsächlichen Aktoranzeigen der Hauptübersicht für Zündung, Dosierung, Zellenrad, Registerreinigung, Ascheaustragung und Rücklaufpumpe benötigt. Schutzkontaktseiten ersetzen diese Ausgangsanzeigen nicht. Für REG42=10 wird die zugehörige Brennerstatusanzeige benötigt. Für REG46=43 fehlt die Meldung der Hauptübersicht; ein natürlicher Wechsel zwischen den Statuscodes hilft, die Meldungszuordnung zu prüfen. Dafür müssen weder Heizparameter geändert noch ein zusätzlicher Brennzyklus ausgelöst werden.
 
 Die aktuellen Vertrauensgrade und offenen Zuordnungen stehen in der [Registermap](REGISTER_MAP.md), das Vorgehen in der [Methodik](METHODOLOGY.md).

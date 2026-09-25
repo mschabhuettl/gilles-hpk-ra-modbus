@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 """
-Gilles Touch Modbus Logger v3.2
+Gilles Touch Modbus Logger v3.3
 ================================
 Long-running change-detection logger for Gilles Touch controllers.
 
 Polls all 40 logical values every 10 seconds.
 Logs only changes plus a full snapshot every 10 minutes.
 Writes a parallel CSV file with all values for later analysis.
+
+v3.3 changes:
+- Observed phase 10 and status 43 retained with explicitly unresolved meanings
 
 v3.2 changes:
 - Raw labels for unresolved REG56/68/78; explicit REG58/60/62 scale uncertainty
@@ -120,6 +123,7 @@ ENUMS = {
         7: 'Heizen regeln',
         8: 'Ausbrennen',
         9: 'Auskuehlen',
+        10: 'Code10 (Funktion ungeklaert)',
     },
     44: {  # BoilerStatus
         1: 'Handbetrieb',
@@ -131,6 +135,7 @@ ENUMS = {
     46: {  # StatusBitmap (partial)
         0:  'normal',
         35: 'Brennraumtuer offen',
+        43: 'Code43 (Bedeutung offen)',
         61: 'Code61 (Puffertemperatur erreicht?)',
     },
     72: {  # ?BinarFlag
@@ -228,7 +233,7 @@ def main():
         csv_writer.writerow(header)
 
     with open(LOGFILE, 'a', buffering=1) as fh:
-        log(f'=== Gilles Logger v3.2 started -- host={HOST} ===', fh)
+        log(f'=== Gilles Logger v3.3 started -- host={HOST} ===', fh)
 
         try:
             while True:

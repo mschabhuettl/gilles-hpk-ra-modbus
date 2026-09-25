@@ -453,12 +453,13 @@ template:
 - sensor:
   - name: Gilles Brenn Phase
     unique_id: gilles_brenn_phase_text
-    state: "{% set codes = {\n  0: 'Standby',\n  1: 'Vorlueften',\n  3: 'Zuendung',\n  5: 'Zuendung-Spaet',\n  6:\
-      \ 'Anbrennphase',\n  7: 'Heizen regeln',\n  8: 'Ausbrennen',\n  9: 'Auskuehlen'\n} %} {{ codes.get(states('sensor.gilles_brenn_phase_code')\
-      \ | int(0),\n   'Unbekannt (Code ' ~ states('sensor.gilles_brenn_phase_code') ~ ')') }}\n"
-    icon: '{% set p = states(''sensor.gilles_brenn_phase_code'') | int(0) %} {% if p == 0 %}mdi:power-standby {%
-      elif p in [1,3,5,6] %}mdi:fire {% elif p == 7 %}mdi:fire {% elif p == 8 %}mdi:fire-alert {% elif p == 9 %}mdi:snowflake-melt
-      {% else %}mdi:help-circle {% endif %}
+    state: "{% set codes = {\n  0: 'Standby',\n  1: 'Vorlueften',\n  3: 'Zuendung',\n  5: 'Zuendung-Spaet',\n\
+      \  6: 'Anbrennphase',\n  7: 'Heizen regeln',\n  8: 'Ausbrennen',\n  9: 'Auskuehlen',\n  10: 'Code\
+      \ 10 (Funktion ungeklaert)'\n} %} {{ codes.get(states('sensor.gilles_brenn_phase_code') | int(0),\n\
+      \   'Unbekannt (Code ' ~ states('sensor.gilles_brenn_phase_code') ~ ')') }}\n"
+    icon: '{% set p = states(''sensor.gilles_brenn_phase_code'') | int(0) %} {% if p == 0 %}mdi:power-standby
+      {% elif p in [1,3,5,6] %}mdi:fire {% elif p == 7 %}mdi:fire {% elif p == 8 %}mdi:fire-alert {% elif
+      p == 9 %}mdi:snowflake-melt {% else %}mdi:help-circle {% endif %}
 
       '
     availability: '{{ is_number(states(''sensor.gilles_brenn_phase_code'')) }}'
@@ -467,15 +468,16 @@ template:
     state: "{% set codes = {\n  1: 'Handbetrieb',\n  3: 'Puffer/Boiler',\n  5: 'Automatik'\n} %} {{ codes.get(states('sensor.gilles_boiler_status_code')\
       \ | int(0),\n   'Unbekannt (Code ' ~ states('sensor.gilles_boiler_status_code') ~ ')') }}\n"
     icon: '{% set s = states(''sensor.gilles_boiler_status_code'') | int(0) %} {% if s == 1 %}mdi:hand-back-right
-      {% elif s == 3 %}mdi:water-boiler {% elif s == 5 %}mdi:cog {% else %}mdi:state-machine {% endif %}
+      {% elif s == 3 %}mdi:water-boiler {% elif s == 5 %}mdi:cog {% else %}mdi:state-machine {% endif
+      %}
 
       '
     availability: '{{ is_number(states(''sensor.gilles_boiler_status_code'')) }}'
   - name: Gilles Anlagen-Zustand
     unique_id: gilles_anlagen_zustand
-    state: "{% set codes = {\n  0: 'Normal',\n  35: 'Brennraumtuer offen',\n  61: 'Puffer/Boiler-Modus aktiv'\n\
-      } %} {{ codes.get(states('sensor.gilles_status_bitmap') | int(0),\n   'Code ' ~ states('sensor.gilles_status_bitmap'))\
-      \ }}\n"
+    state: "{% set codes = {\n  0: 'Normal',\n  35: 'Brennraumtuer offen',\n  43: 'Code 43 (Bedeutung\
+      \ offen)',\n  61: 'Code 61 (Puffertemperatur erreicht?)'\n} %} {{ codes.get(states('sensor.gilles_status_bitmap')\
+      \ | int(0),\n   'Code ' ~ states('sensor.gilles_status_bitmap')) }}\n"
     icon: mdi:alert-circle-outline
     availability: '{{ is_number(states(''sensor.gilles_status_bitmap'')) }}'
   - name: Gilles Zeitprofil
@@ -499,9 +501,9 @@ template:
       {% else %}Sonderwert ({{ live }} °C)
 
       {% endif %}'
-    icon: '{% set p = states(''sensor.gilles_zeitprofil'') %} {% if p == ''Tag'' %}mdi:weather-sunny {% elif p ==
-      ''Nacht'' %}mdi:weather-night {% elif p == ''Puffer-Lade-Soll'' %}mdi:water-boiler {% else %}mdi:help-circle
-      {% endif %}
+    icon: '{% set p = states(''sensor.gilles_zeitprofil'') %} {% if p == ''Tag'' %}mdi:weather-sunny {%
+      elif p == ''Nacht'' %}mdi:weather-night {% elif p == ''Puffer-Lade-Soll'' %}mdi:water-boiler {%
+      else %}mdi:help-circle {% endif %}
 
       '
     availability: '{{ is_number(states(''sensor.gilles_kessel_soll_live'')) and is_number(states(''sensor.gilles_kessel_soll_tag''))
@@ -526,7 +528,8 @@ template:
     state: '{{ states(''sensor.gilles_brenn_phase_code'') | int(0) > 0 }}'
     device_class: heat
     icon: mdi:fire
-    availability: '{{ states(''sensor.gilles_brenn_phase_code'') in [''0'', ''1'', ''3'', ''5'', ''6'', ''7'', ''8'',
-      ''9''] }}'
+    availability: '{{ states(''sensor.gilles_brenn_phase_code'') in [''0'', ''1'', ''3'', ''5'', ''6'',
+      ''7'', ''8'', ''9'', ''10''] }}'
     attributes:
-      bedeutung: Brennzyklus einschliesslich Vorlueften und Nachlauf; kein Flammennachweis
+      bedeutung: Beobachteter Brennzyklus einschliesslich Vorlueften, Nachlauf und Code 10 mit ungeklaerter
+        Funktion; kein Flammennachweis

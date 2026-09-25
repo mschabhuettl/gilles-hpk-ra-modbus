@@ -121,7 +121,8 @@
             "6",
             "7",
             "8",
-            "9"
+            "9",
+            "10"
           ],
           "state_class": "measurement",
           "type": "time"
@@ -147,7 +148,8 @@
             "6",
             "7",
             "8",
-            "9"
+            "9",
+            "10"
           ],
           "state_class": "measurement",
           "type": "time"
@@ -233,7 +235,8 @@
             "6",
             "7",
             "8",
-            "9"
+            "9",
+            "10"
           ],
           "state_class": "measurement",
           "type": "ratio"

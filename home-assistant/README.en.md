@@ -86,3 +86,13 @@ The Touch actual/target page separately displays “Restsauerstoff – Ist/Soll�
 REG64 can be zero while Puffer/Boiler mode remains selected. Use REG44 for operating mode; do not infer “controller off” from a missing active boiler target. Thermal/motor-protection indications on the X-contact pages do not indicate motor operation; color alone does not establish contact polarity. Cleaning time parameters alone do not prove that cleaning is enabled.
 
 The Touch “Laufzeiten” (runtimes) and “Anzahl Zündungen” (ignition count) have no established common counting or reset scope with the HA helpers. Do not overwrite or initialize HA counters from a screenshot. The known rolling 24-hour start-counter defect remains unresolved. Further limitations and the focused comparison procedure are in [REGISTER_FINDINGS](../docs/REGISTER_FINDINGS.en.md).
+
+## Additional observed codes and data coverage
+
+Phase `10` has been observed as a numeric state between `9` and `0`; its physical function is unresolved. The phase label states this explicitly. The cycle binary sensor, today/7-day cycle duration, observed-phase coverage and diagnostic log now include `10`. This establishes neither combustion nor a known actuator. Future unknown codes remain unavailable on the binary sensor, independently of the numeric raw phase. Existing History Stats helpers retain their IDs and recalculate from recorded raw history; old binary-sensor state history is not rewritten.
+
+The coverage statistic counts the code values observed so far. New numeric codes can therefore look like a coverage gap even when data is being transmitted. Inspect actual `unavailable` intervals separately; rounding to one decimal place can show 100% despite short outages. Similarly, extrema statistics' `age_coverage_ratio` describes the sample time span, not uninterrupted communication. A constant source value can limit that span without filling the buffer.
+
+Status `43` is displayed neutrally as unresolved. It has also been observed in standby and is not identified as a fault or a definite door state. The indirect door indicator remains unavailable for this code. Status `61` is only provisionally associated with “buffer temperature reached” and is labeled accordingly.
+
+A cycle crossing midnight does not create a new start on the next day: the daily counter assigns an observed start to its start date, while cycle duration is split at the day boundary. The known rolling 24-hour start-counter defect remains a separate issue; no starts are backfilled and no counters are reset.

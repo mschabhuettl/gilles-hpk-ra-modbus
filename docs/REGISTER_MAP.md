@@ -69,12 +69,12 @@ Die Brennraumtür selbst ist **nicht direkt** in der Modbus-Map exportiert, sond
 | 40 | `sAbgasTempMaxLimit`       | int32 | ×0.1 | °C | ✓ | Abgastemp-Sicherheitslimit (270°C) |
 | **42** | **`BrennPhase`**       | int32 | enum | —  | ✓✓ | **Brennzyklus-Phase** (siehe Enum unten) |
 | **44** | **`BoilerStatus`**     | int32 | enum | —  | ✓✓ | Kessel-Betriebsmodus (siehe Enum unten) |
-| 46 | `StatusBitmap` | int32 | enum/bitfield? | — | ✓ | 0/35/61 beobachtet; 35 historisch bei offener Tür. 61 passt zur Touch-Meldung „Puffertemperatur erreicht“; vorläufige Zustandszuordnung, kein exakt synchroner Nachweis. Bitfeldstruktur nicht belegt. |
+| 46 | `StatusBitmap` | int32 | enum/bitfield? | — | ✓ | 0/35/43/61 beobachtet; 35 historisch bei offener Tür. 61 vorläufig zu „Puffertemperatur erreicht“ zugeordnet. 43 im Abschaltverlauf bis Standby, Touch-Meldung und Bedeutung unbekannt; kein belegter Fehler-/Übertemperatur-/Puffercode. Bitfeldstruktur nicht belegt. |
 | **48** | **`KesselTemp_Ist`**   | int32 | ×0.1 | °C | ✓✓ | Kesseltemperatur (live) |
 | **50** | **`AbgasTemp_Ist`** | int32 | ×0.1 | °C | ✓✓ | Abgastemperatur (live). |
 | **52** | **`RuecklaufTemp_Ist`**| int32 | ×0.1 | °C | ✓✓ | Rücklauftemperatur (live) |
 | **54** | **`O2_Ist`**           | int32 | ×0.1 | %  | ✓✓ | Restsauerstoff (live; 21% bei Brennerstart, ~12% im Vollbetrieb) |
-| 56 | `?O2Soll_Live` | int32 | ×0.1? | %? | ✓ | Passt im Regelbetrieb eng zu einem abgastemperaturabhängigen O₂-Soll. Touch-Ist/Soll-Seite gefunden; übereinstimmender Nullzustand bestätigt weder Zuordnung noch Skala. Nichtnull-Abgleich offen. |
+| 56 | `?O2Soll_Live` | int32 | ×0.1? | %? | ✓ | Abgastemperaturabhängiges O₂-Sollmodell in einem weiteren Brennlauf qualitativ gestützt. Touch-Ist/Soll-Seite gefunden; übereinstimmender Nullzustand bestätigt weder Zuordnung noch Skala. Nichtnull-Abgleich offen. |
 | **58** | **`PrimaerIst`** | int32 | ×0.1 HA; ? real | %? | ✓✓ | Historischer Primärluft-Match. Funktionszuordnung bleibt, Skala offen. |
 | **60** | **`SekundaerIst`**     | int32 | ×0.1 | %  | ✓✓ | **Sekundärluft Ist (live)** — bleibt 0 in dieser Anlage (Touch zeigt durchgehend 0%) |
 | **62** | **`SaugzugIst`** | int32 | ×0.1 HA; ? real | %? | ✓✓ | Historischer Saugzug-Match. Funktionszuordnung bleibt, Skala offen. |
@@ -82,14 +82,14 @@ Die Brennraumtür selbst ist **nicht direkt** in der Modbus-Map exportiert, sond
 | **66** | **`AbgasSoll_Live`** | int32 | ×0.1 | °C | ✓✓ | Aktiver Abgas-Sollwert; verändert sich auch innerhalb Phase 7. Kein fester Zweizustandswert. |
 | 68 | `?REG68` | int32 | ? | ? | ? | Steigt und fällt. Konkreter Kandidat: Touch-Anzeige „aktuelle Einschubmenge“. Nichtnull-Abgleich und Skala offen; kein monotoner Verbrauchs-/Laufzeitzähler. |
 | 70 | `?`                        | int32 | ?    | ?  | ? | In allen Beobachtungen 0 |
-| 72 | `?BinaerFlag` | int32 | bool | — | ? | Während Zündung/Anbrennen aktiv; Kandidat für zündungsbezogenen Ausgang. Konkreter Aktor unbekannt. |
+| 72 | `?BinaerFlag` | int32 | bool | — | ? | Aktivität während Zündung/Anbrennen erneut beobachtet; zündungsbezogener Ausgang gestützt. Konkreter Aktor unbekannt. |
 | 74 | `?`                        | int32 | ?    | ?  | ? | In allen Beobachtungen 0 |
-| 76 | `?BinaerFlag` | int32 | bool | — | ? | Wiederkehrende High-Intervalle beobachtet. Funktion, Periodizität und physische Impulsdauer offen. |
-| **78** | **`?BinaerFlag`** | int32 | bool | — | ? | Frühere Asche-Zuordnung wegen eines langen High-Intervalls zurückgenommen. Pumpe/Freigabe als Kandidat; historische HA-IDs bleiben erhalten. |
+| 76 | `?BinaerFlag` | int32 | bool | — | ? | Wiederkehrende High-Intervalle auch bei REG42=0; nicht auf Brennbetrieb beschränkt. Funktion, Periodizität und physische Impulsdauer offen. |
+| **78** | **`?BinaerFlag`** | int32 | bool | — | ? | Lange High-Intervalle und Standbypulse erneut beobachtet; Asche-Zuordnung bleibt zurückgenommen. Pumpe/Freigabe als unbestätigte Kandidaten; historische HA-IDs bleiben erhalten. |
 
 ## Enum: `BrennPhase` (REG[42])
 
-Historische Phasenzuordnung; die vollständige Folge wurde in einer weiteren passiven Beobachtung bestätigt. Code 7 umfasst auch Modulation und belegt daher keine Volllast:
+Historische Phasenzuordnung mit ergänzender passiver Beobachtung von Code 10. Code 7 umfasst auch Modulation und belegt daher keine Volllast. Code 10 wird als beobachteter Zykluszustand berücksichtigt; seine Funktion und ein möglicher Flammenzustand sind daraus nicht ableitbar:
 
 | Code | Phase | Touch-Anzeige | Typische Werte zum Zeitpunkt |
 |------|-------|---------------|------------------------------|
@@ -101,8 +101,9 @@ Historische Phasenzuordnung; die vollständige Folge wurde in einer weiteren pas
 | 7 | Heizen regeln (Regelbetrieb) | „Heizen regeln" | Primär 63%, Saugzug 71%, O₂ 12-14%, Abgas 100+°C, REG[66] springt auf 240°C |
 | 8 | Ausbrennen | „Ausbrennen" | Primär+Saugzug noch laufend, Abgas fällt |
 | 9 | Nachlauf / Auskühlphase | (nach Brenner aus) | nur noch Lüfter-Nachlauf |
+| 10 | Unbekannter Zykluszustand | noch kein Touch-Abgleich | im Abschaltpfad zwischen Code 9 und Standby 0 beobachtet; kein Flammennachweis |
 
-Die Codes 2 und 4 wurden bisher nicht beobachtet — vermutlich weitere Sub-Phasen.
+Ein zusätzlicher aufgezeichneter Abschaltpfad führte von Code 7 über 9 und 10 nach 0. Code 8 erschien darin nicht; ein sehr kurzer Schritt kann jedoch zwischen Abfragen fehlen. Daraus folgt weder, dass Code 8 generell ausgelassen wird, noch dass jeder Brennlauf dieselbe Phasenfolge hat. Die Codes 2 und 4 wurden bisher nicht beobachtet; ihre Existenz und Bedeutung sind offen.
 
 ## Enum: `BoilerStatus` (REG[44])
 
@@ -168,8 +169,8 @@ Frühere gezielte Touch-Tests ergaben für diese Werte keine zuordenbare Modbus-
 | REG58/62 | Rohinteger, HA-Wert und Touch-Prozent gleichzeitig ablesen, bevor die Skala geändert wird. |
 | REG68 | „aktuelle Einschubmenge“ auf derselben Ist/Soll-Seite bei Nichtnullwerten und Modulation abgleichen. Skala offen; keine Verbrauchsberechnung daraus. |
 | REG72 | Zündungs- und Dosierausgänge während eines natürlichen Starts abgleichen; getakteten Zündeinschub von Zündheizung unterscheiden. |
-| REG76 | Tatsächlichen Ausgang und Funktionsfreigabe identifizieren; Reinigungszeitparameter und Thermokontakte belegen keinen Reinigungslauf. |
-| REG78 | Pumpen-/Freigabe-/Asche-Anzeigen bei natürlichem Übergang vergleichen. Nur rohe steigende Flanken zählen, keine bestätigten Aschezyklen. |
-| REG42/44/46 | Fehlende Phasen-/Moduscodes und Struktur der Statuscodes bleiben offen; REG46=61 bei wechselnder Touch-Meldung prüfen. |
+| REG76 | Tatsächlichen Ausgang auch im Standby vergleichen; Reinigungszeitparameter und Thermokontakte belegen keinen Reinigungslauf. |
+| REG78 | Pumpen-/Freigabe-/Asche-Anzeigen bei langen High-Zuständen und Standbypulsen vergleichen. Nur rohe steigende Flanken zählen, keine bestätigten Aschezyklen. |
+| REG42/44/46 | Touch-Brennerstatus zu REG42=10 und Meldung zu REG46=43 erfassen. Fehlende Modi und Struktur der Statuscodes bleiben offen; REG46=61 bei wechselnder Meldung prüfen. |
 
 REG70 und REG74 blieben in der abgefragten Historie null. Das belegt weder dauerhafte Inaktivität noch eine Reservierung für ungenutzte Erweiterungen.

@@ -6,8 +6,8 @@ views:
     name: Alle 40 Messwerte
     type: tile
   - card:
-      content: '**Messdaten unvollständig.** Mindestens ein Wert ist derzeit nicht verfügbar. Die betroffenen Zustände
-        und Messwerte können erst nach Wiederherstellung der Verbindung beurteilt werden.'
+      content: '**Messdaten unvollständig.** Mindestens ein Wert ist derzeit nicht verfügbar. Die betroffenen
+        Zustände und Messwerte können erst nach Wiederherstellung der Verbindung beurteilt werden.'
       type: markdown
     conditions:
     - condition: state
@@ -95,8 +95,8 @@ views:
   - content: '## Drehzahlen & Verbrennung
 
 
-      Die Skalierung von REG58/60/62 bleibt bis zum synchronisierten Touch-Vergleich offen. Bei Primärluft und
-      Saugzug besteht eine Faktor-10-Frage; ein Nullwert kann keinen Skalierungsfaktor bestätigen.
+      Die Skalierung von REG58/60/62 bleibt bis zum synchronisierten Touch-Vergleich offen. Bei Primärluft
+      und Saugzug besteht eine Faktor-10-Frage; ein Nullwert kann keinen Skalierungsfaktor bestätigen.
       O₂-Werte im Standby sind kein Nachweis der Verbrennungsqualität.'
     type: markdown
   - entities:
@@ -156,17 +156,18 @@ views:
   - content: '## Erfasster Betrieb
 
 
-      Start- und Signalzähler erfassen direkt beobachtete Wechsel seit ihrer Einrichtung. Der erste Tag, die erste
-      Woche und der erste Monat können unvollständig sein. Messlücken werden nicht aufgefüllt.
+      Start- und Signalzähler erfassen direkt beobachtete Wechsel seit ihrer Einrichtung. Messlücken werden
+      nicht aufgefüllt.
 
 
-      **Brennstarts 24 h ist derzeit unzuverlässig:** Bei seltenen Änderungen fehlt der rollierenden Statistik
+      **Brennstarts 24 h ist unzuverlässig:** Bei seltenen Änderungen fehlt der rollierenden Statistik
       unter Umständen der vorherige Zählerstand. Auch die davon abhängige Warnung kann Starts übersehen.
+      Tageszähler ordnen einen Start dem Starttag zu, auch wenn der Zyklus über Mitternacht läuft.
 
 
-      Die bisherigen Aschezähler zählen REG78-Einschaltflanken. Ob diese tatsächlichen Ascheaustragungen entsprechen,
-      ist offen. O₂-Minima über alle Phasen enthalten Standbywerte und sind keine reinen Verbrennungswerte.
-      Pelletverbrauch und Wirkungsgrad bleiben ohne eigene Messung unbekannt.'
+      Die bisherigen Aschezähler zählen REG78-Einschaltflanken; eine tatsächliche Ascheaustragung ist
+      damit nicht bestätigt. O₂-Minima über alle Phasen enthalten Standbywerte. Pelletverbrauch und Wirkungsgrad
+      bleiben ohne eigene Messung unbekannt.'
     type: markdown
   - entities:
     - entity: binary_sensor.gilles_messdaten_verfuegbar
@@ -191,8 +192,8 @@ views:
     title: Brennstarts · direkt beobachtet
     type: entities
   - card:
-      content: '**Noch kein Brennstart erfasst.** Der Zeitpunkt erscheint nach dem nächsten beobachteten Wechsel
-        von Standby zu Vorbelüftung.'
+      content: '**Noch kein Brennstart erfasst.** Der Zeitpunkt erscheint nach dem nächsten beobachteten
+        Wechsel von Standby zu Vorbelüftung.'
       type: markdown
     conditions:
     - condition: state
@@ -229,8 +230,10 @@ views:
     show_header_toggle: false
     title: Betriebszeiten · bekannte Phasen
     type: entities
-  - content: Die Brennzyklus-Zeit umfasst Vorbelüftung, Zünden, Heizen, Ausbrennen und Nachlauf. Sie ist kein Nachweis
-      einer durchgehenden Flamme. Historische Zeiten berücksichtigen nur vorhandene Aufzeichnungen.
+  - content: Die Brennzyklus-Zeit umfasst Vorbelüftung, Zünden, Heizen, Ausbrennen, Nachlauf und den beobachteten
+      Code 10 mit noch ungeklärter Funktion. Sie belegt keine durchgehende Flamme. Die Abdeckung berücksichtigt
+      nur die bisher beobachteten Phasencodes; weitere unbekannte Codes und fehlende Messwerte sind getrennt
+      zu prüfen. Ein auf 100 % gerundeter Wert schließt kurze Ausfälle nicht aus.
     type: markdown
   - entities:
     - entity: sensor.gilles_kessel_24h_min
@@ -255,8 +258,8 @@ views:
     title: REG78-Signal & Tür
     type: entities
   - card:
-      content: '**Noch keine REG78-Einschaltflanke erfasst.** Der Zeitpunkt erscheint nach dem nächsten beobachteten
-        Wechsel 0→1.'
+      content: '**Noch keine REG78-Einschaltflanke erfasst.** Der Zeitpunkt erscheint nach dem nächsten
+        beobachteten Wechsel 0→1.'
       type: markdown
     conditions:
     - condition: state
@@ -298,11 +301,11 @@ views:
     show_header_toggle: false
     title: Einstellbare Hinweisschwellen
     type: entities
-  - content: Die Startdiagnose gilt nur für direkt beobachtete Starts von 0 auf 1. Neustart oder Datenlücke verwerfen
-      die laufende Diagnose. Die Startphase schließt Vorlüften ein; der Temperaturvergleich erfolgt ab 30 Minuten
-      im Anbrenn- oder Heizbetrieb. Ein Hinweis ist eine Aufforderung zur Prüfung, keine bestätigte Kesselstörung.
-      Während regulärer Brennläufe erscheinen alle fünf Minuten und bei Phasenwechseln Registerstände im Aktivitätenprotokoll
-      für den späteren Touch-Abgleich.
+  - content: Die Startdiagnose gilt nur für direkt beobachtete Starts von 0 auf 1. Neustart oder Datenlücke
+      verwerfen die laufende Diagnose. Die Startphase schließt Vorlüften ein; der Temperaturvergleich
+      erfolgt ab 30 Minuten im Anbrenn- oder Heizbetrieb. Ein Hinweis ist eine Aufforderung zur Prüfung,
+      keine bestätigte Kesselstörung. Während regulärer Brennläufe erscheinen alle fünf Minuten und bei
+      Phasenwechseln Registerstände im Aktivitätenprotokoll für den späteren Touch-Abgleich.
     type: markdown
   icon: mdi:chart-line
   path: statistik
@@ -311,25 +314,27 @@ views:
   - content: '## Register-Erkenntnisse und offene Fragen
 
 
-      **REG56:** starker Kandidat für O₂-Sollwert ×10. Der Verlauf passt zu einer temperaturabhängigen
-      Interpolation zwischen den konfigurierten O₂-Endpunkten. Touch-Abgleich fehlt.
+      **Phase 10 / Status 43:** neu beobachtete Codes, Bedeutung offen. Phase 10 folgt in einem aufgezeichneten
+      Abschaltpfad auf 9 und geht in 0 über. Status 43 bleibt auch im Standby bestehen; daraus folgt keine
+      bestätigte Störungsmeldung.
 
 
-      **REG68:** steigt und fällt. Kandidat für eine Stellgröße; kein fortlaufender Verbrauchszähler.
+      **REG56:** O₂-Sollwert-Hypothese durch einen weiteren Heizverlauf gestützt. Vergleich mit „Restsauerstoff
+      – Soll“ bei laufendem Brenner fehlt.
 
 
-      **REG72:** Zündungsbezug vermutet, konkrete Funktion offen.
+      **REG68:** Kandidat für „aktuelle Einschubmenge“, kein Verbrauchszähler. Skala weiterhin offen.
 
 
-      **REG76:** aktive Pulse beobachtet. Wegen der Abfrageabstände ist die tatsächliche Pulsdauer unbekannt.
+      **REG72:** erneut während Zündung aktiv. **REG76:** Pulse auch im Standby, kein belegter Reinigungsrhythmus.
 
 
-      **REG78:** längere Aktivintervalle widersprechen der bisherigen sicheren Zuordnung als Aschemotor.
-      Angezeigte Zähler zählen nur 0→1-Flanken.
+      **REG78:** Aktivintervalle mit steigendem Rücklauf und sinkender Kesseltemperatur stützen Pumpe/Freigabe
+      als Hypothese. Physischer Ausgang unbestätigt; Zähler erfassen nur Flanken.
 
 
-      REG70/74 wurden bisher nur mit 0 beobachtet; ihre Funktion ist offen. REG58/60/62 werden unverändert skaliert.
-      REG46=61 passt zur Touch-Meldung „Puffertemperatur erreicht“; ein synchronisierter Meldungswechsel als Beleg fehlt.'
+      REG70/74 bisher nur null. Luftskalierungen unverändert. REG46=61 passt vorläufig zu „Puffertemperatur
+      erreicht“.'
     type: markdown
   - entities:
     - entity: sensor.gilles_reg56

@@ -4,6 +4,18 @@
 
 All notable findings during the reverse engineering of the Gilles Touch Modbus map.
 
+## [0.7.0] — 2026-09-25 — Additional phases and status codes
+
+Documented REG42 code `10` and REG46 code `43` as newly observed codes without assigning physical meanings. Another recorded shutdown path contains `7→9→10→0`; polling cannot exclude a very short unrecorded intermediate phase. Code 43 can persist into standby and must not be equated with the later disappearance of the boiler target.
+
+Added phase 10 to phase text, the cycle binary sensor, today/7-day cycle duration, coverage and diagnostic logging. Status 43 remains neutral; status 61 is labeled as a provisional message association. The indirect door indicator remains unknown for code 43. Existing IDs, raw scales and polling intervals are preserved.
+
+A further trace supports the REG56 O₂-target hypothesis and REG72's ignition association. REG76 can pulse in standby. Heat redistribution during REG78 active intervals supports a pump/release hypothesis; physical identity remains unresolved. No register confidence level is upgraded.
+
+Clarified statistics limits: observed codes are not the same as uninterrupted communication, sample time span does not prove communication continuity, and a cycle crossing midnight is not another daily start. The rolling 24-hour start-counter defect remains unresolved. Dashboard guidance is updated; specific operating histories remain private.
+
+Validation: repository configuration validation and Python compilation passed; phase and status templates, including unknown/unavailable inputs, checked with HA's renderer. Live configuration check and template reload succeeded; helpers, observation automation and dashboard read back. No changes to Modbus queries or boiler control.
+
 ## [0.6.1] — 2026-09-24 — Touch diagnostic pages compared
 
 Rechecked ten previously mapped parameters against Touch and HA; their scales agree. The newly identified actual/target page provides a specific comparison for REG56 (O₂ target) and REG68 (“aktuelle Einschubmenge”, current feed amount). Matching standby zero values are insufficient for verification; confidence counts remain unchanged.

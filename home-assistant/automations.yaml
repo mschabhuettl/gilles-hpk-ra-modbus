@@ -7,8 +7,8 @@
   conditions:
   - condition: trigger
     id: observed_transition
-  description: Erfasst seit 07.09.2026 direkt beobachtete Übergänge von Standby (0) zu Vorbelüftung (1). Lücken
-    oder Wiederverbindungen werden nicht als Start gezählt.
+  description: Erfasst seit 07.09.2026 direkt beobachtete Übergänge von Standby (0) zu Vorbelüftung (1).
+    Lücken oder Wiederverbindungen werden nicht als Start gezählt.
   max: 5
   mode: queued
   triggers:
@@ -18,9 +18,9 @@
     to: '1'
     trigger: state
 - alias: Gilles Ascheaustragungen erfassen
-  description: Erfasst direkt beobachtete REG78-Wechsel von 0 zu 1. Zuordnung zur Ascheaustragung
-    ungesichert; kein Nachweis einer Motorlaufzeit oder abgeschlossenen Austragung. Lücken und Wiederverbindungen
-    zählen nicht.
+  description: Erfasst direkt beobachtete REG78-Wechsel von 0 zu 1. Zuordnung zur Ascheaustragung ungesichert;
+    kein Nachweis einer Motorlaufzeit oder abgeschlossenen Austragung. Lücken und Wiederverbindungen zählen
+    nicht.
   triggers:
   - entity_id: sensor.gilles_ascheaustragung_aktiv
     from: '0'
@@ -63,8 +63,8 @@
       target:
         entity_id: input_boolean.gilles_brennstart_beobachtet
   alias: Gilles Brennstart Diagnosebasis
-  description: Speichert nur direkt beobachtete Übergänge 0→1 und die Kesseltemperatur. Bei Neustart, Datenlücke
-    oder Standby wird die laufende Diagnose ungültig; keine Kesselsteuerung.
+  description: Speichert nur direkt beobachtete Übergänge 0→1 und die Kesseltemperatur. Bei Neustart,
+    Datenlücke oder Standby wird die laufende Diagnose ungültig; keine Kesselsteuerung.
   max: 5
   mode: queued
   triggers:
@@ -84,9 +84,10 @@
     id: reset
     trigger: homeassistant
 - alias: Gilles Registerbeobachtung im Brennbetrieb
-  description: Protokolliert während regulärer Brennläufe alle fünf Minuten und bei Phasenwechseln die zuletzt ausgelesenen,
-    asynchron abgefragten Registerwerte. Enthält Modus, Status, Sollwert, Rücklauf und REG78 für den Touch-Abgleich.
-    Keine Kesselsteuerung.
+  description: Protokolliert während regulärer Brennläufe alle fünf Minuten und bei Phasenwechseln die
+    zuletzt ausgelesenen, asynchron abgefragten Registerwerte. Enthält Modus, Status, Sollwert, Rücklauf
+    und REG78 für den Touch-Abgleich. Keine Kesselsteuerung. Code 10 wird als beobachteter Zykluszustand
+    mit ungeklaerter Funktion mitprotokolliert.
   triggers:
   - entity_id: sensor.gilles_brenn_phase_code
     to:
@@ -97,6 +98,7 @@
     - '7'
     - '8'
     - '9'
+    - '10'
     trigger: state
   - minutes: /5
     trigger: time_pattern
@@ -111,6 +113,7 @@
     - '7'
     - '8'
     - '9'
+    - '10'
   - condition: state
     entity_id: binary_sensor.gilles_messdaten_verfuegbar
     state: 'on'
@@ -119,15 +122,15 @@
     data:
       entity_id: sensor.gilles_brenn_phase_code
       message: Phase={{ states('sensor.gilles_brenn_phase_code') }}; Kessel={{ states('sensor.gilles_kesseltemperatur')
-        }}; Abgas={{ states('sensor.gilles_abgastemperatur') }}; O2={{ states('sensor.gilles_o2_ist') }}; REG56={{
-        states('sensor.gilles_reg56') }}; Primaer={{ states('sensor.gilles_primar_ist_vermutet') }}; Sekundaer={{
-        states('sensor.gilles_sekundar_ist_vermutet') }}; Saugzug={{ states('sensor.gilles_saugzug_ist_vermutet')
+        }}; Abgas={{ states('sensor.gilles_abgastemperatur') }}; O2={{ states('sensor.gilles_o2_ist')
+        }}; REG56={{ states('sensor.gilles_reg56') }}; Primaer={{ states('sensor.gilles_primar_ist_vermutet')
+        }}; Sekundaer={{ states('sensor.gilles_sekundar_ist_vermutet') }}; Saugzug={{ states('sensor.gilles_saugzug_ist_vermutet')
         }}; AbgasSoll={{ states('sensor.gilles_abgas_soll_live_vermutet') }}; REG68={{ states('sensor.gilles_zaehler')
-        }}; REG70={{ states('sensor.gilles_reg70') }}; REG72={{ states('sensor.gilles_binarflag') }}; REG74={{ states('sensor.gilles_reg74')
-        }}; REG76={{ states('sensor.gilles_reg76') }}; Modus={{ states('sensor.gilles_boiler_status_code') }}; REG46={{
-        states('sensor.gilles_status_bitmap') }}; KesselSoll={{ states('sensor.gilles_kessel_soll_live') }}; Ruecklauf={{
-        states('sensor.gilles_rucklauftemperatur') }}; REG78={{ states('sensor.gilles_ascheaustragung_aktiv') }};
-        Abfrage=asynchron
+        }}; REG70={{ states('sensor.gilles_reg70') }}; REG72={{ states('sensor.gilles_binarflag') }};
+        REG74={{ states('sensor.gilles_reg74') }}; REG76={{ states('sensor.gilles_reg76') }}; Modus={{
+        states('sensor.gilles_boiler_status_code') }}; REG46={{ states('sensor.gilles_status_bitmap')
+        }}; KesselSoll={{ states('sensor.gilles_kessel_soll_live') }}; Ruecklauf={{ states('sensor.gilles_rucklauftemperatur')
+        }}; REG78={{ states('sensor.gilles_ascheaustragung_aktiv') }}; Abfrage=asynchron
       name: Gilles Registerabgleich
   max: 5
   mode: queued

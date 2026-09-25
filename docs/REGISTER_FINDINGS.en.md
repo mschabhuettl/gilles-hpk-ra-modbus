@@ -6,7 +6,7 @@ Extended passive analysis revises several earlier register interpretations. This
 
 ## REG56: calculated O₂ target as a strong hypothesis
 
-REG56 remains active during regulation and follows an exhaust-temperature-dependent relationship. Its former description as a brief pulse is obsolete. Linear interpolation between the configured temperature and O₂ endpoints qualitatively matches the observed behavior:
+REG56 remains active during regulation and follows an exhaust-temperature-dependent relationship. Its former description as a brief pulse is obsolete. Agreement with linear interpolation between the configured temperature and O₂ endpoints also appears in another naturally occurring burner cycle. The relationship has therefore been observed qualitatively again, but has not yet been confirmed on Touch:
 
 ```text
 T       = REG50 × 0.1              # Actual flue gas temperature
@@ -27,14 +27,15 @@ Confidence: **strong hypothesis (✓)**. Another Touch page shows “Restsauerst
 
 | Register | Qualitative observation | Conclusion and open question |
 |---|---|---|
-| REG46 | The status code can change while the operating mode remains constant. Comparing the same stable state provisionally associates code 61 with the Touch banner “Puffertemperatur erreicht” (buffer temperature reached). | Not a general “Puffer/Boiler active” code. Unaligned clocks prevent an exactly synchronized confirmation; another comparison across a banner change is needed. Enum versus bitfield remains unresolved. |
+| REG42 | Code 10 was observed between code 9 and standby 0 during shutdown. Code 8 did not appear in that recorded shutdown path. | Code 10 is an observed cycle state whose meaning is unknown, not evidence of a flame. A very brief step can fall between polls, so the absence of code 8 from the recording does not establish its physical absence. |
+| REG46 | Code 61 is provisionally associated with the Touch banner “Puffertemperatur erreicht” (buffer temperature reached). The additionally observed code 43 starts during shutdown and extends into standby; the boiler target falls later. | The Touch message for code 43 is missing. An error, overheating, buffer state or “boiler target zero” is not established. Code 43 is displayed neutrally as a raw code; the door position remains unknown in this state. Code 61 still needs an exactly synchronized comparison across a banner change; enum versus bitfield remains unresolved. |
 | REG58 / REG62 | The existing HA scale does not clearly match historical Touch identifications and parameter limits. | A factor-of-ten difference is possible. Compare nonzero raw values, HA values and Touch percentages simultaneously before changing the scale. |
 | REG64 | The active boiler target can be zero while REG44 still indicates Puffer/Boiler mode. | Zero here means no active boiler target, not necessarily a disabled operating mode. Distinguish mode, combustion phase and current demand. |
 | REG66 | The active flue gas target changes within the regulation phase. | Not a fixed binary value; REG42=7 means regulating heat, not necessarily full load. |
 | REG68 | Increases and decreases, including recurring zero intervals. Touch shows “aktuelle Einschubmenge” (current feed amount) as a percentage, also zero in the compared idle state. | “Current feed amount” is a specific candidate for the next comparison. Matching at zero confirms neither the function nor a percentage scale. Not a monotonic consumption or runtime counter; do not convert it to fuel quantity or energy. |
-| REG72 | Activity associated with ignition and initial combustion. | An ignition-related output is plausible; the actuator is unknown. |
-| REG76 | Recurring high intervals. | The former “permanently inactive” classification is withdrawn. Purpose, periodicity and physical pulse width remain unresolved. |
-| REG78 | A long high interval contradicts its former direct identification as an ash-motor state. | Ash-motor identification withdrawn; pump or release remain unconfirmed candidates. Historical HA IDs remain intact; counted edges are not confirmed ash cycles. |
+| REG72 | Activity associated with ignition and initial combustion observed again. | This supports an ignition-related output; the actuator remains unknown. |
+| REG76 | Recurring high intervals also occur with REG42=0. | Activity is not restricted to burner operation. Purpose, periodicity and physical pulse width remain unresolved. |
+| REG78 | Long high intervals and standby pulses observed again; return temperature rises while boiler temperature falls. This pattern contradicts its former direct identification as an ash-motor state. | The heat redistribution supports a pump or release hypothesis but does not identify an actuator. The ash-motor identification remains withdrawn. Historical HA IDs remain intact; counted edges are not confirmed ash cycles. |
 | REG70 / REG74 | Only zero observed so far. | No conclusion about permanent inactivity or reservation for unused extensions. |
 
 ## What the additional Touch pages establish
@@ -53,6 +54,6 @@ HA histories contain detection times of asynchronously polled sensors. An unchan
 
 A Touch image with inactive actuators only supports matching an idle operating state. It does not identify the unknown binary registers or resolve scaling, because zero remains zero under either candidate scale. Buffer temperatures appearing on Touch also do not establish that those measurements are exported in the tested Modbus map.
 
-The most useful next capture is the actual/target page during natural regulation with nonzero values: it combines the O₂ target, current feed amount and fan displays, allowing REG56, REG58/60/62 and REG68 to be compared together. For the unknown binary registers, the main overview's actual actuator indicators for ignition, dosing, rotary feeder, heat-exchanger cleaning, ash discharge and return pump are also needed. Protection-contact pages do not replace these output displays. A natural change of status banner is particularly useful for REG46. This requires neither changing heating parameters nor initiating an additional burner cycle.
+The most useful next capture is the actual/target page during natural regulation with nonzero values: it combines the O₂ target, current feed amount and fan displays, allowing REG56, REG58/60/62 and REG68 to be compared together. For the unknown binary registers, the main overview's actual actuator indicators for ignition, dosing, rotary feeder, heat-exchanger cleaning, ash discharge and return pump are also needed. Protection-contact pages do not replace these output displays. REG42=10 needs a matching burner-status display. REG46=43 still lacks the corresponding main-screen message; a natural transition between status codes helps test the message mapping. This requires neither changing heating parameters nor initiating an additional burner cycle.
 
 Current confidence levels and unresolved mappings are listed in the [register map](REGISTER_MAP.en.md); the process is described in [methodology](METHODOLOGY.en.md).
