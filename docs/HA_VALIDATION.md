@@ -44,3 +44,22 @@ Die Anlage war bei dieser Prüfung im kalten Standby. Ein natürlicher Brennzykl
 ## Nachprüfung Betriebsdiagnose
 
 Am 07.09.2026 wurden 35 native Helfer, vier Automationen und 78 Dashboard-Verweise konsistent geprüft. `homeassistant.check_config` war erfolgreich. Die beiden Zähler-Statistikeinheiten sind konfliktfrei. 14 geprüfte Waisen wurden ohne Recorder-Löschung entfernt. Die neue Startdiagnose war im aktuellen Standby noch keinem realen Brennlauf ausgesetzt.
+
+
+## Nachprüfung der Betriebsdiagnose 0.8.0
+
+Die aktualisierte Diagnose wurde mit Home Assistant 2026.10.2 eingerichtet. Der neue native Ableitungshelfer ist geladen. Die gespeicherten Vorlagen für numerische Rohdaten und Temperaturwarnung, die Diagnoseautomation und das Dashboard wurden zurückgelesen und mit den vorgesehenen Definitionen verglichen. Alle 79 Dashboard-Verweise sind auflösbar; die nicht verfügbare Startphasendauer im Standby ist beabsichtigt. Die betroffenen Gilles-Konfigurationseinträge sind geladen, die Qualitätsanzeige ist aktiv und die Diagnoseautomation eingeschaltet. Die Konfigurationsprüfung wurde erfolgreich ausgeführt.
+
+Die vorhandene zentrale Meldeautomation wurde nicht aktiviert. Warnsensoren können im Dashboard erscheinen; diese Prüfung behauptet keine erfolgreiche Push-Zustellung. Eine Meldungsroute ist getrennt zu prüfen. Es wurde kein Brennzyklus ausgelöst und kein Kesselregister geschrieben.
+
+Die Offline-Konsistenzprüfung besteht mit 40 Rohsensoren, 49 YAML-Entitäten, 36 UI-Definitionen, vier Automationen, 79 Dashboard-Verweisen und fünf Ansichten. Zehn automatisierte Tests prüfen die Kombination aus Startbasis, Gesamtanstieg und Trend, numerische Rohwerte, Rücksetzen der Diagnose und SQL-Ereignisgrenzen. Elf Szenarien wurden zusätzlich im HA-Vorlagenrenderer erfolgreich ausgewertet. Python-Kompilierung und `git diff --check` bestanden. Die Szenarien verwenden synthetische Werte, keine veröffentlichten Betriebsverläufe.
+
+```bash
+python3 scripts/validate_config.py
+python3 scripts/test_start_diagnostics.py
+python3 -m py_compile scripts/test_start_diagnostics.py
+```
+
+Eine retrospektive Nachrechnung eines privaten Warmstart-Verlaufs unterdrückt den neuen Hinweis sowohl bei stufenweiser Fortschreibung als auch bei linearer Interpolation der aufgezeichneten Werte. Die Recorder-Änderungshistorie enthält nicht jeden unveränderten Sensorreport; dies ist deshalb eine Prüfung mit zwei Näherungen und keine exakte Wiederholung des HA-Ableitungshelfers. Der Verlauf und seine Betriebszeitpunkte bleiben privat.
+
+Der Protokollvergleich ergab keine neu hinzugekommenen Gilles-Fehler seit der Änderung. Vorhandene ältere Template-Meldungen und die bekannte Warnung zum gezielten Zwei-Sekunden-Abfrageintervall sind kein Nachweis eines neuen Fehlers. Die Abnahme prüft Konfiguration und Diagnoseverhalten; sie ersetzt keine längere Nachbeobachtung natürlicher Brennzyklen. Die Dashboard-Prüfung erfolgte anhand der Konfiguration und Entitäten, nicht anhand eines neu gerenderten Bildschirmbilds.

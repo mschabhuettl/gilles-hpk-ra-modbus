@@ -153,25 +153,11 @@ views:
   path: brenner
   title: Brenner
 - cards:
-  - content: '## Erfasster Betrieb
-
-
-      Start- und Signalzähler erfassen direkt beobachtete Wechsel seit ihrer Einrichtung. Messlücken werden
-      nicht aufgefüllt.
-
-
-      **Brennstarts 24 h ist unzuverlässig:** Bei seltenen Änderungen fehlt der rollierenden Statistik
-      unter Umständen der vorherige Zählerstand. Auch die davon abhängige Warnung kann Starts übersehen.
-      Tageszähler ordnen einen Start dem Starttag zu, auch wenn der Zyklus über Mitternacht läuft.
-
-
-      Die bisherigen Aschezähler zählen REG78-Einschaltflanken; eine tatsächliche Ascheaustragung ist
-      damit nicht bestätigt. O₂-Minima über alle Phasen enthalten Standbywerte. Pelletverbrauch und Wirkungsgrad
-      bleiben ohne eigene Messung unbekannt.'
+  - content: "## Erfasster Betrieb\n\nStart- und Signalzähler erfassen direkt beobachtete Wechsel seit ihrer Einrichtung. Messlücken werden nicht aufgefüllt.\n\n**Brennstarts 24 h:** Gezählt werden die in den letzten 24 Stunden aufgezeichneten direkten Phasenwechsel von Standby (0) zu Vorlüften (1). Aktualisierung etwa alle 30 Sekunden. Neustarts und Wiederverbindungen ohne beobachteten Übergang zählen nicht als Start. Tageszähler ordnen einen Start dem Starttag zu, auch wenn der Zyklus über Mitternacht läuft.\n\nDie bisherigen Aschezähler zählen REG78-Einschaltflanken; eine tatsächliche Ascheaustragung ist damit nicht bestätigt. O₂-Minima über alle Phasen enthalten Standbywerte. Pelletverbrauch und Wirkungsgrad bleiben ohne eigene Messung unbekannt."
     type: markdown
   - entities:
     - entity: binary_sensor.gilles_messdaten_verfuegbar
-      name: Alle 40 Messwerte aktuell
+      name: "40 Messwerte numerisch vorhanden"
     - entity: sensor.gilles_phasendaten_abdeckung_24h
       name: Zeit mit bekanntem Phasencode
     - entity: sensor.gilles_phasendaten_luecken_24h
@@ -289,6 +275,8 @@ views:
     - binary_sensor.gilles_haeufige_brennstarts
     - sensor.gilles_startphase_minuten
     - binary_sensor.gilles_startphase_zu_lang
+    - entity: sensor.gilles_kesseltemperatur_trend_10min
+      name: Temperaturanstieg · 10-Min.-Mittel
     - binary_sensor.gilles_temperaturanstieg_fehlt
     - binary_sensor.gilles_messwerte_unplausibel
     show_header_toggle: false
@@ -301,11 +289,7 @@ views:
     show_header_toggle: false
     title: Einstellbare Hinweisschwellen
     type: entities
-  - content: Die Startdiagnose gilt nur für direkt beobachtete Starts von 0 auf 1. Neustart oder Datenlücke
-      verwerfen die laufende Diagnose. Die Startphase schließt Vorlüften ein; der Temperaturvergleich
-      erfolgt ab 30 Minuten im Anbrenn- oder Heizbetrieb. Ein Hinweis ist eine Aufforderung zur Prüfung,
-      keine bestätigte Kesselstörung. Während regulärer Brennläufe erscheinen alle fünf Minuten und bei
-      Phasenwechseln Registerstände im Aktivitätenprotokoll für den späteren Touch-Abgleich.
+  - content: "Die Startdiagnose gilt nur für direkt beobachtete Starts von 0 auf 1 bei 40 numerisch verfügbaren Rohwerten. Neustart, Standby oder Ausfall eines Rohwerts verwerfen die laufende Diagnose. Wiederkehr der Daten genügt nicht; erst ein neuer Start aktiviert sie.\n\nDie Startphase schließt Vorlüften ein. Ab 30 Minuten im Anbrenn- oder Heizbetrieb erscheint der Temperaturhinweis nur, wenn sowohl der Anstieg gegenüber dem Startwert unter der eingestellten Schwelle liegt als auch die über zehn Minuten geglättete Heizrate unter Schwelle / 30 Minuten liegt. Dadurch berücksichtigt die Diagnose bereits warme Starts mit anfänglicher Abkühlung. Sie prüft den Start und ist kein Nachweis der Verbrennung oder der Heizleistung.\n\n„40 Messwerte numerisch vorhanden“ prüft vorhandene Zahlenwerte, nicht das Alter der letzten erfolgreichen Modbus-Abfrage. Während regulärer Brennläufe erscheinen alle fünf Minuten und bei Phasenwechseln Registerstände im Aktivitätenprotokoll für den späteren Touch-Abgleich."
     type: markdown
   icon: mdi:chart-line
   path: statistik
@@ -413,3 +397,4 @@ views:
   icon: mdi:cog
   path: parameter
   title: Parameter
+

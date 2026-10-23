@@ -48,6 +48,14 @@ Ein O₂-Istwert am Touch im Zustand „Brenner Aus“ bestätigt zunächst nur,
 
 Die Laufzeitseite führt Steuerung, Brenner, Zellenrad und Dosierung getrennt auf und besitzt eine Anzeige „Anzahl Zündungen“. Rücksetzbedingungen und Bezugszeitraum dieses Zählers sind nicht bekannt. Er darf daher weder als Lebensdauer- oder Tageszähler bezeichnet noch allein aufgrund eines gleichen Anzeigewerts mit einem HA-Brennstartzähler gleichgesetzt werden. Eine Modbus-Adresse ist dadurch ebenfalls nicht identifiziert.
 
+## Temperaturverlauf und Grenzen der Startdiagnose
+
+Ein beobachteter Warmstart zeigt eine anfängliche Abkühlung mit anschließendem Temperaturanstieg. Der hohe Wert beim Start kann dabei noch unterschritten sein, obwohl Kessel- und Abgastemperatur bereits steigen. Eine Diagnose, die ausschließlich den Unterschied zum Startwert bewertet, kann diesen Verlauf irreführend als fehlenden Anstieg melden. Die Beobachtung belegt keine bestimmte Pumpenfunktion oder Wärmeleistung und ändert keine Registerzuordnung.
+
+Die HA-Diagnose ergänzt deshalb den Temperaturvergleich um einen geglätteten Ableitungswert. Sie meldet erst bei zu kleinem Gesamtanstieg **und** zu kleinem aktuellen Trend. Stillstand und Abkühlung bleiben bei zugleich unzureichendem Anstieg gegenüber dem Startwert auffällig; ein hinreichend steigender Warmstart wird unterdrückt. Es ist keine allgemeine Stillstandsüberwachung, nachdem der nötige Anstieg schon erreicht wurde. Die Schwellen sind einstellbare Prüfkriterien und keine Herstellergrenzen. Lücken oder nichtnumerische Rohwerte verwerfen die Diagnosebasis, statt sie nach Datenrückkehr weiterzuverwenden. Die genauen Regeln und Recorder-Grenzen der Startzählung stehen in der [HA-Anleitung](../home-assistant/README.md).
+
+Die Verfügbarkeitsanzeige prüft vorhandene numerische Rohwerte. Sie beweist weder einen aktuellen Modbus-Abruf noch die physische Richtigkeit aller Werte. Zustandshistorie und letzter Änderungszeitpunkt unterscheiden eine konstante Messung nicht zuverlässig von einem gehaltenen Wert.
+
 ## Grenzen und nächste Vergleichsbeobachtungen
 
 HA-Verläufe enthalten Erkennungszeitpunkte asynchron abgefragter Sensoren. Unveränderte Werte werden in einer Zustandsänderungshistorie nicht als neue Messung dargestellt. Gehaltene Werte auf einem gemeinsamen Raster sind daher keine unabhängigen synchronen Messpaare. Gespeicherte High-Dauern beweisen weder die physische Laufzeit eines Motors noch eine genaue Periodizität; kurze Pulse können zwischen Abfragen fehlen.
@@ -57,3 +65,4 @@ Eine Touch-Aufnahme mit ausgeschalteten Aktoren unterstützt lediglich die Zuord
 Die nächste besonders hilfreiche Aufnahme ist die Ist/Soll-Seite während eines natürlichen Regelbetriebs mit Nichtnullwerten: Sie vereint O₂-Soll, aktuelle Einschubmenge und die Gebläseanzeigen und ermöglicht damit einen gemeinsamen Vergleich von REG56, REG58/60/62 und REG68. Für die unbekannten binären Register werden zusätzlich die tatsächlichen Aktoranzeigen der Hauptübersicht für Zündung, Dosierung, Zellenrad, Registerreinigung, Ascheaustragung und Rücklaufpumpe benötigt. Schutzkontaktseiten ersetzen diese Ausgangsanzeigen nicht. Für REG42=10 wird die zugehörige Brennerstatusanzeige benötigt. Für REG46=43 fehlt die Meldung der Hauptübersicht; ein natürlicher Wechsel zwischen den Statuscodes hilft, die Meldungszuordnung zu prüfen. Dafür müssen weder Heizparameter geändert noch ein zusätzlicher Brennzyklus ausgelöst werden.
 
 Die aktuellen Vertrauensgrade und offenen Zuordnungen stehen in der [Registermap](REGISTER_MAP.md), das Vorgehen in der [Methodik](METHODOLOGY.md).
+

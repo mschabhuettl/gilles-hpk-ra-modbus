@@ -2,7 +2,7 @@
 
 > [🇩🇪 Deutsch](README.md) · 🇬🇧 **English**
 
-These files reproduce the behavior validated on the reference installation on 7 September 2026 with **Home Assistant 2026.9.1**. The boiler host is replaced by `192.0.2.1`; internal config-entry and automation IDs are omitted from portable definitions.
+These files cover the Gilles packages and operating diagnostics updated on **Home Assistant 2026.10.2**. The original packages were validated with Home Assistant 2026.9.1. The boiler host is replaced by `192.0.2.1`; internal config-entry and automation IDs are omitted from portable definitions.
 
 ## Components
 
@@ -10,7 +10,7 @@ These files reproduce the behavior validated on the reference installation on 7 
 |---|---|
 | `modbus.yaml` | HA package: 40 raw sensors and seven state templates with availability checks |
 | `gilles_derived.yaml` | HA package: timestamps of the last directly observed start and REG78 rising edge |
-| `helpers.json` | 35 native helper definitions for the HA UI or Home Assistant MCP |
+| `helpers.json` | 36 definitions: 35 native helpers and one SQL sensor for the HA UI or Home Assistant MCP |
 | `automations.yaml` | Four native counter/diagnostic automations to create or update individually |
 | `entity_ids.json` | Entity IDs used by the examples and their YAML `unique_id` mapping |
 | `dashboard.yaml` | Overview, burner, operating statistics, investigation and parameter views |
@@ -32,8 +32,8 @@ The helper JSON is **not an HA YAML package** or a `.storage` export. Installing
 4. Compare entity IDs with `entity_ids.json`. HA initially derives IDs from names and preserves them after renaming. A historical installation may use `sensor.gilles_rucklauftemperatur` or `_vermutet` suffixes that a new installation will not generate. On a new installation, align the IDs with the reference or update every consumer. Preserve identities and history on existing installations.
 5. Create helpers from `helpers.json` **in list order** using Settings → Devices & services → Helpers. `parameters.helper_type` selects the type, `name` its name and `config` its fields. For templates, `next_step_id` selects sensor or binary sensor, while `additional_options.availability` is the availability template. Map `max_age`/`duration` to the relevant hours/days fields. Counter fields `initial`, `step`, `restore` and `icon` sit directly under `parameters`.
 
-   With Home Assistant MCP, read its current best practices and pass each helper's `parameters` to `ha_config_set_helper(action="create", ...)`. `key` and `entity_id` are reference metadata, not creation arguments. Resolve and update existing helpers instead of creating duplicates. Set the `Starts` or `Vorgänge` units on initial creation.
-6. Create the four automations individually in the HA automation editor using `automations.yaml`. Preserve the identity when updating an existing automation. Do **not** replace the installation's entire `automations.yaml` file. The counter automations only increment HA counters.
+   With Home Assistant MCP, read its current best practices and pass each `parameters` object to the named `tool`; when omitted, use `ha_config_set_helper(action="create", ...)`. The SQL sensor uses `ha_set_integration` with `domain: sql`, or the SQL integration in the HA UI. `key`, `entity_id` and `tool` are reference metadata, not creation arguments. Resolve and update existing helpers instead of creating duplicates. Set the `Starts` or `Vorgänge` units on initial creation.
+6. Create the four automations individually in the HA automation editor using `automations.yaml`. Preserve the identity when updating an existing automation. Do **not** replace the installation's entire `automations.yaml` file. The automations update HA counters and diagnostic helpers or write activity-log entries; they never write boiler registers.
 7. Create a dashboard or update the existing Gilles dashboard using `dashboard.yaml` in the raw configuration editor. Adjust the displayed installation date when deploying on another system. The reference dashboard uses URL path `dashboard-gilles`.
 
 ## Migration from the previous example
@@ -61,23 +61,33 @@ python3 scripts/validate_config.py
 
 Back up the affected HA files and UI configurations before deployment. Check configuration and entity references, reload the relevant integrations and inspect real readings afterwards. A structurally valid dashboard is not a visual check; the initial validation had no screenshot feature available.
 
-## Added operating diagnostics (0.5.0)
+## Operating diagnostics (0.8.0)
 
-The existing rolling 24-hour start indicator is unreliable with sparse counter changes; see the guidance below. An inactive warning therefore does not establish a low start count. Default thresholds are more than 10 observed starts, startup longer than 20 minutes, and less than 2 °C boiler temperature rise after 30 minutes in phases 6 or 7. These are editable review thresholds, not manufacturer fault limits. Missing observations are never invented.
+The rolling start count uses directly recorded `0→1` transitions within the last 24 hours. Gaps and unrecorded events are not backfilled. Editable review thresholds remain more than 10 observed starts/24 h and startup longer than 20 minutes. They are not manufacturer fault limits.
 
-The diagnostic cycle is invalidated on restart, standby or missing phase data. Startup includes pre-purge and both ignition phases; burnout does not trigger the temperature-rise advisory. The two additional automations update HA helpers and write activity-log snapshots only. A synchronized Touch reading is still required to validate unclear register meanings or scaling.
+The temperature advisory requires a directly observed start, numeric inputs, all raw readings available, current phase `6` or `7`, and more than 30 minutes since the start. **Both** temperature conditions must also hold: the rise from the initial temperature is below the configured minimum rise, and the smoothed temperature trend is below `minimum rise / 30 minutes`. With the 2 °C default, that is approximately 0.067 °C/min.
 
-The reference installation removed the orphaned REG20, 42, 46, 50, 52, 58, 60, 62, 64, 66, 68, 72, 78 and `gilles_brennraumtur_raw` entries after checking all consumers. Active renamed sensors and Recorder history were preserved. Check each installation's own references before cleanup.
+The native derivative helper `sensor.gilles_kesseltemperatur_trend_10min` uses boiler temperature, a ten-minute smoothing window, minutes as its time unit, and recalculation at least once per minute (`max_sub_interval`). An unchanged reading therefore lets the trend decay instead of retaining an old positive slope indefinitely. The window smooths available changes; it does not prove ten minutes of uninterrupted measurements. A warm start may initially cool and then heat again before exceeding its high initial reading. A sufficiently positive trend now suppresses the misleading advisory in that situation. Stalling or cooling below the required total rise remains detectable. This is a diagnostic heuristic, not evidence of flame or a heat-output measurement.
+
+Standby, an HA restart, or a missing or nonnumeric value among all 40 raw sensors invalidates the ongoing startup diagnosis. Data recovery does not reactivate it; only the next directly observed `0→1` transition establishes a new baseline. Burnout does not trigger the temperature-rise advisory. After editing during an active cycle, invalidate the diagnosis rather than inventing an earlier start.
+
+The quality tile is labeled “40 Messwerte numerisch vorhanden” (40 numeric readings present). It checks numeric values, not the age of an acknowledged Modbus response. Unchanged states and their HA timestamps are not reliable evidence of communication continuity. Register observations log the last asynchronously polled values; synchronized Touch comparisons remain necessary to verify unknown registers.
+
+The warning sensors and dashboard do not send notifications themselves. An existing central notification automation must be enabled separately and its delivery route checked. This package does not enable unrelated notification automations.
 
 ## Statistics limits and unresolved registers
 
 The four statistics helpers for boiler minimum, boiler maximum, flue-gas maximum and O₂ minimum now retain up to **10,000 instead of 4,000 samples**, with `max_age: 24 h` unchanged. Frequent changes can cause the sample limit to evict older values before the time window expires. The “24 h” label therefore does not guarantee a full 24 hours. Update only the existing helpers' `sampling_size` option, preserving entity IDs and history. Check `age_coverage_ratio` and `buffer_usage_ratio` again after reloading. More buffer capacity cannot replace missing source readings.
 
-**Known rolling start-counter defect:** `sensor.gilles_brennstarts_24h` can miss sparse starts. `sum_differences_nonnegative` computes differences only between retained samples. After more than 24 hours without a change, the preceding counter value may be missing as a baseline; `keep_last_sample: true` retains only the newest sample. Increasing capacity does not fix this defect. Treat this helper and its frequent-start warning as unreliable until a separately validated event-counting design replaces the calculation. Daily, weekly and monthly counters remain separate and are neither reset nor artificially backfilled. Simply substituting `history_stats` on phase `1` would change window-boundary and reconnection semantics, so it is not an equivalent repair.
+**Rolling start count through SQL:** `sensor.gilles_brennstarts_24h` now counts HA Recorder rows whose state is `1` and whose predecessor, joined through `old_state_id` for the same entity, is `0`. The window is `now() - 24 h < last_updated_ts <= now()`. A phase `1` already active before the window does not count again. Transitions from `unavailable` or `unknown` to `1` are also excluded. The old `sum_differences_nonnegative` statistics helper undercounted sparse starts when its preceding counter sample aged out; that helper is no longer created.
+
+The SQL integration reads the default Recorder database; the portable definition contains no database credentials. When `db_url` is omitted, it uses the configured Recorder connection, including an external backend. Configure a separate connection locally only when intentionally querying a different database. Recorder must include the phase sensor and retain at least the selected window plus predecessor rows. Exclusions, Recorder outages or purged history can still undercount. The query counts recorded transitions, not unobserved physical starts. The displayed value follows the SQL integration's update interval.
+
+During migration, preserve consumers and the identity of `sensor.gilles_brennstarts_24h`. Clearly distinguish the previous statistics helper and verify the SQL sensor before removing the old definition after a dependency check. Do not purge Recorder history. Do not reset daily, weekly, monthly or lifetime counters or retrospectively overwrite them from the SQL count.
 
 **REG78 remains a hypothesis:** Extended active intervals contradict its previous interpretation as the ash screw's immediate running state. Existing IDs containing `asche…` remain for compatibility. Their values and timestamps represent observed REG78 edges, not verified physical ash discharge operations. Further anonymized findings and pending Touch comparisons are documented in [REGISTER_FINDINGS](../docs/REGISTER_FINDINGS.en.md).
 
-The buffer and difference semantics are documented in the [official Statistics documentation](https://www.home-assistant.io/integrations/statistics/); the different state-counting rather than transition-counting semantics are described in [History Stats](https://www.home-assistant.io/integrations/history_stats/).
+The [SQL integration](https://www.home-assistant.io/integrations/sql/) runs the new start query. The previous approach's buffer and difference semantics are documented in [Statistics](https://www.home-assistant.io/integrations/statistics/); [History Stats](https://www.home-assistant.io/integrations/history_stats/) counts state intervals with different boundary semantics.
 
 ## Touch comparison: targets, inputs and counters
 
@@ -85,7 +95,7 @@ The Touch actual/target page separately displays “Restsauerstoff – Ist/Soll�
 
 REG64 can be zero while Puffer/Boiler mode remains selected. Use REG44 for operating mode; do not infer “controller off” from a missing active boiler target. Thermal/motor-protection indications on the X-contact pages do not indicate motor operation; color alone does not establish contact polarity. Cleaning time parameters alone do not prove that cleaning is enabled.
 
-The Touch “Laufzeiten” (runtimes) and “Anzahl Zündungen” (ignition count) have no established common counting or reset scope with the HA helpers. Do not overwrite or initialize HA counters from a screenshot. The known rolling 24-hour start-counter defect remains unresolved. Further limitations and the focused comparison procedure are in [REGISTER_FINDINGS](../docs/REGISTER_FINDINGS.en.md).
+The Touch “Laufzeiten” (runtimes) and “Anzahl Zündungen” (ignition count) have no established common counting or reset scope with the HA helpers. Do not overwrite or initialize HA counters from a screenshot. The SQL start count retains only the Recorder scope described above. Further limitations and the focused comparison procedure are in [REGISTER_FINDINGS](../docs/REGISTER_FINDINGS.en.md).
 
 ## Additional observed codes and data coverage
 
@@ -95,4 +105,5 @@ The coverage statistic counts the code values observed so far. New numeric codes
 
 Status `43` is displayed neutrally as unresolved. It has also been observed in standby and is not identified as a fault or a definite door state. The indirect door indicator remains unavailable for this code. Status `61` is only provisionally associated with “buffer temperature reached” and is labeled accordingly.
 
-A cycle crossing midnight does not create a new start on the next day: the daily counter assigns an observed start to its start date, while cycle duration is split at the day boundary. The known rolling 24-hour start-counter defect remains a separate issue; no starts are backfilled and no counters are reset.
+A cycle crossing midnight does not create a new start on the next day: the daily counter assigns an observed start to its start date, while cycle duration is split at the day boundary. The rolling SQL count independently uses a sliding time window; no starts are backfilled and no counters are reset.
+

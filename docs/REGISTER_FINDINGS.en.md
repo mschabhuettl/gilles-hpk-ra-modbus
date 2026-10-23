@@ -48,6 +48,14 @@ An actual O₂ value shown on Touch with “Brenner Aus” (burner off) initiall
 
 The runtime page lists the controller, burner, rotary feeder and dosing separately and includes “Anzahl Zündungen” (number of ignitions). This counter's reset conditions and reference period are unknown. It must therefore not be described as a lifetime or daily counter, nor equated with an HA burner-start counter merely because their displayed values match. This also does not identify a Modbus address.
 
+## Temperature behavior and startup-diagnostic limits
+
+An observed warm start initially cools and then heats again. Its high starting temperature may still not have been reached even while boiler and flue-gas temperatures are already rising. A diagnosis based only on the difference from the initial reading can misleadingly report a missing rise. This observation identifies neither a specific pump function nor heat output and changes no register mapping.
+
+The HA diagnosis therefore supplements the temperature comparison with a smoothed derivative. It raises the advisory only for insufficient total rise **and** insufficient current trend. Stalling and cooling remain detectable when the total rise from the initial reading is also insufficient, while a sufficiently rising warm start is suppressed. This is not a general stall monitor after the required rise has been reached. Thresholds are editable review criteria, not manufacturer limits. Gaps or nonnumeric raw readings invalidate the baseline instead of resuming it on recovery. Exact rules and the start count's Recorder limitations are in the [HA instructions](../home-assistant/README.en.md).
+
+The availability indicator checks that numeric raw readings are present. It proves neither a recent Modbus response nor the physical correctness of every reading. State history and the last-change timestamp cannot reliably distinguish a constant measurement from a held value.
+
 ## Limitations and next comparisons
 
 HA histories contain detection times of asynchronously polled sensors. An unchanged value is not recorded as a new measurement in a state-change history. Values held on a common time grid are therefore not independent synchronized pairs. Recorded high-state durations establish neither physical motor runtime nor exact periodicity; short pulses can be missed between polls.
@@ -57,3 +65,4 @@ A Touch image with inactive actuators only supports matching an idle operating s
 The most useful next capture is the actual/target page during natural regulation with nonzero values: it combines the O₂ target, current feed amount and fan displays, allowing REG56, REG58/60/62 and REG68 to be compared together. For the unknown binary registers, the main overview's actual actuator indicators for ignition, dosing, rotary feeder, heat-exchanger cleaning, ash discharge and return pump are also needed. Protection-contact pages do not replace these output displays. REG42=10 needs a matching burner-status display. REG46=43 still lacks the corresponding main-screen message; a natural transition between status codes helps test the message mapping. This requires neither changing heating parameters nor initiating an additional burner cycle.
 
 Current confidence levels and unresolved mappings are listed in the [register map](REGISTER_MAP.en.md); the process is described in [methodology](METHODOLOGY.en.md).
+

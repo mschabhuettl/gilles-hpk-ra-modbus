@@ -86,7 +86,8 @@
     "diagnose_haeufige_brennstarts": "binary_sensor.gilles_haeufige_brennstarts",
     "diagnose_startphase_minuten": "sensor.gilles_startphase_minuten",
     "diagnose_startphase_zu_lang": "binary_sensor.gilles_startphase_zu_lang",
-    "diagnose_temperaturanstieg_fehlt": "binary_sensor.gilles_temperaturanstieg_fehlt"
+    "diagnose_temperaturanstieg_fehlt": "binary_sensor.gilles_temperaturanstieg_fehlt",
+    "diagnose_kesseltrend_10min": "sensor.gilles_kesseltemperatur_trend_10min"
   },
   "automations": {
     "Gilles Brennstarts erfassen": "automation.gilles_brennstarts_erfassen",

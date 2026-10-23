@@ -44,3 +44,22 @@ The boiler was in cold standby during this validation. A natural combustion cycl
 ## Operating-diagnostics follow-up
 
 On 2026-09-07, reference validation passed with 35 native helpers, four automations and 78 dashboard references. `homeassistant.check_config` succeeded. Both counter statistics units were consistent. Fourteen verified orphan entries were removed without purging Recorder. The new startup diagnostics have not yet encountered a real firing cycle during the observed standby period.
+
+
+## Operating-diagnostic validation for 0.8.0
+
+The updated diagnostics were deployed on Home Assistant 2026.10.2. The new native derivative helper is loaded. Saved templates for numeric raw-data quality and the temperature advisory, the diagnostic automation and the dashboard were read back and compared with the intended definitions. All 79 dashboard references resolve; unavailable startup duration in standby is intentional. The affected Gilles config entries are loaded, the quality indicator is active and the diagnostic automation is enabled. The configuration check completed successfully.
+
+The existing central notification automation was not enabled. Warning sensors may appear in the dashboard; this validation does not claim successful push delivery. A notification route requires a separate check. No burner cycle was initiated and no boiler register was written.
+
+The offline consistency check passes with 40 raw sensors, 49 YAML entities, 36 UI definitions, four automations, 79 dashboard references and five views. Ten automated tests cover the combination of start baseline, total rise and trend, numeric raw readings, diagnostic invalidation and SQL event boundaries. Eleven scenarios also passed in HA's template renderer. Python compilation and `git diff --check` passed. Scenario fixtures use synthetic values, not published operating histories.
+
+```bash
+python3 scripts/validate_config.py
+python3 scripts/test_start_diagnostics.py
+python3 -m py_compile scripts/test_start_diagnostics.py
+```
+
+A retrospective calculation from a private warm-start trace suppresses the new advisory using both stepwise carry-forward and linear interpolation of recorded readings. Recorder state-change history omits unchanged sensor reports, so this checks two approximations rather than replaying the HA derivative helper exactly. The trace and its operating timestamps remain private.
+
+The log comparison found no newly added Gilles errors since deployment. Existing older template messages and the known warning about the targeted two-second polling interval do not establish a new failure. This acceptance check covers configuration and diagnostic behavior; it does not replace longer observation of natural firing cycles. Dashboard validation used configuration and entity checks, not a newly rendered screenshot.

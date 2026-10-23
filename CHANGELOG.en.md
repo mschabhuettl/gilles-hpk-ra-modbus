@@ -4,6 +4,18 @@
 
 All notable findings during the reverse engineering of the Gilles Touch Modbus map.
 
+## [0.8.0] — 2026-10-23 — Temperature trend, data gaps and start counting
+
+Temperature diagnostics now also use a native derivative helper smoothed over ten minutes. After the existing waiting period, insufficient rise from the initial reading only raises the advisory when the current trend is also below `minimum rise / 30 minutes`. This accounts for warm starts that initially cool and then heat again. Periodic recalculation lets old positive trends decay when the source remains unchanged. The rule remains a diagnostic heuristic, not proof of flame, heat output or efficiency.
+
+The ongoing diagnosis is now also invalidated when any of the 40 required raw readings is missing or nonnumeric. Recovered data does not reactivate an old start baseline. The dashboard wording now means “40 readings present”; it does not establish a recent Modbus response.
+
+The rolling 24-hour start count already corrected in the live installation is now included as a portable SQL definition. It counts recorded direct `0→1` transitions within `(now−24 h, now]`, excluding reconnections. The old statistics helper is no longer created; Recorder gaps remain a limitation. Existing entity IDs, counter values and histories are preserved. The examples now contain 35 native helpers plus one SQL sensor and still four automations.
+
+Updated dashboard, installation/migration instructions and register notes. No uncertain register identity or scale is changed. Modbus polling intervals and boiler control remain unchanged. Private telemetry and operating timestamps are not published.
+
+Validation: final check results are recorded in [HA_VALIDATION](docs/HA_VALIDATION.en.md).
+
 ## [0.7.0] — 2026-09-25 — Additional phases and status codes
 
 Documented REG42 code `10` and REG46 code `43` as newly observed codes without assigning physical meanings. Another recorded shutdown path contains `7→9→10→0`; polling cannot exclude a very short unrecorded intermediate phase. Code 43 can persist into standby and must not be equated with the later disappearance of the boiler target.
@@ -136,3 +148,4 @@ REG[6], [8], [12], [24], [32] via value match.
 - pymodbus-based logger and snapshot
 - HA Modbus integration with 40 sensors
 - HA Lovelace dashboard with detective view
+

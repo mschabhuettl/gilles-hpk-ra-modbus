@@ -2,7 +2,7 @@
 
 > 🇩🇪 **Deutsch** · [🇬🇧 English](README.en.md)
 
-Diese Dateien entsprechen funktional dem am 7. September 2026 geprüften Stand der Referenzanlage mit **Home Assistant 2026.9.1**. Der Kesselhost wurde durch `192.0.2.1` ersetzt; interne Konfigurationseintrags- und Automations-IDs wurden aus den portablen Definitionen entfernt.
+Diese Dateien bilden die Gilles-Pakete und die auf **Home Assistant 2026.10.2** aktualisierte Betriebsdiagnose ab. Die ursprünglichen Pakete wurden mit Home Assistant 2026.9.1 geprüft. Der Kesselhost wurde durch `192.0.2.1` ersetzt; interne Konfigurationseintrags- und Automations-IDs wurden aus den portablen Definitionen entfernt.
 
 ## Bestandteile
 
@@ -10,7 +10,7 @@ Diese Dateien entsprechen funktional dem am 7. September 2026 geprüften Stand d
 |---|---|
 | `modbus.yaml` | HA-Paket: 40 Rohsensoren und sieben Zustandsvorlagen mit Verfügbarkeitsprüfung |
 | `gilles_derived.yaml` | HA-Paket: Zeitstempel des letzten direkt beobachteten Starts und der letzten REG78-Einschaltflanke |
-| `helpers.json` | 35 native Helfer: Definitionen für die HA-Oberfläche bzw. Home Assistant MCP |
+| `helpers.json` | 36 Definitionen: 35 native Helfer und ein SQL-Sensor für HA-Oberfläche bzw. Home Assistant MCP |
 | `automations.yaml` | Vier native Zähl-/Diagnoseautomationen; einzeln in der Automationsverwaltung anlegen oder aktualisieren |
 | `entity_ids.json` | Verwendete Entity-IDs und Zuordnung zu den YAML-`unique_id` |
 | `dashboard.yaml` | Dashboard mit Übersicht, Brenner, Betriebsstatistik, Detektivarbeit und Parametern |
@@ -32,7 +32,7 @@ Die JSON-Helferdefinition ist **kein HA-YAML-Paket** und kein `.storage`-Export.
 4. Die Entity-IDs mit `entity_ids.json` vergleichen. HA leitet IDs beim ersten Anlegen aus dem Namen ab und behält sie nach späteren Namensänderungen. Beispielsweise kann eine bestehende Anlage `sensor.gilles_rucklauftemperatur` verwenden, während eine Neuinstallation einen anderen Umlaut-/ASCII-Namen erzeugt. Auch Suffixe wie `_vermutet` können aus der Historie stammen. Auf einer Neuinstallation die IDs an die Referenz anpassen oder alle Verweise entsprechend ersetzen. Auf bestehenden Anlagen IDs und Historien erhalten.
 5. Die Helfer aus `helpers.json` **in Listenreihenfolge** anlegen. In HA: Einstellungen → Geräte & Dienste → Helfer. `parameters.helper_type` bestimmt den Helfertyp, `name` den Namen und `config` die Fachfelder. Beim Template-Helfer wählt `next_step_id` Sensor oder Binärsensor; `additional_options.availability` gehört zur Verfügbarkeitsvorlage. Zeitfenster wie `max_age` bzw. `duration` in die entsprechenden Stunden-/Tagesfelder übertragen. Beim Counter stehen `initial`, `step`, `restore` und `icon` direkt unter `parameters`.
 
-   Mit Home Assistant MCP können die jeweiligen `parameters` nach Lesen der aktuellen Best Practices als Argumente an `ha_config_set_helper(action="create", ...)` übergeben werden. `key` und `entity_id` sind Referenzmetadaten, keine Create-Argumente. Bei bestehenden Helfern zuerst den vorhandenen Eintrag auflösen und aktualisieren; nicht erneut anlegen. Einheiten `Starts` bzw. `Vorgänge` bereits beim Erstellen setzen.
+   Mit Home Assistant MCP werden die jeweiligen `parameters` nach Lesen der aktuellen Best Practices an das in `tool` angegebene Werkzeug übergeben; ohne `tool` gilt `ha_config_set_helper(action="create", ...)`. Der SQL-Sensor verwendet `ha_set_integration` mit `domain: sql` und wird in der HA-Oberfläche über die SQL-Integration angelegt. `key`, `entity_id` und `tool` sind Referenzmetadaten, keine Create-Argumente. Bei bestehenden Helfern zuerst den vorhandenen Eintrag auflösen und aktualisieren; nicht erneut anlegen. Einheiten `Starts` bzw. `Vorgänge` bereits beim Erstellen setzen.
 6. Die vier Automationen aus `automations.yaml` einzeln in der HA-Automationsverwaltung anlegen. Beim Bearbeiten vorhandener Automationen deren Identität beibehalten. Die Datei ersetzt **nicht** die gesamte bestehende `automations.yaml`. Die Automationen schreiben ausschließlich HA-Zähler, Diagnose-Helfer und das Aktivitätenprotokoll; keine Kesselregister.
 7. Ein Dashboard erstellen bzw. das bestehende Gilles-Dashboard im Rohkonfigurationseditor mit `dashboard.yaml` aktualisieren. Das dort genannte Einrichtungsdatum gehört zur Referenzanlage; bei einer neuen Installation anpassen. Die Referenz verwendet den URL-Pfad `dashboard-gilles`.
 
@@ -61,23 +61,33 @@ python3 scripts/validate_config.py
 
 Vor Live-Änderungen die betroffenen HA-Dateien und UI-Konfigurationen sichern. Nach einem Update Konfiguration und Entity-Verweise prüfen, gezielt neu laden und echte Messwerte kontrollieren. Ein syntaktisch gültiges Dashboard ersetzt keine Sichtprüfung; die initiale Prüfung hatte keine Screenshot-Funktion verfügbar.
 
-## Ergänzte Betriebsdiagnose (0.5.0)
+## Betriebsdiagnose (0.8.0)
 
-- Der bisherige 24-h-Startindikator ist bei seltenen Starts unzuverlässig: siehe die Hinweise unten. Eine ausgeschaltete Warnung belegt deshalb keine niedrige Startzahl. Messlücken und Ereignisse außerhalb der Beobachtung werden nicht ergänzt.
-- Voreinstellungen: mehr als 10 beobachtete Starts/24 h, Startphase über 20 Minuten, weniger als 2 °C Anstieg nach 30 Minuten im Anbrenn-/Heizbetrieb. Dies sind einstellbare Prüfschwellen, keine vom Hersteller bestätigten Fehlergrenzen.
-- Standby und Datenlücken verwerfen den für eine laufende Startdiagnose gespeicherten Beginn. Ausbrennen wird nicht als fehlender Temperaturanstieg bewertet.
-- Die Registerbeobachtung speichert Werte mit Zeitpunkt im Aktivitätenprotokoll. Eine zeitgleiche Touch-Anzeige ist weiterhin erforderlich, um unklare Register oder Skalierungen zu bestätigen.
-- In der Referenz wurden 14 verwaiste Einträge entfernt: REG20, 42, 46, 50, 52, 58, 60, 62, 64, 66, 68, 72, 78 sowie `gilles_brennraumtur_raw`. Die aktiven, umbenannten Rohsensoren und ihre Messhistorien bleiben erhalten. Andere Installationen müssen ihre Verweise vor einer vergleichbaren Bereinigung selbst prüfen.
+Die rollierende Startzählung erfasst direkt aufgezeichnete `0→1`-Übergänge innerhalb der letzten 24 Stunden. Messlücken und Ereignisse außerhalb der Aufzeichnung werden nicht ergänzt. Die einstellbaren Prüfschwellen bleiben mehr als 10 beobachtete Starts/24 h und eine Startphase über 20 Minuten. Es sind keine vom Hersteller bestätigten Fehlergrenzen.
+
+Die Temperaturwarnung benötigt einen direkt beobachteten Start, numerische Eingangswerte, vollständige Rohdaten, eine aktuelle Phase `6` oder `7` und mehr als 30 Minuten seit dem Start. Zusätzlich müssen **beide** Temperaturbedingungen gelten: Der Anstieg gegenüber dem Startwert liegt unter dem konfigurierten Mindestanstieg, und der geglättete Temperaturtrend liegt unter `Mindestanstieg / 30 Minuten`. Bei der Voreinstellung von 2 °C entspricht das rund 0,067 °C/min.
+
+Der native Ableitungshelfer `sensor.gilles_kesseltemperatur_trend_10min` nutzt die Kesseltemperatur, ein Glättungsfenster von zehn Minuten, die Zeiteinheit Minuten und eine Neuberechnung spätestens nach einer Minute (`max_sub_interval`). So fällt ein unveränderter Wert im Trend ab, statt einen alten positiven Anstieg unbegrenzt zu halten. Das Fenster glättet die verfügbaren Änderungen; es ist kein Nachweis zehn Minuten lückenloser Messungen. Bei einem Warmstart kann die Temperatur zunächst fallen und anschließend steigen, ohne den hohen Startwert schon zu überschreiten. Ein ausreichend positiver Trend unterdrückt dann den irreführenden Hinweis. Ein Stillstand oder Abkühlen unterhalb des benötigten Gesamtanstiegs bleibt auffällig. Die Regel ist eine Diagnoseheuristik, kein Flammennachweis und keine Messung der Wärmeleistung.
+
+Standby, HA-Neustart sowie ein fehlender oder nichtnumerischer Wert aus den 40 Rohsensoren verwerfen die laufende Startdiagnose. Eine Datenrückkehr reaktiviert sie nicht; erst der nächste direkt beobachtete `0→1`-Übergang schafft eine neue Basis. Ausbrennen wird nicht als fehlender Temperaturanstieg bewertet. Nach einer Änderung während eines laufenden Zyklus die Diagnosebasis invalidieren, statt nachträglich einen Start zu erfinden.
+
+Die Qualitätsanzeige heißt „40 Messwerte numerisch vorhanden“. Sie prüft numerische Werte, nicht das Alter einer bestätigten Modbus-Antwort. Unveränderte Zustände und ihre HA-Zeitstempel sind kein zuverlässiger Kommunikationsnachweis. Die Registerbeobachtung hält die zuletzt asynchron abgefragten Werte im Aktivitätenprotokoll fest; zur Bestätigung unbekannter Register bleibt ein zeitgleicher Touch-Abgleich erforderlich.
+
+Die Warnsensoren und das Dashboard versenden selbst keine Benachrichtigungen. Eine vorhandene zentrale Meldeautomation muss separat eingeschaltet und ihr Zustellweg geprüft sein. Dieses Paket aktiviert keine fremde Meldeautomation.
 
 ## Statistikgrenzen und ungesicherte Register
 
 Die vier Statistikhelfer für Kesselminimum, Kesselmaximum, Abgasmaximum und O₂-Minimum speichern jetzt bis zu **10.000 statt 4.000 Stichproben** bei unverändertem `max_age: 24 h`. Bei häufigen Änderungen kann die Stichprobengrenze ältere Werte vor Ablauf des Zeitfensters verdrängen. Die Beschriftung „24 h“ garantiert daher keine vollständigen 24 Stunden. Bei bestehenden Installationen nur die Option `sampling_size` des jeweiligen Helfers aktualisieren; Entity-ID und Historie erhalten. Nach dem Neuladen `age_coverage_ratio` und `buffer_usage_ratio` erneut prüfen. Ein größerer Puffer ersetzt keine fehlenden Quelldaten.
 
-**Bekannter Fehler beim rollierenden Startzähler:** `sensor.gilles_brennstarts_24h` kann seltene Starts übersehen. `sum_differences_nonnegative` bildet nur Differenzen zwischen den im Puffer verbliebenen Stichproben. Nach mehr als 24 Stunden ohne Änderung kann der alte Zählerstand als Basis fehlen; `keep_last_sample: true` erhält nur die jüngste Stichprobe. Mehr Pufferplätze lösen diesen Fehler nicht. Dieser Helfer und die davon abhängige Warnung für häufige Starts gelten bis zu einer gesondert validierten Ereigniszählung als unzuverlässig. Tages-, Wochen- und Monatszähler bleiben davon getrennt und werden nicht zurückgesetzt oder künstlich nachgetragen. Ein einfacher Austausch gegen `history_stats` mit Phasenwert `1` hätte andere Grenz- und Wiederverbindungsregeln und ist keine gleichwertige Reparatur.
+**Rollierende Startzählung über SQL:** `sensor.gilles_brennstarts_24h` zählt jetzt Zeilen im HA-Recorder, deren Zustand `1` und deren über `old_state_id` verbundener Vorgänger derselben Entität `0` ist. Das Zeitfenster lautet `now() - 24 h < last_updated_ts <= now()`. Ein Zustand `1`, der schon vor Fensterbeginn besteht, zählt nicht erneut. Übergänge von `unavailable` oder `unknown` zu `1` zählen ebenfalls nicht. Der alte Statistikhelfer mit `sum_differences_nonnegative` unterschätzte seltene Starts, wenn der vorangehende Zählerstand aus seinem Puffer fiel; dieser Helfer wird nicht mehr angelegt.
+
+Die SQL-Integration liest die Standard-Recorder-Datenbank; der portable Eintrag enthält keine Datenbank-Zugangsdaten. Ohne `db_url` verwendet sie die konfigurierte Recorder-Verbindung, auch bei einem externen Backend. Nur für eine bewusst andere Datenbank ist lokal eine eigene Verbindung anzugeben. Die Datenbank muss den Phasensensor aufzeichnen und mindestens das gewählte Zeitfenster samt Vorgängerzeilen aufbewahren. Ausschlüsse, Recorder-Ausfälle oder gelöschte Historie können weiterhin unterzählen. Die Abfrage bildet aufgezeichnete Übergänge ab, keine unbeobachteten physischen Starts. Der angezeigte Wert folgt dem Aktualisierungsintervall der SQL-Integration.
+
+Bei der Migration vorhandene Verweise und die Identität von `sensor.gilles_brennstarts_24h` erhalten. Den bisherigen Statistikhelfer zunächst eindeutig kennzeichnen und den SQL-Sensor prüfen, bevor die alte Definition nach Abhängigkeitsprüfung entfernt wird. Keine Recorder-Historie löschen. Tages-, Wochen-, Monats- und Gesamtzähler weder zurücksetzen noch aus der SQL-Zahl rückwirkend überschreiben.
 
 **REG78 bleibt eine Hypothese:** Längere Aktivintervalle widersprechen der bisherigen Deutung als unmittelbarer Laufzustand der Ascheschnecke. Bestehende IDs mit `asche…` bleiben aus Kompatibilitätsgründen erhalten. Ihre Werte und Zeitstempel stehen für beobachtete REG78-Flanken, nicht für nachgewiesene mechanische Austragungsvorgänge. Weitere anonymisierte Erkenntnisse und offene Touch-Abgleiche stehen in [REGISTER_FINDINGS](../docs/REGISTER_FINDINGS.md).
 
-Die Puffer- und Differenzsemantik ist in der [offiziellen Statistik-Dokumentation](https://www.home-assistant.io/integrations/statistics/) beschrieben; die abweichende Zählweise von Zuständen statt Übergängen in [History Stats](https://www.home-assistant.io/integrations/history_stats/).
+Die [SQL-Integration](https://www.home-assistant.io/integrations/sql/) führt die neue Startzählung aus. Die Puffer- und Differenzsemantik des früheren Ansatzes steht in der [Statistik-Dokumentation](https://www.home-assistant.io/integrations/statistics/); [History Stats](https://www.home-assistant.io/integrations/history_stats/) zählt Zustandsintervalle mit anderer Grenzsemantik.
 
 ## Touch-Abgleich: Sollwerte, Eingänge und Zähler
 
@@ -85,7 +95,7 @@ Die Touch-Ist/Soll-Seite zeigt getrennt „Restsauerstoff – Ist/Soll“, „ak
 
 REG64 kann auch bei weiterhin ausgewähltem Puffer/Boiler-Modus null sein. Für den Betriebsmodus REG44 verwenden und nicht aus einem fehlenden aktiven Kessel-Sollwert „Steuerung aus“ ableiten. Thermo-/Motorschutzanzeigen auf den X-Kontaktseiten sind keine Motorlaufanzeigen; die Kontaktpolarität lässt sich nicht aus der Farbe bestimmen. Reinigungszeitparameter allein beweisen keine freigegebene Reinigungsfunktion.
 
-Die Touch-Seite „Laufzeiten“ und „Anzahl Zündungen“ hat keinen belegten gemeinsamen Zähl- oder Rücksetzzeitraum mit den HA-Helfern. Vorhandene HA-Zähler daher weder anhand eines Screenshots überschreiben noch auf den Touch-Wert initialisieren. Der bekannte Fehler der rollierenden 24-h-Startstatistik bleibt offen. Weitere Grenzen und der gezielte Vergleichsablauf stehen in [REGISTER_FINDINGS](../docs/REGISTER_FINDINGS.md).
+Die Touch-Seite „Laufzeiten“ und „Anzahl Zündungen“ hat keinen belegten gemeinsamen Zähl- oder Rücksetzzeitraum mit den HA-Helfern. Vorhandene HA-Zähler daher weder anhand eines Screenshots überschreiben noch auf den Touch-Wert initialisieren. Die SQL-Startzählung hat weiterhin ausschließlich den oben beschriebenen Recorder-Bezug. Weitere Grenzen und der gezielte Vergleichsablauf stehen in [REGISTER_FINDINGS](../docs/REGISTER_FINDINGS.md).
 
 ## Weitere beobachtete Codes und Datenabdeckung
 
@@ -95,4 +105,5 @@ Die Abdeckungsstatistik zählt die bisher beobachteten Codewerte. Neue numerisch
 
 Status `43` wird neutral als ungeklärt angezeigt. Er wurde auch im Standby beobachtet und ist weder als Störung noch als eindeutiger Türzustand identifiziert. Die indirekte Türanzeige bleibt bei diesem Code unverfügbar. Status `61` ist nur vorläufig mit „Puffertemperatur erreicht“ verbunden und wird entsprechend beschriftet.
 
-Ein Brennzyklus über Mitternacht erzeugt keinen neuen Start am Folgetag: Der Tageszähler zählt den beobachteten Start am Starttag, die Zyklusdauer wird an der Tagesgrenze aufgeteilt. Der bekannte rollierende 24-h-Startzählerfehler besteht davon unabhängig weiter; es werden keine Starts nachgetragen oder Zähler zurückgesetzt.
+Ein Brennzyklus über Mitternacht erzeugt keinen neuen Start am Folgetag: Der Tageszähler zählt den beobachteten Start am Starttag, die Zyklusdauer wird an der Tagesgrenze aufgeteilt. Die rollierende SQL-Zählung verwendet unabhängig davon ein gleitendes Zeitfenster; es werden keine Starts nachgetragen oder Zähler zurückgesetzt.
+

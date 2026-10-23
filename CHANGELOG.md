@@ -4,6 +4,18 @@
 
 Alle nennenswerten Erkenntnisse während des Reverse Engineerings der Gilles-Touch-Modbus-Map.
 
+## [0.8.0] — 2026-10-23 — Temperaturtrend, Datenlücken und Startzählung
+
+Die Temperaturdiagnose berücksichtigt jetzt zusätzlich einen nativen, über zehn Minuten geglätteten Ableitungshelfer. Nach der bisherigen Wartezeit löst ein zu kleiner Anstieg gegenüber dem Startwert nur noch dann den Hinweis aus, wenn auch der aktuelle Trend unter `Mindestanstieg / 30 Minuten` liegt. Das berücksichtigt Warmstarts, bei denen der Kessel zunächst abkühlt und anschließend wieder steigt. Eine regelmäßige Neuberechnung lässt alte positive Trends bei unverändertem Quellwert abklingen. Die Regel bleibt eine Diagnoseheuristik; kein Nachweis von Flamme, Wärmeleistung oder Wirkungsgrad.
+
+Die laufende Diagnose wird nun auch verworfen, wenn irgendeiner der 40 benötigten Rohwerte fehlt oder nicht numerisch ist. Wieder verfügbare Daten reaktivieren keine alte Startbasis. Die Dashboard-Aussage wurde auf „40 Messwerte numerisch vorhanden“ präzisiert: Die Prüfung belegt keinen frischen Modbus-Abruf.
+
+Die bereits live korrigierte rollierende 24-h-Startzählung ist als portable SQL-Definition nachgezogen. Sie zählt gespeicherte direkte `0→1`-Übergänge mit dem Zeitfenster `(now−24 h, now]`, ohne Wiederverbindungen als Starts zu behandeln. Der alte Statistikhelfer wird nicht mehr angelegt; Recorder-Lücken bleiben eine Grenze. Bestehende Entity-IDs, Zählerstände und Historien bleiben erhalten. Die Beispiele enthalten jetzt 35 native Helfer plus einen SQL-Sensor sowie weiterhin vier Automationen.
+
+Dashboard, Installations-/Migrationsanleitung und Registerhinweise aktualisiert. Keine ungesicherte Registerzuordnung oder Skalierung geändert. Modbus-Intervalle und Kesselsteuerung bleiben unverändert. Private Messreihen und Betriebszeitpunkte werden nicht veröffentlicht.
+
+Validierung: Ergebnisse der abschließenden Prüfungen stehen in [HA_VALIDATION](docs/HA_VALIDATION.md).
+
 ## [0.7.0] — 2026-09-25 — Weitere Phasen und Statuscodes
 
 REG42-Code `10` und REG46-Code `43` erstmals als beobachtete Codes dokumentiert, beide ohne behauptete physische Bedeutung. Ein weiterer Abschaltpfad enthält `7→9→10→0`; eine sehr kurze unaufgezeichnete Zwischenphase ist durch Polling nicht ausgeschlossen. Code 43 kann bis in den Standby bestehen bleiben und ist nicht mit dem späteren Wegfall des Kessel-Solls gleichzusetzen.
@@ -136,3 +148,4 @@ REG[6], [8], [12], [24], [32] über Werte-Match.
 - pymodbus-basierter Logger und Snapshot
 - HA-Modbus-Integration mit 40 Sensoren
 - HA-Lovelace-Dashboard mit Detektivansicht
+
