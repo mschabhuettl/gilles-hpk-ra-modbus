@@ -53,8 +53,8 @@ The combustion chamber door itself is **not directly** exported via Modbus — i
 | 8  | `sSekundaerMin`            | int32 | ×0.1 | %  | ✓ | Secondary air min |
 | 10 | `sSaugzugMax`              | int32 | ×0.1 | %  | ✓✓ | Induced draft max |
 | 12 | `sSaugzugMin`              | int32 | ×0.1 | %  | ✓ | Induced draft min |
-| 14 | `sO2Max`                   | int32 | ×0.1 | %  | ✓✓ | O₂ max setpoint |
-| 16 | `sO2Min`                   | int32 | ×0.1 | %  | ✓✓ | O₂ min setpoint |
+| 14 | `sO2Max`                   | int32 | ×0.1 | %  | ✓✓ | O₂ target at maximum output (full load) |
+| 16 | `sO2Min`                   | int32 | ×0.1 | %  | ✓✓ | O₂ target at minimum output (part load) |
 | 18 | `sKesselSollTag`           | int32 | ×0.1 | °C | ✓✓ | Boiler setpoint day (Touch: 75°C) |
 | 20 | `sAschenaustrDauer`        | int32 | ×0.1 | s  | ✓✓ | Ash discharge duration (Touch: 30 sec) |
 | 22 | `sAschenaustrPause`        | int32 | ×1   | min| ✓✓ | Ash discharge pause (Touch: 15 min) |
@@ -73,8 +73,8 @@ The combustion chamber door itself is **not directly** exported via Modbus — i
 | **48** | **`KesselTemp_Ist`**   | int32 | ×0.1 | °C | ✓✓ | Boiler temperature (live) |
 | **50** | **`AbgasTemp_Ist`** | int32 | ×0.1 | °C | ✓✓ | Flue gas temperature (live). |
 | **52** | **`RuecklaufTemp_Ist`**| int32 | ×0.1 | °C | ✓✓ | Return temperature (live) |
-| **54** | **`O2_Ist`**           | int32 | ×0.1 | %  | ✓✓ | Residual oxygen (live; 21% at start, ~12% during burn) |
-| 56 | `?O2Soll_Live` | int32 | ×0.1? | %? | ✓ | An exhaust-temperature-based O₂ target model is qualitatively supported by another burner cycle. The Touch actual/target page is identified; matching zero values establish neither identity nor scale. Nonzero comparison remains open. |
+| **54** | **`O2_Ist`**           | int32 | ×0.1 | %  | ✓✓ | Raw residual-oxygen reading. Standby readings are not combustion minima; HA evaluation filters to regulation phase 7. |
+| 56 | `?O2Soll_Live` | int32 | ×0.1? | %? | ✓ | A broader analysis of repeated natural burner cycles closely supports the exhaust-temperature-based O₂ target model. The Touch actual/target page is identified; matching zero values establish neither identity nor scale. Nonzero comparison remains open. |
 | **58** | **`PrimaerIst`** | int32 | ×0.1 HA; ? actual | %? | ✓✓ | Historical primary-air match. Functional identification retained, scale uncertain. |
 | **60** | **`SekundaerIst`**     | int32 | ×0.1 | %  | ✓✓ | **Secondary air actual (live)** — stays 0 in this installation (Touch shows 0% throughout) |
 | **62** | **`SaugzugIst`** | int32 | ×0.1 HA; ? actual | %? | ✓✓ | Historical induced-draft match. Functional identification retained, scale uncertain. |

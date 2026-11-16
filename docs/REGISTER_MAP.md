@@ -53,8 +53,8 @@ Die Brennraumtür selbst ist **nicht direkt** in der Modbus-Map exportiert, sond
 | 8  | `sSekundaerMin`            | int32 | ×0.1 | %  | ✓ | Minimale Sekundärluft |
 | 10 | `sSaugzugMax`              | int32 | ×0.1 | %  | ✓✓ | Maximaler Saugzug |
 | 12 | `sSaugzugMin`              | int32 | ×0.1 | %  | ✓ | Minimaler Saugzug |
-| 14 | `sO2Max`                   | int32 | ×0.1 | %  | ✓✓ | O₂-Soll-Maximum |
-| 16 | `sO2Min`                   | int32 | ×0.1 | %  | ✓✓ | O₂-Soll-Minimum |
+| 14 | `sO2Max`                   | int32 | ×0.1 | %  | ✓✓ | O₂-Soll bei maximaler Leistung (Volllast) |
+| 16 | `sO2Min`                   | int32 | ×0.1 | %  | ✓✓ | O₂-Soll bei minimaler Leistung (Teillast) |
 | 18 | `sKesselSollTag`           | int32 | ×0.1 | °C | ✓✓ | Kessel-Solltemperatur Tag (Touch: 75°C) |
 | 20 | `sAschenaustrDauer`        | int32 | ×0.1 | s  | ✓✓ | Ascheaustragung Dauer (Touch: 30 Sek) |
 | 22 | `sAschenaustrPause`        | int32 | ×1   | min| ✓✓ | Ascheaustragung Pause (Touch: 15 Min) |
@@ -73,8 +73,8 @@ Die Brennraumtür selbst ist **nicht direkt** in der Modbus-Map exportiert, sond
 | **48** | **`KesselTemp_Ist`**   | int32 | ×0.1 | °C | ✓✓ | Kesseltemperatur (live) |
 | **50** | **`AbgasTemp_Ist`** | int32 | ×0.1 | °C | ✓✓ | Abgastemperatur (live). |
 | **52** | **`RuecklaufTemp_Ist`**| int32 | ×0.1 | °C | ✓✓ | Rücklauftemperatur (live) |
-| **54** | **`O2_Ist`**           | int32 | ×0.1 | %  | ✓✓ | Restsauerstoff (live; 21% bei Brennerstart, ~12% im Vollbetrieb) |
-| 56 | `?O2Soll_Live` | int32 | ×0.1? | %? | ✓ | Abgastemperaturabhängiges O₂-Sollmodell in einem weiteren Brennlauf qualitativ gestützt. Touch-Ist/Soll-Seite gefunden; übereinstimmender Nullzustand bestätigt weder Zuordnung noch Skala. Nichtnull-Abgleich offen. |
+| **54** | **`O2_Ist`**           | int32 | ×0.1 | %  | ✓✓ | Restsauerstoff-Rohanzeige. Standbywert kein Verbrennungsminimum; die HA-Auswertung filtert auf Regelphase 7. |
+| 56 | `?O2Soll_Live` | int32 | ×0.1? | %? | ✓ | Abgastemperaturabhängiges O₂-Sollmodell durch eine breitere Auswertung wiederholter natürlicher Brennläufe eng gestützt. Touch-Ist/Soll-Seite gefunden; übereinstimmender Nullzustand bestätigt weder Zuordnung noch Skala. Nichtnull-Abgleich offen. |
 | **58** | **`PrimaerIst`** | int32 | ×0.1 HA; ? real | %? | ✓✓ | Historischer Primärluft-Match. Funktionszuordnung bleibt, Skala offen. |
 | **60** | **`SekundaerIst`**     | int32 | ×0.1 | %  | ✓✓ | **Sekundärluft Ist (live)** — bleibt 0 in dieser Anlage (Touch zeigt durchgehend 0%) |
 | **62** | **`SaugzugIst`** | int32 | ×0.1 HA; ? real | %? | ✓✓ | Historischer Saugzug-Match. Funktionszuordnung bleibt, Skala offen. |

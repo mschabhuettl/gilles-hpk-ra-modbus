@@ -25,7 +25,7 @@ views:
       type: entity
     - entity: sensor.gilles_o2_ist
       icon: mdi:gas-cylinder
-      name: O₂
+      name: O₂ · Rohwert
       type: entity
     type: horizontal-stack
   - cards:
@@ -81,12 +81,15 @@ views:
     title: Temperaturen 24h
     type: history-graph
   - entities:
-    - entity: sensor.gilles_o2_ist
+    - entity: sensor.gilles_o2_heizbetrieb
+      name: O₂ · Heizbetrieb
     - entity: sensor.gilles_o2_min
+      name: O₂-Soll · Minimalleistung
     - entity: sensor.gilles_o2_max
+      name: O₂-Soll · Maximalleistung
     hours_to_show: 24
     refresh_interval: 30
-    title: O₂ 24h
+    title: O₂ · Heizbetrieb 24h
     type: history-graph
   icon: mdi:fire
   path: uebersicht
@@ -96,8 +99,8 @@ views:
 
 
       Die Skalierung von REG58/60/62 bleibt bis zum synchronisierten Touch-Vergleich offen. Bei Primärluft
-      und Saugzug besteht eine Faktor-10-Frage; ein Nullwert kann keinen Skalierungsfaktor bestätigen.
-      O₂-Werte im Standby sind kein Nachweis der Verbrennungsqualität.'
+      und Saugzug besteht eine Faktor-10-Frage; ein Nullwert kann keinen Skalierungsfaktor bestätigen. O₂-Werte
+      im Standby sind kein Nachweis der Verbrennungsqualität.'
     type: markdown
   - entities:
     - entity: sensor.gilles_primar_ist_vermutet
@@ -153,11 +156,28 @@ views:
   path: brenner
   title: Brenner
 - cards:
-  - content: "## Erfasster Betrieb\n\nStart- und Signalzähler erfassen direkt beobachtete Wechsel seit ihrer Einrichtung. Messlücken werden nicht aufgefüllt.\n\n**Brennstarts 24 h:** Gezählt werden die in den letzten 24 Stunden aufgezeichneten direkten Phasenwechsel von Standby (0) zu Vorlüften (1). Aktualisierung etwa alle 30 Sekunden. Neustarts und Wiederverbindungen ohne beobachteten Übergang zählen nicht als Start. Tageszähler ordnen einen Start dem Starttag zu, auch wenn der Zyklus über Mitternacht läuft.\n\nDie bisherigen Aschezähler zählen REG78-Einschaltflanken; eine tatsächliche Ascheaustragung ist damit nicht bestätigt. O₂-Minima über alle Phasen enthalten Standbywerte. Pelletverbrauch und Wirkungsgrad bleiben ohne eigene Messung unbekannt."
+  - content: '## Erfasster Betrieb
+
+
+      Start- und Signalzähler erfassen direkt beobachtete Wechsel seit ihrer Einrichtung. Messlücken werden
+      nicht aufgefüllt.
+
+
+      **Brennstarts 24 h:** Gezählt werden die in den letzten 24 Stunden aufgezeichneten direkten Phasenwechsel
+      von Standby (0) zu Vorlüften (1). Aktualisierung etwa alle 30 Sekunden. Neustarts und Wiederverbindungen
+      ohne beobachteten Übergang zählen nicht als Start. Tageszähler ordnen einen Start dem Starttag zu, auch
+      wenn der Zyklus über Mitternacht läuft.
+
+
+      Die bisherigen Aschezähler zählen REG78-Einschaltflanken; eine tatsächliche Ascheaustragung ist damit
+      nicht bestätigt. Das O₂-Minimum berücksichtigt nur gültige Messwerte aus der Heizphase (Code 7). Standbywerte
+      werden ausgelassen. Die neue Auswertung beginnt mit den nächsten Heizdaten; frühere Rohwerte werden nicht
+      rückwirkend umgerechnet. Nach 24 Stunden ohne Heizmesswert wird kein Minimum mehr angezeigt. Pelletverbrauch
+      und Wirkungsgrad bleiben ohne eigene Messung unbekannt.'
     type: markdown
   - entities:
     - entity: binary_sensor.gilles_messdaten_verfuegbar
-      name: "40 Messwerte numerisch vorhanden"
+      name: 40 Messwerte numerisch vorhanden
     - entity: sensor.gilles_phasendaten_abdeckung_24h
       name: Zeit mit bekanntem Phasencode
     - entity: sensor.gilles_phasendaten_luecken_24h
@@ -178,8 +198,8 @@ views:
     title: Brennstarts · direkt beobachtet
     type: entities
   - card:
-      content: '**Noch kein Brennstart erfasst.** Der Zeitpunkt erscheint nach dem nächsten beobachteten
-        Wechsel von Standby zu Vorbelüftung.'
+      content: '**Noch kein Brennstart erfasst.** Der Zeitpunkt erscheint nach dem nächsten beobachteten Wechsel
+        von Standby zu Vorbelüftung.'
       type: markdown
     conditions:
     - condition: state
@@ -228,8 +248,8 @@ views:
       name: Kessel · Maximum
     - entity: sensor.gilles_abgas_24h_max
       name: Abgas · Maximum
-    - entity: sensor.gilles_o2_24h_min
-      name: O₂ · Minimum
+    - entity: sensor.gilles_o2_heizbetrieb_24h_min
+      name: O₂ · Minimum im Heizbetrieb
     show_header_toggle: false
     title: Messwertbereich · letzte 24 Stunden
     type: entities
@@ -244,8 +264,8 @@ views:
     title: REG78-Signal & Tür
     type: entities
   - card:
-      content: '**Noch keine REG78-Einschaltflanke erfasst.** Der Zeitpunkt erscheint nach dem nächsten
-        beobachteten Wechsel 0→1.'
+      content: '**Noch keine REG78-Einschaltflanke erfasst.** Der Zeitpunkt erscheint nach dem nächsten beobachteten
+        Wechsel 0→1.'
       type: markdown
     conditions:
     - condition: state
@@ -289,7 +309,28 @@ views:
     show_header_toggle: false
     title: Einstellbare Hinweisschwellen
     type: entities
-  - content: "Die Startdiagnose gilt nur für direkt beobachtete Starts von 0 auf 1 bei 40 numerisch verfügbaren Rohwerten. Neustart, Standby oder Ausfall eines Rohwerts verwerfen die laufende Diagnose. Wiederkehr der Daten genügt nicht; erst ein neuer Start aktiviert sie.\n\nDie Startphase schließt Vorlüften ein. Ab 30 Minuten im Anbrenn- oder Heizbetrieb erscheint der Temperaturhinweis nur, wenn sowohl der Anstieg gegenüber dem Startwert unter der eingestellten Schwelle liegt als auch die über zehn Minuten geglättete Heizrate unter Schwelle / 30 Minuten liegt. Dadurch berücksichtigt die Diagnose bereits warme Starts mit anfänglicher Abkühlung. Sie prüft den Start und ist kein Nachweis der Verbrennung oder der Heizleistung.\n\n„40 Messwerte numerisch vorhanden“ prüft vorhandene Zahlenwerte, nicht das Alter der letzten erfolgreichen Modbus-Abfrage. Während regulärer Brennläufe erscheinen alle fünf Minuten und bei Phasenwechseln Registerstände im Aktivitätenprotokoll für den späteren Touch-Abgleich."
+  - content: 'Die Startdiagnose gilt nur für direkt beobachtete Starts von 0 auf 1 bei 40 numerisch verfügbaren
+      Rohwerten. Neustart, Standby oder Ausfall eines Rohwerts verwerfen die laufende Diagnose. Wiederkehr
+      der Daten genügt nicht; erst ein neuer Start aktiviert sie.
+
+
+      Die Startphase schließt Vorlüften ein. Nach mehr als 30 Minuten vergleicht der Temperaturhinweis im Anbrenn-
+      oder Heizbetrieb mit der niedrigsten gültigen Kesseltemperatur seit dem Start. Die ursprüngliche Starttemperatur
+      bleibt getrennt erhalten. Der Hinweis schaltet erst ein, wenn Anstieg und geglättete Heizrate fünf Minuten
+      lang unter den Diagnoseschwellen liegen. Die Heizrate muss zum Einschalten unter Mindestanstieg / 30
+      Minuten liegen; ein aktiver Hinweis wird bei mindestens Mindestanstieg / 20 Minuten zurückgenommen. Ein
+      ausreichender Temperaturanstieg oder das Ende der Diagnose schaltet den Hinweis sofort aus. Dies ist
+      eine HA-Diagnose, keine ausgelesene Kesselstörung oder Messung der Heizleistung.
+
+
+      {% if is_state(''input_boolean.gilles_brennstart_beobachtet'', ''on'') %}Aktueller Zyklus: Starttemperatur
+      {{ states(''input_number.gilles_kesseltemperatur_bei_brennstart'') }} °C; Diagnoseminimum {{ states(''input_number.gilles_kesseltemperatur_diagnoseminimum'')
+      }} °C.{% else %}Die Temperaturdiagnose wartet auf den nächsten gültig beobachteten Start.{% endif %}
+
+
+      „40 Messwerte numerisch vorhanden“ prüft vorhandene Zahlenwerte, nicht das Alter der letzten erfolgreichen
+      Modbus-Abfrage. Während regulärer Brennläufe erscheinen alle fünf Minuten und bei Phasenwechseln Registerstände
+      im Aktivitätenprotokoll für den späteren Touch-Abgleich.'
     type: markdown
   icon: mdi:chart-line
   path: statistik
@@ -298,13 +339,18 @@ views:
   - content: '## Register-Erkenntnisse und offene Fragen
 
 
-      **Phase 10 / Status 43:** neu beobachtete Codes, Bedeutung offen. Phase 10 folgt in einem aufgezeichneten
-      Abschaltpfad auf 9 und geht in 0 über. Status 43 bleibt auch im Standby bestehen; daraus folgt keine
-      bestätigte Störungsmeldung.
+      **Phase 10 / Status 43:** Bedeutung offen. Phase 10 folgt in einem aufgezeichneten Abschaltpfad auf 9
+      und geht in 0 über. Status 43 bleibt auch im Standby bestehen; daraus folgt keine bestätigte Störungsmeldung.
 
 
-      **REG56:** O₂-Sollwert-Hypothese durch einen weiteren Heizverlauf gestützt. Vergleich mit „Restsauerstoff
-      – Soll“ bei laufendem Brenner fehlt.
+      **REG56:** Weitere Heizverläufe stützen die O₂-Sollwert-Hypothese: REG56 / 10 folgt dem aus Abgastemperatur
+      und den Last-Endpunkten abgeleiteten Sollwert. Ein synchroner Vergleich mit „Restsauerstoff – Soll“ bei
+      laufendem Brenner fehlt weiterhin.
+
+
+      **O₂-Min/Max:** Laut Gilles-Handbuch beziehen sich die Sollwerte auf minimale beziehungsweise maximale
+      Kesselleistung. Ein kleinerer O₂-Wert bei „Max“ belegt keine vertauschten Grenzen. Das Heizphasen-Minimum
+      lässt Standbywerte aus; der Rohwert bleibt erhalten.
 
 
       **REG68:** Kandidat für „aktuelle Einschubmenge“, kein Verbrauchszähler. Skala weiterhin offen.
@@ -397,4 +443,3 @@ views:
   icon: mdi:cog
   path: parameter
   title: Parameter
-

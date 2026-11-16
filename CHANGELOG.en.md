@@ -4,6 +4,16 @@
 
 All notable findings during the reverse engineering of the Gilles Touch Modbus map.
 
+## [0.9.0] — 2026-11-16 — Warm-start diagnostics and heating-phase O₂
+
+The temperature advisory now compares the rise with the lowest boiler reading recorded since a valid observed start. The original initial reading remains separate. Recovery after initial cooling can therefore satisfy a warm start's rise criterion; failure to regain the warm starting value no longer leaves that criterion unsatisfied by itself. Trend hysteresis and a five-minute activation delay suppress brief fluctuations. Standby, restart or invalid raw inputs still invalidate the diagnosis. This remains a startup diagnostic, not proof of flame or measured heat output.
+
+A new template source accepts O₂ only in regulation phase `7` and after an O₂ state update since entry into that phase. Outside the heating phase, valid inputs produce `unknown`; invalid inputs produce `unavailable`. A new statistics helper calculates the minimum over the rolling window. Genuine heating samples may remain available during standby until their age expires. The dashboard uses this metric and explains missing initial data. The raw sensor, old unfiltered minimum and their histories remain intact; no retrospective data correction is performed.
+
+Broader passive analysis again supports the interpolated REG56 O₂-target model. Simultaneous nonzero comparison with Touch remains outstanding; no confidence level is upgraded. Manufacturer context explains O₂ targets at minimum/maximum output. Register map, findings, installation/migration instructions and examples are updated in German and English. Air scales, unresolved codes and boiler control remain unchanged. Private operating data is not published.
+
+Validation and its limits: [HA_VALIDATION](docs/HA_VALIDATION.en.md).
+
 ## [0.8.0] — 2026-10-23 — Temperature trend, data gaps and start counting
 
 Temperature diagnostics now also use a native derivative helper smoothed over ten minutes. After the existing waiting period, insufficient rise from the initial reading only raises the advisory when the current trend is also below `minimum rise / 30 minutes`. This accounts for warm starts that initially cool and then heat again. Periodic recalculation lets old positive trends decay when the source remains unchanged. The rule remains a diagnostic heuristic, not proof of flame, heat output or efficiency.

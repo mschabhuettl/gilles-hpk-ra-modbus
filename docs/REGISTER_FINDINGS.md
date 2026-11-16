@@ -6,7 +6,7 @@ Eine erweiterte passive Auswertung korrigiert mehrere frühere Registerdeutungen
 
 ## REG56: berechneter O₂-Sollwert als starke Hypothese
 
-REG56 ist im Regelbetrieb anhaltend aktiv und folgt einer abgastemperaturabhängigen Beziehung. Die frühere Beschreibung als bloßer kurzer Impuls ist überholt. Die Übereinstimmung mit einer linearen Interpolation zwischen den konfigurierten Temperatur- und O₂-Endpunkten zeigt sich auch in einem weiteren natürlichen Brennlauf. Damit ist die Beziehung qualitativ wiederholt beobachtet, aber noch nicht am Touch bestätigt:
+REG56 ist im Regelbetrieb anhaltend aktiv und folgt einer abgastemperaturabhängigen Beziehung. Die frühere Beschreibung als bloßer kurzer Impuls ist überholt. Eine breitere Auswertung wiederholter natürlicher Brennläufe stützt die lineare Interpolation zwischen den konfigurierten Temperatur- und O₂-Endpunkten erneut. Die Nichtnull-Werte im Regelbetrieb passen eng zum Prüfmodell. Das erhöht die empirische Stützung, ersetzt aber keinen synchronisierten Vergleich mit dem Touch:
 
 ```text
 T       = REG50 × 0,1              # Abgastemperatur Ist
@@ -20,6 +20,8 @@ REG56 × 0,1 ≈ O2_target_candidate
 ```
 
 Voraussetzung ist `T_high ≠ T_low`. Die Namen `sO2Min` und `sO2Max` beschreiben hier die Parameterzuordnung; sie garantieren keine numerische Reihenfolge der O₂-Werte. Begrenzungen außerhalb des beobachteten Regelbereichs, andere Parameterkombinationen und das Verhalten in anderen Phasen sind ungeklärt. Die Formel ist ein Prüfmodell, keine verifizierte Steuerungslogik.
+
+Das [Gilles-Touch-Handbuch ab Version 5.25](https://shop.baxi.se/documents/Gilles%20Touch%20-%20manual%20v5.25%20(ENG).pdf) beschreibt die O₂-Parameter als Sollwerte bei maximaler beziehungsweise minimaler Leistung. „Min“ und „Max“ beziehen sich damit auf die Leistungspunkte, nicht auf die numerische Reihenfolge der Sauerstoffwerte. Ein höherer Sollwert bei Mindestleistung ist deshalb kein Nachweis vertauschter Register oder falscher Einstellungen. Diese Herstellererklärung beschreibt die Parameter; sie bestätigt nicht die rückentwickelte Modbus-Adresse von REG56.
 
 Vertrauen: **starke Hypothese (✓)**. Eine weitere Touch-Seite zeigt „Restsauerstoff“ mit getrennten Spalten „Ist“ und „Soll“. Im verglichenen ruhenden Zustand sind der dortige Sollwert und REG56 null. Damit ist eine passende Vergleichsanzeige gefunden; die Gleichheit bei null bestätigt weder die Registerfunktion noch die Skalierung. Zur Bestätigung fehlt der gleichzeitige Abgleich bei einem Nichtnull-Sollwert im Regelbetrieb. Die Übersichtsseite mit „O2 Wert“ zeigt dagegen den Istwert. Es wird daraus weder eine Regelung noch ein bestätigter Sollwertsensor abgeleitet.
 
@@ -50,11 +52,17 @@ Die Laufzeitseite führt Steuerung, Brenner, Zellenrad und Dosierung getrennt au
 
 ## Temperaturverlauf und Grenzen der Startdiagnose
 
-Ein beobachteter Warmstart zeigt eine anfängliche Abkühlung mit anschließendem Temperaturanstieg. Der hohe Wert beim Start kann dabei noch unterschritten sein, obwohl Kessel- und Abgastemperatur bereits steigen. Eine Diagnose, die ausschließlich den Unterschied zum Startwert bewertet, kann diesen Verlauf irreführend als fehlenden Anstieg melden. Die Beobachtung belegt keine bestimmte Pumpenfunktion oder Wärmeleistung und ändert keine Registerzuordnung.
+Weitere Warmstarts zeigen, warum der ursprüngliche Vergleich mit der Starttemperatur auch zusammen mit dem geglätteten Trend Fehlmeldungen erzeugen kann: Der Kessel kühlt zunächst ab und erwärmt sich danach deutlich. Bleibt er dabei unter dem warmen Startwert, reicht eine kurze Abflachung des Trends für einen Hinweis, obwohl die Temperatur bereits vom Tiefpunkt gestiegen ist. Hohe Abgastemperaturen im selben Verlauf stützen, dass der Hinweis keinen ausgebliebenen Zündvorgang belegt. Daraus folgen weder eine bestimmte Pumpenfunktion noch eine gemessene Wärmeleistung.
 
-Die HA-Diagnose ergänzt deshalb den Temperaturvergleich um einen geglätteten Ableitungswert. Sie meldet erst bei zu kleinem Gesamtanstieg **und** zu kleinem aktuellen Trend. Stillstand und Abkühlung bleiben bei zugleich unzureichendem Anstieg gegenüber dem Startwert auffällig; ein hinreichend steigender Warmstart wird unterdrückt. Es ist keine allgemeine Stillstandsüberwachung, nachdem der nötige Anstieg schon erreicht wurde. Die Schwellen sind einstellbare Prüfkriterien und keine Herstellergrenzen. Lücken oder nichtnumerische Rohwerte verwerfen die Diagnosebasis, statt sie nach Datenrückkehr weiterzuverwenden. Die genauen Regeln und Recorder-Grenzen der Startzählung stehen in der [HA-Anleitung](../home-assistant/README.md).
+Die Diagnose verwendet deshalb zusätzlich die niedrigste seit dem gültig beobachteten Start erfasste Kesseltemperatur. Der ursprüngliche Startwert bleibt separat erhalten. Der benötigte Anstieg wird gegen dieses Diagnoseminimum geprüft; ein ausreichend großer Wiederanstieg nach anfänglicher Abkühlung erfüllt damit das Kriterium. Solange der Anstieg noch fehlt, müssen zugleich ein zu kleiner geglätteter Trend und die übrigen Startbedingungen bestehen. Eine Einschaltverzögerung und getrennte Ein-/Ausschaltschwellen des Trends verhindern Meldungen durch kurze Schwankungen. Die genauen Bedingungen stehen in der [HA-Anleitung](../home-assistant/README.md).
 
-Die Verfügbarkeitsanzeige prüft vorhandene numerische Rohwerte. Sie beweist weder einen aktuellen Modbus-Abruf noch die physische Richtigkeit aller Werte. Zustandshistorie und letzter Änderungszeitpunkt unterscheiden eine konstante Messung nicht zuverlässig von einem gehaltenen Wert.
+Das bleibt eine Startdiagnose mit einstellbaren Prüfkriterien, kein Flammennachweis und keine allgemeine Stillstandsüberwachung nach bereits erreichtem Anstieg. Lücken oder nichtnumerische Rohwerte verwerfen die Diagnosebasis; Datenrückkehr reaktiviert sie nicht. Zustandshistorie und letzter Änderungszeitpunkt unterscheiden eine konstante Messung nicht zuverlässig von einem gehaltenen Wert. Die Verfügbarkeitsanzeige belegt daher weder einen frischen Modbus-Abruf noch die physische Richtigkeit aller Werte.
+
+## O₂-Auswertung nach Betriebsphase
+
+Ein niedriger, konstanter O₂-Wert im Standby wechselt während eines Brennzyklus in einen dynamischen Verlauf und nach dem Abschalten wieder zurück. Das stützt einen ruhenden oder inaktiven Messzustand als Erklärung; eine garantierte Kennzahl für einen ausgeschalteten Sensor ist damit nicht bewiesen. Standbywerte dürfen nicht als Verbrennungsminimum oder als Nachweis einer defekten Sonde interpretiert werden.
+
+Die neue HA-Auswertung berücksichtigt deshalb O₂ nur bei aufgezeichneter Phase `7`, gültigem numerischem Rohwert und einer Aktualisierung des O₂-Zustands nach Eintritt in diese Phase. Bei sonst gültigen Daten liefert die abgeleitete Quelle außerhalb der Heizphase `unknown`, damit keine Zahl als Ersatzmessung in die Statistik gelangt. Bei ungültigen Eingangsdaten ist sie `unavailable`. Ihr eigenes Minimum ersetzt die bisher ungefilterte Kennzahl im Dashboard und kann im Standby die noch im Zeitfenster liegenden Heizwerte anzeigen. Rohsensor und alte Statistik bleiben mitsamt Historie erhalten; bestehende Werte werden nicht rückwirkend bereinigt. Der Phasenfilter verbessert den betrieblichen Bezug, bestätigt aber weder Sondenkalibrierung noch Messfrische oder Verbrennungsqualität.
 
 ## Grenzen und nächste Vergleichsbeobachtungen
 

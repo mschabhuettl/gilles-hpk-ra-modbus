@@ -8,7 +8,7 @@ Community-Projekt zur Dokumentation der Modbus-TCP-Schnittstelle der **Gilles To
 
 ## Anonymisierte Register-Erkenntnisse
 
-[Erkenntnisse und offene Prüfungen](docs/REGISTER_FINDINGS.md): O₂-Sollwert-Hypothese für REG56, nichtmonotones REG68, aktive REG76-Pulse und Widerspruch zur Aschemotor-Deutung von REG78. REG46=61 ist ein Kandidat für die Meldung „Puffertemperatur erreicht“. Die rollierende 24-h-Startzählung verwendet jetzt direkt aufgezeichnete Übergänge `0→1` im Recorder. Die Temperaturdiagnose berücksichtigt zusätzlich den geglätteten Temperaturtrend, damit ein steigender Warmstart nicht allein wegen seines hohen Ausgangswerts auffällig wird. Private Betriebsverläufe und Screenshots werden nicht veröffentlicht.
+[Erkenntnisse und offene Prüfungen](docs/REGISTER_FINDINGS.md): O₂-Sollwert-Hypothese für REG56, nichtmonotones REG68, aktive REG76-Pulse und Widerspruch zur Aschemotor-Deutung von REG78. REG46=61 ist ein Kandidat für die Meldung „Puffertemperatur erreicht“. Die rollierende 24-h-Startzählung verwendet jetzt direkt aufgezeichnete Übergänge `0→1` im Recorder. Die Startdiagnose vergleicht den Wiederanstieg mit dem tiefsten beobachteten Kesselwert seit dem Start; Trendhysterese und Einschaltverzögerung unterdrücken kurze Schwankungen. Eine eigene O₂-Statistik berücksichtigt nur die Heizphase. Die breitere passive Auswertung stützt REG56 weiterhin als O₂-Sollwert-Kandidaten, ohne seine Vertrauensstufe anzuheben. Private Betriebsverläufe und Screenshots werden nicht veröffentlicht.
 
 ## Hintergrund
 
@@ -60,7 +60,7 @@ Mit der HA-Integration auf einen Blick sichtbar:
    python3 scripts/gilles_snapshot.py <deine-boiler-ip>
    ```
 4. **Werte mit** [docs/REGISTER_MAP.md](docs/REGISTER_MAP.md) **vergleichen**
-5. **Home Assistant einrichten/aktualisieren:** [home-assistant/README.md](home-assistant/README.md) erklärt beide Pakete, 35 native Helfer und einen SQL-Sensor, vier Zähl-/Diagnoseautomationen und das Dashboard einschließlich Entity-IDs und Migration.
+5. **Home Assistant einrichten/aktualisieren:** [home-assistant/README.md](home-assistant/README.md) erklärt beide Pakete, native Helfer und einen SQL-Sensor, vier Zähl-/Diagnoseautomationen und das Dashboard einschließlich Entity-IDs und Migration.
 
 ## Aktueller HA-Stand und Entwicklungsablauf
 
@@ -70,7 +70,7 @@ Bei weiteren Gilles-Änderungen werden Konfiguration, deutsche/englische Dokumen
 
 ## Getestet mit
 
-- Home Assistant 2026.10.2 (aktuelle Betriebsdiagnose); ursprüngliche Pakete mit 2026.9.1 geprüft
+- Home Assistant 2026.11.1 (aktuelle Betriebsdiagnose); ursprüngliche Pakete mit 2026.9.1 geprüft
 - Gilles HPK-RA Pelletkessel
 - Gilles Touch mit LASAL II v5.36.4 (Januar 2024)
 - Anlagenkonfiguration: Heizkreis 1, Warmwasser 2, Puffer 3, O2-Sonde vorhanden

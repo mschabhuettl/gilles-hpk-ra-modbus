@@ -4,7 +4,7 @@
 Run with ``python3 scripts/test_start_diagnostics.py``. These tests render the
 actual helper templates and interpret the small, supported native automation
 subset. They do not import Home Assistant, contact a boiler, or reproduce HA's
-event queue, recorder scheduling, or derivative implementation.
+event queue, recorder scheduling, derivative implementation, or delay timers.
 """
 
 from datetime import datetime, timedelta, timezone
@@ -12,6 +12,7 @@ import json
 import math
 from pathlib import Path
 import sqlite3
+from types import SimpleNamespace
 import unittest
 
 from jinja2 import StrictUndefined
@@ -27,6 +28,7 @@ QUALITY = "binary_sensor.gilles_messdaten_verfuegbar"
 OBSERVED = "input_boolean.gilles_brennstart_beobachtet"
 TEMPERATURE = "sensor.gilles_kesseltemperatur"
 BASELINE = "input_number.gilles_kesseltemperatur_bei_brennstart"
+DIAGNOSTIC_MIN = "input_number.gilles_kesseltemperatur_diagnoseminimum"
 MINIMUM = "input_number.gilles_temperaturanstieg_mindestwert"
 START = "input_datetime.gilles_letzter_brennstart"
 RATE = "sensor.gilles_kesseltemperatur_trend_10min"
@@ -79,15 +81,17 @@ class FakeHA:
     def state(self, entity):
         return self.states.get(entity, "unknown")
 
-    def render(self, template):
-        return self.env.from_string(template).render()
+    def render(self, template, **context):
+        return self.env.from_string(template).render(**context)
 
-    def binary_state(self, config):
+    def binary_state(self, config, previous_state="off"):
+        """Evaluate the predicate, not HA's delayed publication of its result."""
         options = config.get("additional_options", config.get("advanced_options", {}))
         availability = config.get("availability", options.get("availability"))
         if availability and not self.render(availability):
             return "unavailable"
-        return "on" if self.render(config["state"]) else "off"
+        previous = SimpleNamespace(state=previous_state)
+        return "on" if self.render(config["state"], this=previous) else "off"
 
     def condition(self, condition, trigger_id):
         kind = condition["condition"]
@@ -95,7 +99,28 @@ class FakeHA:
             expected = condition["id"]
             return trigger_id in expected if isinstance(expected, list) else trigger_id == expected
         if kind == "state":
-            return self.state(condition["entity_id"]) == condition["state"]
+            expected = condition["state"]
+            actual = self.state(condition["entity_id"])
+            return actual in expected if isinstance(expected, list) else actual == expected
+        if kind == "template":
+            return bool(self.render(condition["value_template"]))
+        if kind == "numeric_state":
+            actual = self.state(condition["entity_id"])
+            if not is_number(actual):
+                return False
+            for comparison in ("above", "below"):
+                if comparison not in condition:
+                    continue
+                bound = condition[comparison]
+                if not is_number(bound):
+                    bound = self.state(bound)
+                if not is_number(bound):
+                    return False
+                if comparison == "above" and not float(actual) > float(bound):
+                    return False
+                if comparison == "below" and not float(actual) < float(bound):
+                    return False
+            return True
         raise AssertionError(f"Unsupported native condition: {kind}")
 
     def sequence(self, actions, trigger_id):
@@ -162,7 +187,7 @@ class StartDiagnosticsTests(unittest.TestCase):
     def fixture(self, **overrides):
         states = {
             PHASE: "7", QUALITY: "on", OBSERVED: "on", TEMPERATURE: "60",
-            BASELINE: "60", MINIMUM: "2", RATE: "0",
+            BASELINE: "60", DIAGNOSTIC_MIN: "60", MINIMUM: "2", RATE: "0",
             START: (NOW - timedelta(minutes=31)).isoformat(),
         }
         states.update(overrides)
@@ -181,8 +206,30 @@ class StartDiagnosticsTests(unittest.TestCase):
         ]
         for name, current, baseline, rate, expected in cases:
             with self.subTest(name=name):
-                ha = self.fixture(**{TEMPERATURE: current, BASELINE: baseline, RATE: rate})
+                ha = self.fixture(**{TEMPERATURE: current, DIAGNOSTIC_MIN: baseline, RATE: rate})
                 self.assertEqual(ha.binary_state(self.warning), expected)
+
+    def test_warning_delay_is_configured_but_not_simulated(self):
+        options = self.warning["additional_options"]
+        self.assertEqual(options["delay_on"], {"minutes": 5})
+        self.assertEqual(options["delay_off"], {"seconds": 0})
+        # HA must verify timer execution and cancellation; FakeHA evaluates only
+        # the underlying predicate and cannot prove a five-minute runtime wait.
+
+    def test_trend_hysteresis_and_immediate_temperature_recovery(self):
+        ha = self.fixture(**{TEMPERATURE: "60.5", RATE: "0.08"})
+        self.assertEqual(ha.binary_state(self.warning, previous_state="off"), "off")
+        self.assertEqual(ha.binary_state(self.warning, previous_state="on"), "on")
+        for previous_state in ("unknown", "unavailable"):
+            self.assertEqual(ha.binary_state(self.warning, previous_state=previous_state), "off")
+        ha.states[RATE] = "0.1"
+        self.assertEqual(ha.binary_state(self.warning, previous_state="on"), "off")
+        ha.states[RATE] = "0.06"
+        self.assertEqual(ha.binary_state(self.warning, previous_state="off"), "on")
+        ha.states[TEMPERATURE] = "62"
+        self.assertEqual(ha.binary_state(self.warning, previous_state="on"), "off")
+        ha.states[TEMPERATURE] = "60"
+        self.assertTrue(ha.render(self.warning["state"]))  # Safe with no `this` context.
 
     def test_configurable_minimum_affects_both_criteria(self):
         ha = self.fixture(**{TEMPERATURE: "60.5", MINIMUM: "6", RATE: "0.1"})
@@ -203,7 +250,7 @@ class StartDiagnosticsTests(unittest.TestCase):
         self.assertEqual(self.fixture(**{START: (NOW + timedelta(minutes=1)).isoformat()}).binary_state(self.warning), "off")
 
     def test_invalid_inputs_are_not_reported_as_healthy_or_as_an_alarm(self):
-        for entity in (TEMPERATURE, BASELINE, MINIMUM, RATE):
+        for entity in (TEMPERATURE, DIAGNOSTIC_MIN, MINIMUM, RATE):
             for value in ("unknown", "unavailable", "bad", "nan", "inf", "-inf"):
                 with self.subTest(entity=entity, value=value):
                     self.assertEqual(self.fixture(**{entity: value}).binary_state(self.warning), "unavailable")
@@ -233,6 +280,7 @@ class StartDiagnosticsTests(unittest.TestCase):
                 ha.state_event(self.automation, PHASE, "1")
                 self.assertEqual(ha.state(OBSERVED), "on")
                 self.assertEqual(float(ha.state(BASELINE)), 60)
+                self.assertEqual(float(ha.state(DIAGNOSTIC_MIN)), 60)
                 self.assertEqual(float(ha.state(START)), NOW.timestamp())
                 ha.state_event(self.automation, PHASE, "7")
                 ha.state_event(self.automation, QUALITY, lost)
@@ -257,6 +305,90 @@ class StartDiagnosticsTests(unittest.TestCase):
         ha = self.fixture(**{PHASE: "unavailable", OBSERVED: "off"})
         ha.state_event(self.automation, PHASE, "1")
         self.assertEqual(ha.state(OBSERVED), "off")
+
+    def test_start_initializes_both_temperatures_before_arming(self):
+        ha = self.fixture(**{PHASE: "0", OBSERVED: "off", TEMPERATURE: "70", DIAGNOSTIC_MIN: "45"})
+        ha.state_event(self.automation, PHASE, "1")
+        self.assertEqual(float(ha.state(BASELINE)), 70)
+        self.assertEqual(float(ha.state(DIAGNOSTIC_MIN)), 70)
+        self.assertEqual(ha.actions, [
+            "input_datetime.set_datetime", "input_number.set_value",
+            "input_number.set_value", "input_boolean.turn_on",
+        ])
+
+    def test_minimum_tracks_a_warm_start_dip_even_after_phase_seven(self):
+        ha = self.fixture(**{PHASE: "0", OBSERVED: "off", TEMPERATURE: "70"})
+        ha.state_event(self.automation, PHASE, "1")
+        ha.state_event(self.automation, PHASE, "3")
+        ha.state_event(self.automation, TEMPERATURE, "59")
+        ha.state_event(self.automation, PHASE, "7")
+        ha.state_event(self.automation, TEMPERATURE, "56")
+        self.assertEqual(float(ha.state(DIAGNOSTIC_MIN)), 56)
+        for value in ("56", "57", "59"):
+            ha.state_event(self.automation, TEMPERATURE, value)
+            self.assertEqual(ha.state(OBSERVED), "on")
+            self.assertEqual(float(ha.state(DIAGNOSTIC_MIN)), 56)
+            self.assertEqual(float(ha.state(BASELINE)), 70)
+        ha.now += timedelta(minutes=31)
+        self.assertEqual(ha.binary_state(self.warning), "off")
+
+    def test_cooling_then_no_meaningful_rise_still_warns(self):
+        for final_value in ("56", "57"):
+            with self.subTest(final_value=final_value):
+                ha = self.fixture(**{PHASE: "0", OBSERVED: "off", TEMPERATURE: "70"})
+                ha.state_event(self.automation, PHASE, "1")
+                ha.state_event(self.automation, PHASE, "7")
+                ha.state_event(self.automation, TEMPERATURE, "56")
+                ha.state_event(self.automation, TEMPERATURE, final_value)
+                ha.now += timedelta(minutes=31)
+                self.assertEqual(ha.binary_state(self.warning), "on")
+
+    def test_ignored_temperature_updates_do_not_reset_or_rearm(self):
+        ha = self.fixture()
+        for value in ("60.5", "61", "60.1"):
+            ha.state_event(self.automation, TEMPERATURE, value)
+            self.assertEqual(ha.state(OBSERVED), "on")
+            self.assertEqual(float(ha.state(DIAGNOSTIC_MIN)), 60)
+        self.assertEqual(ha.actions, [])
+        ha.states[OBSERVED] = "off"
+        ha.state_event(self.automation, TEMPERATURE, "55")
+        self.assertEqual(ha.state(OBSERVED), "off")
+        self.assertEqual(float(ha.state(DIAGNOSTIC_MIN)), 60)
+        self.assertEqual(ha.actions, [])
+
+    def test_corrupt_temperature_or_minimum_invalidates_until_new_start(self):
+        for entity in (TEMPERATURE, DIAGNOSTIC_MIN):
+            for invalid in ("unknown", "unavailable", "bad", "nan", "inf", "-inf"):
+                with self.subTest(entity=entity, invalid=invalid):
+                    ha = self.fixture()
+                    if entity == DIAGNOSTIC_MIN:
+                        ha.states[DIAGNOSTIC_MIN] = invalid
+                        ha.state_event(self.automation, TEMPERATURE, "59")
+                    else:
+                        ha.state_event(self.automation, TEMPERATURE, invalid)
+                    self.assertEqual(ha.state(OBSERVED), "off")
+                    ha.state_event(self.automation, TEMPERATURE, "58")
+                    self.assertEqual(ha.state(OBSERVED), "off")
+                    ha.state_event(self.automation, PHASE, "0")
+                    ha.state_event(self.automation, PHASE, "1")
+                    self.assertEqual(ha.state(OBSERVED), "on")
+                    self.assertEqual(float(ha.state(BASELINE)), 58)
+                    self.assertEqual(float(ha.state(DIAGNOSTIC_MIN)), 58)
+
+    def test_invalid_temperature_at_start_does_not_arm_with_stale_quality(self):
+        for invalid in ("unknown", "unavailable", "bad", "nan", "inf", "-inf"):
+            with self.subTest(invalid=invalid):
+                ha = self.fixture(**{PHASE: "0", TEMPERATURE: invalid, QUALITY: "on"})
+                ha.state_event(self.automation, PHASE, "1")
+                self.assertEqual(ha.state(OBSERVED), "off")
+                self.assertEqual(ha.actions, ["input_boolean.turn_off"])
+
+    def test_minimum_helper_restores_without_an_initial_override(self):
+        helper = self.helpers[DIAGNOSTIC_MIN]
+        self.assertEqual(helper["min_value"], -20)
+        self.assertEqual(helper["max_value"], 150)
+        self.assertEqual(helper["step"], 0.1)
+        self.assertNotIn("initial", helper)
 
     def count_starts(self, transitions, now=NOW):
         with sqlite3.connect(":memory:") as database:

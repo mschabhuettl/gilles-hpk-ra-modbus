@@ -6,7 +6,7 @@ Extended passive analysis revises several earlier register interpretations. This
 
 ## REG56: calculated O₂ target as a strong hypothesis
 
-REG56 remains active during regulation and follows an exhaust-temperature-dependent relationship. Its former description as a brief pulse is obsolete. Agreement with linear interpolation between the configured temperature and O₂ endpoints also appears in another naturally occurring burner cycle. The relationship has therefore been observed qualitatively again, but has not yet been confirmed on Touch:
+REG56 remains active during regulation and follows an exhaust-temperature-dependent relationship. Its former description as a brief pulse is obsolete. A broader analysis of repeated natural burner cycles again supports linear interpolation between the configured temperature and O₂ endpoints. Nonzero readings during regulation closely follow the model. This strengthens the empirical evidence but does not replace a synchronized comparison with Touch:
 
 ```text
 T       = REG50 × 0.1              # Actual flue gas temperature
@@ -20,6 +20,8 @@ REG56 × 0.1 ≈ O2_target_candidate
 ```
 
 This requires `T_high ≠ T_low`. The names `sO2Min` and `sO2Max` identify parameters here; they do not guarantee the numerical ordering of the O₂ values. Clamping outside the observed regulation range, other parameter combinations and behavior in other phases remain unresolved. The formula is a model to test, not verified controller logic.
+
+The [Gilles Touch manual from version 5.25](https://shop.baxi.se/documents/Gilles%20Touch%20-%20manual%20v5.25%20(ENG).pdf) describes the O₂ parameters as targets at maximum and minimum output. “Min” and “Max” therefore refer to output points, not the numerical ordering of oxygen values. A higher target at minimum output does not establish swapped registers or incorrect settings. This manufacturer description explains the parameters; it does not verify the reverse-engineered Modbus address of REG56.
 
 Confidence: **strong hypothesis (✓)**. Another Touch page shows “Restsauerstoff” (residual oxygen) with separate “Ist” (actual) and “Soll” (target) columns. In the compared idle state, both that target and REG56 are zero. This identifies a suitable display for comparison; equality at zero confirms neither the register's purpose nor its scale. Confirmation still requires simultaneous comparison at a nonzero target during regulation. The overview's “O2 Wert” instead shows the actual value. No control logic or confirmed target sensor is derived from it.
 
@@ -50,11 +52,17 @@ The runtime page lists the controller, burner, rotary feeder and dosing separate
 
 ## Temperature behavior and startup-diagnostic limits
 
-An observed warm start initially cools and then heats again. Its high starting temperature may still not have been reached even while boiler and flue-gas temperatures are already rising. A diagnosis based only on the difference from the initial reading can misleadingly report a missing rise. This observation identifies neither a specific pump function nor heat output and changes no register mapping.
+Further warm starts show why comparison with the initial temperature can produce false advisories even with a smoothed trend: the boiler initially cools and then warms substantially. While it remains below its warm starting value, a brief flattening of the trend can raise an advisory despite the rise from its low point. High flue-gas temperatures in the same trace support that the advisory does not establish failed ignition. This identifies neither a particular pump function nor measured heat output.
 
-The HA diagnosis therefore supplements the temperature comparison with a smoothed derivative. It raises the advisory only for insufficient total rise **and** insufficient current trend. Stalling and cooling remain detectable when the total rise from the initial reading is also insufficient, while a sufficiently rising warm start is suppressed. This is not a general stall monitor after the required rise has been reached. Thresholds are editable review criteria, not manufacturer limits. Gaps or nonnumeric raw readings invalidate the baseline instead of resuming it on recovery. Exact rules and the start count's Recorder limitations are in the [HA instructions](../home-assistant/README.en.md).
+The diagnosis therefore also tracks the lowest boiler temperature recorded since a valid observed start. The original initial reading remains separate. Required temperature rise is checked against this diagnostic minimum, so sufficient recovery after initial cooling satisfies the criterion. While that rise is still missing, an insufficient smoothed trend and the other startup conditions must also hold. An activation delay and separate trend activation/clearance thresholds suppress brief fluctuations. Exact conditions are documented in the [HA instructions](../home-assistant/README.en.md).
 
-The availability indicator checks that numeric raw readings are present. It proves neither a recent Modbus response nor the physical correctness of every reading. State history and the last-change timestamp cannot reliably distinguish a constant measurement from a held value.
+This remains a startup diagnosis with editable review criteria, not proof of flame or general stall monitoring after the required rise has been reached. Gaps or nonnumeric raw readings invalidate the baseline; recovery does not reactivate it. State history and the last-change timestamp cannot reliably distinguish a constant measurement from a held value. The availability indicator therefore establishes neither a fresh Modbus response nor the physical correctness of all readings.
+
+## O₂ evaluation by operating phase
+
+A low, constant standby O₂ value becomes dynamic during a burner cycle and returns to its idle value after shutdown. This supports an idle or inactive measurement state as an explanation; it does not prove a guaranteed indicator of a disabled sensor. Standby values must not be interpreted as a combustion minimum or proof of a defective probe.
+
+The new HA evaluation therefore includes O₂ only with recorded phase `7`, a valid numeric raw value and an O₂ state update after entry into that phase. With otherwise valid inputs, the derived source returns `unknown` outside the heating phase, preventing any substitute number from entering statistics. Invalid inputs make it `unavailable`. Its separate minimum replaces the previous unfiltered dashboard metric and can retain heating readings still within the time window during standby. The raw sensor and old statistic retain their history; existing readings are not retrospectively cleaned. The phase filter improves operating context but establishes neither probe calibration nor measurement freshness or combustion quality.
 
 ## Limitations and next comparisons
 

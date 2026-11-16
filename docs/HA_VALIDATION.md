@@ -63,3 +63,19 @@ python3 -m py_compile scripts/test_start_diagnostics.py
 Eine retrospektive Nachrechnung eines privaten Warmstart-Verlaufs unterdrückt den neuen Hinweis sowohl bei stufenweiser Fortschreibung als auch bei linearer Interpolation der aufgezeichneten Werte. Die Recorder-Änderungshistorie enthält nicht jeden unveränderten Sensorreport; dies ist deshalb eine Prüfung mit zwei Näherungen und keine exakte Wiederholung des HA-Ableitungshelfers. Der Verlauf und seine Betriebszeitpunkte bleiben privat.
 
 Der Protokollvergleich ergab keine neu hinzugekommenen Gilles-Fehler seit der Änderung. Vorhandene ältere Template-Meldungen und die bekannte Warnung zum gezielten Zwei-Sekunden-Abfrageintervall sind kein Nachweis eines neuen Fehlers. Die Abnahme prüft Konfiguration und Diagnoseverhalten; sie ersetzt keine längere Nachbeobachtung natürlicher Brennzyklen. Die Dashboard-Prüfung erfolgte anhand der Konfiguration und Entitäten, nicht anhand eines neu gerenderten Bildschirmbilds.
+
+## Nachprüfung der Betriebsdiagnose 0.9.0
+
+Die Änderungen wurden auf Home Assistant 2026.11.1 eingerichtet. Der neue Minimum-Helfer, die aktualisierte Diagnoseautomation und Warnvorlage sowie beide O₂-Helfer sind vorhanden; die drei betroffenen Konfigurationseinträge sind geladen. Die zurückgelesenen Vorlagen enthalten Diagnoseminimum, Trendhysterese, fünf Minuten Einschaltverzögerung und keine zusätzliche Ausschaltverzögerung. Die Automation behält ihre bisherige Identität und ist eingeschaltet. `homeassistant.check_config` wurde erfolgreich ausgeführt; die Änderungen der UI-Helfer und Automation sind ohne Core-Neustart geladen.
+
+Das gespeicherte Dashboard stimmt mit der vorgesehenen Änderung überein. Alle 83 referenzierten Entitäten sind auflösbar. Bei der Prüfung gab es erwartungsgemäß noch keinen Heizmesswert in der neu angelegten O₂-Quelle und ihrem Minimum; ein Anfangswert wurde nicht erfunden. Die Startphasendauer bleibt außerhalb eines Starts nicht verfügbar. Die aktuelle Qualitätsanzeige ist aktiv und der Temperaturhinweis ausgeschaltet. Der abgefragte begrenzte Ausschnitt des Fehlerprotokolls enthielt keine Gilles-Treffer; dies ist keine vollständige Protokollprüfung. Ein Screenshot wurde angefordert, war wegen der deaktivierten Renderfunktion aber nicht verfügbar.
+
+Die Offline-Konsistenzprüfung besteht mit 40 Rohsensoren, 49 YAML-Entitäten, 39 UI-Definitionen, vier Automationen, 83 Dashboard-Verweisen und fünf portablen Ansichten. 24 automatisierte Tests bestehen: 19 für Diagnose, Resetverhalten und Startzählung sowie fünf für O₂-Phasenfilter, ungültige Daten, Zustandszeitpunkte und Statistik-Konfiguration. Die Tests rendern die ausgelieferten Vorlagen mit synthetischen Daten. Python-Kompilierung und `git diff --check` sind erfolgreich.
+
+```bash
+python3 scripts/validate_config.py
+python3 -m unittest discover -s scripts -p 'test_*.py'
+python3 -m py_compile scripts/test_start_diagnostics.py scripts/test_o2_heating.py
+```
+
+Die neue Minimum-Basis wurde zusätzlich gegen private Warmstart-Verläufe nachgerechnet; die zuvor auftretenden Hinweise werden dabei unterdrückt. Diese Nachrechnung ersetzt keine exakte Wiederholung der asynchronen HA-Verarbeitung. Die Ausführung der Einschaltverzögerung, das Altern des Statistikpuffers und ein vollständiger natürlicher Brennzyklus nach der Änderung sind mit den Offline-Tests nicht bestätigt. Es wurden keine Rohsensorzustände für einen Live-Test überschrieben, keine Benachrichtigungen testweise versandt und kein Brennzyklus ausgelöst. Bestehende Rohwerte, ungefiltertes O₂-Minimum und Historien bleiben erhalten.

@@ -63,3 +63,19 @@ python3 -m py_compile scripts/test_start_diagnostics.py
 A retrospective calculation from a private warm-start trace suppresses the new advisory using both stepwise carry-forward and linear interpolation of recorded readings. Recorder state-change history omits unchanged sensor reports, so this checks two approximations rather than replaying the HA derivative helper exactly. The trace and its operating timestamps remain private.
 
 The log comparison found no newly added Gilles errors since deployment. Existing older template messages and the known warning about the targeted two-second polling interval do not establish a new failure. This acceptance check covers configuration and diagnostic behavior; it does not replace longer observation of natural firing cycles. Dashboard validation used configuration and entity checks, not a newly rendered screenshot.
+
+## Operating-diagnostic validation for 0.9.0
+
+The changes were deployed on Home Assistant 2026.11.1. The new minimum helper, updated diagnostic automation and warning template, and both O₂ helpers are present; the three affected config entries are loaded. Read-back templates contain the diagnostic minimum, trend hysteresis, a five-minute on-delay and no additional off-delay. The automation retains its existing identity and is enabled. `homeassistant.check_config` completed successfully; the UI helper and automation updates are loaded without a Core restart.
+
+The saved dashboard matches the intended change. All 83 referenced entities resolve. The newly created O₂ source and minimum did not yet contain a heating sample during verification, as expected; no initial measurement was fabricated. Startup duration remains unavailable outside a startup. The current quality indicator is active and the temperature advisory is off. The bounded error-log window queried contained no Gilles matches; this is not a complete log audit. A screenshot was requested but the rendering feature was disabled.
+
+Offline consistency validation passes with 40 raw sensors, 49 YAML entities, 39 UI definitions, four automations, 83 dashboard references and five portable views. All 24 automated tests pass: 19 cover diagnostics, invalidation and start counting, and five cover O₂ phase filtering, invalid inputs, state timestamps and statistics configuration. Tests render the shipped templates with synthetic data. Python compilation and `git diff --check` pass.
+
+```bash
+python3 scripts/validate_config.py
+python3 -m unittest discover -s scripts -p 'test_*.py'
+python3 -m py_compile scripts/test_start_diagnostics.py scripts/test_o2_heating.py
+```
+
+The new minimum baseline was also replayed against private warm-start traces, suppressing the previously observed advisories. This calculation does not exactly replay HA's asynchronous processing. Actual execution of the on-delay, statistics-buffer expiry and a complete natural firing cycle after deployment are not established by the offline tests. No raw sensor states were overwritten for live testing, no test notifications were sent and no burner cycle was initiated. Existing raw values, unfiltered O₂ minimum and histories are preserved.

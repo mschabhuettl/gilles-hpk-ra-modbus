@@ -4,6 +4,16 @@
 
 Alle nennenswerten Erkenntnisse während des Reverse Engineerings der Gilles-Touch-Modbus-Map.
 
+## [0.9.0] — 2026-11-16 — Warmstart-Diagnose und O₂ im Heizbetrieb
+
+Die Temperaturwarnung vergleicht den Anstieg jetzt mit der niedrigsten seit dem gültig beobachteten Start erfassten Kesseltemperatur. Der ursprüngliche Startwert bleibt separat erhalten. Dadurch reicht bei einem Warmstart die Erwärmung nach anfänglicher Abkühlung aus; ein noch nicht wieder erreichter warmer Startwert führt nicht weiter allein zu einem fehlenden Anstieg. Trendhysterese und fünf Minuten Einschaltverzögerung unterdrücken kurze Schwankungen. Die Diagnose wird bei Standby, Neustart oder ungültigen Rohdaten weiterhin verworfen. Es bleibt eine Startdiagnose, kein Nachweis einer Flamme oder einer gemessenen Wärmeleistung.
+
+Eine neue Templatequelle übernimmt O₂ nur in Regelphase `7` und erst nach einer O₂-Zustandsaktualisierung seit dem Phaseneintritt. Außerhalb der Heizphase liefert sie bei gültigen Eingangsdaten `unknown`; ungültige Eingänge ergeben `unavailable`. Ein neuer Statistikhelfer berechnet daraus das Minimum im rollierenden Zeitfenster. Echte Heizstichproben können im Standby bis zum Ablauf ihres Alters erhalten bleiben. Das Dashboard verwendet diese Kennzahl und erklärt fehlende Anfangsdaten. Rohsensor, bisheriges ungefiltertes Minimum und deren Historien bleiben erhalten; keine rückwirkende Datenkorrektur.
+
+Die breitere passive Auswertung stützt das interpolierte REG56-O₂-Sollmodell erneut. Der gleichzeitige Nichtnull-Abgleich am Touch bleibt offen; keine Vertrauensstufe wurde angehoben. Der Herstellerbezug erläutert O₂-Sollwerte bei minimaler/maximaler Leistung. Registermap, Befunde, Installations-/Migrationsanleitung und Beispiele auf Deutsch und Englisch aktualisiert. Luftskalierungen, unbekannte Codes und Kesselsteuerung bleiben unverändert. Private Betriebsdaten werden nicht veröffentlicht.
+
+Validierung und ihre Grenzen: [HA_VALIDATION](docs/HA_VALIDATION.md).
+
 ## [0.8.0] — 2026-10-23 — Temperaturtrend, Datenlücken und Startzählung
 
 Die Temperaturdiagnose berücksichtigt jetzt zusätzlich einen nativen, über zehn Minuten geglätteten Ableitungshelfer. Nach der bisherigen Wartezeit löst ein zu kleiner Anstieg gegenüber dem Startwert nur noch dann den Hinweis aus, wenn auch der aktuelle Trend unter `Mindestanstieg / 30 Minuten` liegt. Das berücksichtigt Warmstarts, bei denen der Kessel zunächst abkühlt und anschließend wieder steigt. Eine regelmäßige Neuberechnung lässt alte positive Trends bei unverändertem Quellwert abklingen. Die Regel bleibt eine Diagnoseheuristik; kein Nachweis von Flamme, Wärmeleistung oder Wirkungsgrad.

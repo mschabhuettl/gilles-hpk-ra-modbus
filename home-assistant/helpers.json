@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "validated_home_assistant_version": "2026.10.2",
+  "validated_home_assistant_version": "2026.11.1",
   "description": "Portable UI definitions in dependency order; defaults to ha_config_set_helper, with a tool override for the SQL integration. Not an HA YAML package or .storage export.",
   "helpers": [
     {
@@ -104,6 +104,41 @@
         },
         "helper_type": "statistics",
         "name": "Gilles O2 24h Min"
+      }
+    },
+    {
+      "key": "o2_heating",
+      "entity_id": "sensor.gilles_o2_heizbetrieb",
+      "parameters": {
+        "helper_type": "template",
+        "name": "Gilles O2 Heizbetrieb",
+        "config": {
+          "next_step_id": "sensor",
+          "unit_of_measurement": "%",
+          "state_class": "measurement",
+          "state": "{% set value = states('sensor.gilles_o2_ist') %}\n{% set phase = states.sensor.gilles_brenn_phase_code %}\n{% set source = states.sensor.gilles_o2_ist %}\n{{ value | float(none) if phase is defined and source is defined\n   and phase.state == '7' and is_number(value)\n   and source.last_updated >= phase.last_changed else none }}",
+          "additional_options": {
+            "availability": "{% set value = states('sensor.gilles_o2_ist') %}\n{{ states('sensor.gilles_brenn_phase_code') in ['0','1','3','5','6','7','8','9','10']\n   and is_number(value) and 0 <= value | float(none) <= 21 }}"
+          }
+        }
+      }
+    },
+    {
+      "key": "o2_heating_min",
+      "entity_id": "sensor.gilles_o2_heizbetrieb_24h_min",
+      "parameters": {
+        "helper_type": "statistics",
+        "name": "Gilles O2 Heizbetrieb 24h Min",
+        "config": {
+          "entity_id": "sensor.gilles_o2_heizbetrieb",
+          "state_characteristic": "value_min",
+          "max_age": {
+            "hours": 24
+          },
+          "keep_last_sample": false,
+          "sampling_size": 10000,
+          "precision": 1
+        }
       }
     },
     {
@@ -488,6 +523,20 @@
       }
     },
     {
+      "key": "diagnose_kesseltemperatur_diagnoseminimum",
+      "entity_id": "input_number.gilles_kesseltemperatur_diagnoseminimum",
+      "parameters": {
+        "helper_type": "input_number",
+        "icon": "mdi:thermometer-chevron-down",
+        "max_value": 150,
+        "min_value": -20,
+        "mode": "box",
+        "name": "Gilles Kesseltemperatur Diagnoseminimum",
+        "step": 0.1,
+        "unit_of_measurement": "°C"
+      }
+    },
+    {
       "key": "diagnose_letzter_brennstart",
       "entity_id": "input_datetime.gilles_letzter_brennstart",
       "parameters": {
@@ -606,9 +655,15 @@
         "config": {
           "device_class": "problem",
           "next_step_id": "binary_sensor",
-          "state": "{% set start = as_timestamp(states('input_datetime.gilles_letzter_brennstart'), none) %}\n{% set temperature = states('sensor.gilles_kesseltemperatur') | float(none) %}\n{% set baseline = states('input_number.gilles_kesseltemperatur_bei_brennstart') | float(none) %}\n{% set minimum = states('input_number.gilles_temperaturanstieg_mindestwert') | float(none) %}\n{% set rate = states('sensor.gilles_kesseltemperatur_trend_10min') | float(none) %}\n{{ is_state('input_boolean.gilles_brennstart_beobachtet', 'on')\n   and states('sensor.gilles_brenn_phase_code') in ['6', '7']\n   and is_state('binary_sensor.gilles_messdaten_verfuegbar', 'on')\n   and start is not none and as_timestamp(now()) - start > 1800\n   and temperature is not none and baseline is not none\n   and minimum is not none and rate is not none\n   and temperature - baseline < minimum\n   and rate < minimum / 30 }}",
+          "state": "{% set start = as_timestamp(states('input_datetime.gilles_letzter_brennstart'), none) %}\n{% set temperature = states('sensor.gilles_kesseltemperatur') | float(none) %}\n{% set baseline = states('input_number.gilles_kesseltemperatur_diagnoseminimum') | float(none) %}\n{% set minimum = states('input_number.gilles_temperaturanstieg_mindestwert') | float(none) %}\n{% set rate = states('sensor.gilles_kesseltemperatur_trend_10min') | float(none) %}\n{{ is_state('input_boolean.gilles_brennstart_beobachtet', 'on')\n   and states('sensor.gilles_brenn_phase_code') in ['6', '7']\n   and is_state('binary_sensor.gilles_messdaten_verfuegbar', 'on')\n   and start is not none and as_timestamp(now()) - start > 1800\n   and is_number(temperature) and is_number(baseline)\n   and is_number(minimum) and is_number(rate)\n   and temperature - baseline < minimum\n   and rate < minimum / (20 if this is defined and this.state == 'on' else 30) }}",
           "additional_options": {
-            "availability": "{{ not is_state('input_boolean.gilles_brennstart_beobachtet', 'on')\n   or states('sensor.gilles_brenn_phase_code') not in ['6', '7']\n   or (is_state('binary_sensor.gilles_messdaten_verfuegbar', 'on')\n       and is_number(states('sensor.gilles_kesseltemperatur'))\n       and is_number(states('input_number.gilles_kesseltemperatur_bei_brennstart'))\n       and is_number(states('input_number.gilles_temperaturanstieg_mindestwert'))\n       and is_number(states('sensor.gilles_kesseltemperatur_trend_10min'))\n       and as_timestamp(states('input_datetime.gilles_letzter_brennstart'), none) is not none) }}"
+            "availability": "{{ not is_state('input_boolean.gilles_brennstart_beobachtet', 'on')\n   or states('sensor.gilles_brenn_phase_code') not in ['6', '7']\n   or (is_state('binary_sensor.gilles_messdaten_verfuegbar', 'on')\n       and is_number(states('sensor.gilles_kesseltemperatur'))\n       and is_number(states('input_number.gilles_kesseltemperatur_diagnoseminimum'))\n       and is_number(states('input_number.gilles_temperaturanstieg_mindestwert'))\n       and is_number(states('sensor.gilles_kesseltemperatur_trend_10min'))\n       and as_timestamp(states('input_datetime.gilles_letzter_brennstart'), none) is not none) }}",
+            "delay_on": {
+              "minutes": 5
+            },
+            "delay_off": {
+              "seconds": 0
+            }
           }
         },
         "helper_type": "template",

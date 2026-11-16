@@ -2,7 +2,7 @@
 
 > 🇩🇪 **Deutsch** · [🇬🇧 English](README.en.md)
 
-Diese Dateien bilden die Gilles-Pakete und die auf **Home Assistant 2026.10.2** aktualisierte Betriebsdiagnose ab. Die ursprünglichen Pakete wurden mit Home Assistant 2026.9.1 geprüft. Der Kesselhost wurde durch `192.0.2.1` ersetzt; interne Konfigurationseintrags- und Automations-IDs wurden aus den portablen Definitionen entfernt.
+Diese Dateien bilden die Gilles-Pakete und die auf **Home Assistant 2026.11.1** aktualisierte Betriebsdiagnose ab. Die ursprünglichen Pakete wurden mit Home Assistant 2026.9.1 geprüft. Der Kesselhost wurde durch `192.0.2.1` ersetzt; interne Konfigurationseintrags- und Automations-IDs wurden aus den portablen Definitionen entfernt.
 
 ## Bestandteile
 
@@ -10,7 +10,7 @@ Diese Dateien bilden die Gilles-Pakete und die auf **Home Assistant 2026.10.2** 
 |---|---|
 | `modbus.yaml` | HA-Paket: 40 Rohsensoren und sieben Zustandsvorlagen mit Verfügbarkeitsprüfung |
 | `gilles_derived.yaml` | HA-Paket: Zeitstempel des letzten direkt beobachteten Starts und der letzten REG78-Einschaltflanke |
-| `helpers.json` | 36 Definitionen: 35 native Helfer und ein SQL-Sensor für HA-Oberfläche bzw. Home Assistant MCP |
+| `helpers.json` | Native Helfer und ein SQL-Sensor für HA-Oberfläche bzw. Home Assistant MCP |
 | `automations.yaml` | Vier native Zähl-/Diagnoseautomationen; einzeln in der Automationsverwaltung anlegen oder aktualisieren |
 | `entity_ids.json` | Verwendete Entity-IDs und Zuordnung zu den YAML-`unique_id` |
 | `dashboard.yaml` | Dashboard mit Übersicht, Brenner, Betriebsstatistik, Detektivarbeit und Parametern |
@@ -61,15 +61,19 @@ python3 scripts/validate_config.py
 
 Vor Live-Änderungen die betroffenen HA-Dateien und UI-Konfigurationen sichern. Nach einem Update Konfiguration und Entity-Verweise prüfen, gezielt neu laden und echte Messwerte kontrollieren. Ein syntaktisch gültiges Dashboard ersetzt keine Sichtprüfung; die initiale Prüfung hatte keine Screenshot-Funktion verfügbar.
 
-## Betriebsdiagnose (0.8.0)
+## Betriebsdiagnose (0.9.0)
 
 Die rollierende Startzählung erfasst direkt aufgezeichnete `0→1`-Übergänge innerhalb der letzten 24 Stunden. Messlücken und Ereignisse außerhalb der Aufzeichnung werden nicht ergänzt. Die einstellbaren Prüfschwellen bleiben mehr als 10 beobachtete Starts/24 h und eine Startphase über 20 Minuten. Es sind keine vom Hersteller bestätigten Fehlergrenzen.
 
-Die Temperaturwarnung benötigt einen direkt beobachteten Start, numerische Eingangswerte, vollständige Rohdaten, eine aktuelle Phase `6` oder `7` und mehr als 30 Minuten seit dem Start. Zusätzlich müssen **beide** Temperaturbedingungen gelten: Der Anstieg gegenüber dem Startwert liegt unter dem konfigurierten Mindestanstieg, und der geglättete Temperaturtrend liegt unter `Mindestanstieg / 30 Minuten`. Bei der Voreinstellung von 2 °C entspricht das rund 0,067 °C/min.
+Bei einem gültig beobachteten Start speichert die Diagnose weiterhin die ursprüngliche Kesseltemperatur. Zusätzlich wird `input_number.gilles_kesseltemperatur_diagnoseminimum` mit diesem Wert initialisiert und im beobachteten Zyklus bei niedrigeren gültigen Messwerten nach unten geführt. Der Startwert wird dadurch nicht überschrieben. Bei Warmstarts zählt nun der Wiederanstieg vom erfassten Tiefpunkt, statt erneut die warme Ausgangstemperatur übersteigen zu müssen.
 
-Der native Ableitungshelfer `sensor.gilles_kesseltemperatur_trend_10min` nutzt die Kesseltemperatur, ein Glättungsfenster von zehn Minuten, die Zeiteinheit Minuten und eine Neuberechnung spätestens nach einer Minute (`max_sub_interval`). So fällt ein unveränderter Wert im Trend ab, statt einen alten positiven Anstieg unbegrenzt zu halten. Das Fenster glättet die verfügbaren Änderungen; es ist kein Nachweis zehn Minuten lückenloser Messungen. Bei einem Warmstart kann die Temperatur zunächst fallen und anschließend steigen, ohne den hohen Startwert schon zu überschreiten. Ein ausreichend positiver Trend unterdrückt dann den irreführenden Hinweis. Ein Stillstand oder Abkühlen unterhalb des benötigten Gesamtanstiegs bleibt auffällig. Die Regel ist eine Diagnoseheuristik, kein Flammennachweis und keine Messung der Wärmeleistung.
+Die Temperaturwarnung benötigt einen direkt beobachteten Start, numerische Eingangswerte, vollständige Rohdaten, eine aktuelle Phase `6` oder `7` und mehr als 30 Minuten seit dem Start. Zusätzlich müssen **beide** Temperaturbedingungen gelten: Der Anstieg gegenüber dem Diagnoseminimum liegt unter dem konfigurierten Mindestanstieg, und der geglättete Temperaturtrend ist zu klein. Zum Einschalten muss der Trend unter `Mindestanstieg / 30 Minuten` liegen; eine bereits aktive Warnung wird bei einem Trend ab `Mindestanstieg / 20 Minuten` aufgehoben. Diese Hysterese vermeidet Umschalten direkt an einer einzelnen Grenze. Alle Einschaltbedingungen müssen fünf Minuten durchgehend gelten (`delay_on`). Sobald die Kriterien nicht mehr gelten, schaltet die Warnung ohne zusätzliche Ausschaltverzögerung aus.
 
-Standby, HA-Neustart sowie ein fehlender oder nichtnumerischer Wert aus den 40 Rohsensoren verwerfen die laufende Startdiagnose. Eine Datenrückkehr reaktiviert sie nicht; erst der nächste direkt beobachtete `0→1`-Übergang schafft eine neue Basis. Ausbrennen wird nicht als fehlender Temperaturanstieg bewertet. Nach einer Änderung während eines laufenden Zyklus die Diagnosebasis invalidieren, statt nachträglich einen Start zu erfinden.
+Der native Ableitungshelfer `sensor.gilles_kesseltemperatur_trend_10min` nutzt die Kesseltemperatur, ein Glättungsfenster von zehn Minuten, die Zeiteinheit Minuten und eine Neuberechnung spätestens nach einer Minute (`max_sub_interval`). So fällt ein unveränderter Wert im Trend ab, statt einen alten positiven Anstieg unbegrenzt zu halten. Das Fenster glättet verfügbare Änderungen; es belegt keine lückenlose Kommunikation. Die Diagnose ist kein Flammennachweis, keine Wärmeleistungsmessung und keine allgemeine Stillstandsüberwachung nach bereits erreichtem Mindestanstieg.
+
+Standby, HA-Neustart sowie ein fehlender oder nichtnumerischer Wert aus den 40 Rohsensoren verwerfen die laufende Startdiagnose. Eine Datenrückkehr reaktiviert sie nicht; erst der nächste direkt beobachtete `0→1`-Übergang schafft eine neue Basis. Ausbrennen wird nicht als fehlender Temperaturanstieg bewertet. Nach einer Änderung während eines laufenden Zyklus die Diagnosebasis invalidieren, statt nachträglich einen Start oder ein Minimum zu erfinden.
+
+Bei der Migration zuerst den neuen Minimum-Helfer anlegen, danach Diagnoseautomation und Warnvorlage aktualisieren. Bestehende Starttemperatur-, Zeit- und Zählerhelfer behalten ihre Identität und Historie. Das Diagnoseminimum wird beim nächsten gültigen Start initialisiert; sein vorläufiger Zahlenwert ist ohne aktive Diagnosebasis bedeutungslos.
 
 Die Qualitätsanzeige heißt „40 Messwerte numerisch vorhanden“. Sie prüft numerische Werte, nicht das Alter einer bestätigten Modbus-Antwort. Unveränderte Zustände und ihre HA-Zeitstempel sind kein zuverlässiger Kommunikationsnachweis. Die Registerbeobachtung hält die zuletzt asynchron abgefragten Werte im Aktivitätenprotokoll fest; zur Bestätigung unbekannter Register bleibt ein zeitgleicher Touch-Abgleich erforderlich.
 
@@ -78,6 +82,12 @@ Die Warnsensoren und das Dashboard versenden selbst keine Benachrichtigungen. Ei
 ## Statistikgrenzen und ungesicherte Register
 
 Die vier Statistikhelfer für Kesselminimum, Kesselmaximum, Abgasmaximum und O₂-Minimum speichern jetzt bis zu **10.000 statt 4.000 Stichproben** bei unverändertem `max_age: 24 h`. Bei häufigen Änderungen kann die Stichprobengrenze ältere Werte vor Ablauf des Zeitfensters verdrängen. Die Beschriftung „24 h“ garantiert daher keine vollständigen 24 Stunden. Bei bestehenden Installationen nur die Option `sampling_size` des jeweiligen Helfers aktualisieren; Entity-ID und Historie erhalten. Nach dem Neuladen `age_coverage_ratio` und `buffer_usage_ratio` erneut prüfen. Ein größerer Puffer ersetzt keine fehlenden Quelldaten.
+
+**O₂-Minimum nur aus der Heizphase:** Die neue Quelle `sensor.gilles_o2_heizbetrieb` übernimmt einen gültigen O₂-Rohwert ausschließlich bei Phase `7` und erst, wenn dessen Zustandsaktualisierung nach Eintritt in diese Phase liegt (`last_updated >= phase.last_changed`). Das verhindert die unmittelbare Übernahme eines gehaltenen Startphasenwerts; ein Zeitstempel ist weiterhin kein unabhängiger Messfrischenachweis. Bei gültigen Eingangsdaten außerhalb Phase `7` liefert die Vorlage `none` und damit `unknown`, keinen Ersatzwert null oder einen gehaltenen letzten Zahlenwert. Bei ungültigen Phasen-/O₂-Daten wird sie `unavailable`.
+
+`sensor.gilles_o2_heizbetrieb_24h_min` wertet nur numerische Quellenwerte aus. `unknown` wird ignoriert, sodass im Standby echte Heizwerte bis zum Ablauf von `max_age: 24 h` im Puffer bleiben. `keep_last_sample: false` verhindert das unbegrenzte Festhalten einer abgelaufenen Stichprobe. Tatsächliche Quellen-Nichtverfügbarkeit wird auch von der Statistik als `unavailable` weitergegeben. Vor der ersten passenden Heizphase oder nach Ablauf aller Stichproben gibt es kein auswertbares Minimum. Das Dashboard kennzeichnet diesen Zustand, statt eine Zahl zu erfinden.
+
+Bei der Migration zuerst die neue Templatequelle, danach die neue Statistik anlegen und das Dashboard auf sie umstellen. Der ungefilterte Rohsensor sowie `sensor.gilles_o2_24h_min` bleiben unverändert erhalten. Die neue Kennzahl wird ab ihrer Einrichtung aufgebaut; keine rückwirkende Bereinigung alter Historie. „O₂ Min/Max“ bei den Parametern bezeichnet Sollwerte bei minimaler/maximaler **Leistung**, keine numerischen Sauerstoffgrenzen; siehe [Herstellerbezug und Registerbefunde](../docs/REGISTER_FINDINGS.md).
 
 **Rollierende Startzählung über SQL:** `sensor.gilles_brennstarts_24h` zählt jetzt Zeilen im HA-Recorder, deren Zustand `1` und deren über `old_state_id` verbundener Vorgänger derselben Entität `0` ist. Das Zeitfenster lautet `now() - 24 h < last_updated_ts <= now()`. Ein Zustand `1`, der schon vor Fensterbeginn besteht, zählt nicht erneut. Übergänge von `unavailable` oder `unknown` zu `1` zählen ebenfalls nicht. Der alte Statistikhelfer mit `sum_differences_nonnegative` unterschätzte seltene Starts, wenn der vorangehende Zählerstand aus seinem Puffer fiel; dieser Helfer wird nicht mehr angelegt.
 

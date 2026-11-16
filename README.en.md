@@ -8,7 +8,7 @@ A community effort to document the Modbus TCP interface of the **Gilles Touch** 
 
 ## Anonymized register findings
 
-[Findings and open checks](docs/REGISTER_FINDINGS.en.md): O₂ target hypothesis for REG56, nonmonotonic REG68, active REG76 pulses and evidence contradicting the ash-motor interpretation of REG78. REG46=61 is a candidate for the “buffer temperature reached” message. The rolling 24-hour start count now uses directly recorded `0→1` transitions in Recorder. Temperature diagnostics also consider the smoothed temperature trend, so a rising warm start is not flagged solely because its initial temperature was high. Private operating histories and screenshots are not published.
+[Findings and open checks](docs/REGISTER_FINDINGS.en.md): O₂ target hypothesis for REG56, nonmonotonic REG68, active REG76 pulses and evidence contradicting the ash-motor interpretation of REG78. REG46=61 is a candidate for the “buffer temperature reached” message. The rolling 24-hour start count now uses directly recorded `0→1` transitions in Recorder. Startup diagnostics compare recovery with the lowest boiler reading observed since the start; trend hysteresis and an activation delay suppress brief fluctuations. A separate O₂ statistic includes only the heating phase. Broader passive analysis continues to support REG56 as an O₂-target candidate without upgrading its confidence level. Private operating histories and screenshots are not published.
 
 ## Background
 
@@ -60,7 +60,7 @@ With the HA integration you can monitor:
    python3 scripts/gilles_snapshot.py <your-boiler-ip>
    ```
 4. **Compare to** [docs/REGISTER_MAP.en.md](docs/REGISTER_MAP.en.md) — your values should look similar to ours
-5. **Install/update Home Assistant:** follow [home-assistant/README.en.md](home-assistant/README.en.md). It covers both packages, 35 native helpers and one SQL sensor, four counter/diagnostic automations and the dashboard, including entity IDs and migration.
+5. **Install/update Home Assistant:** follow [home-assistant/README.en.md](home-assistant/README.en.md). It covers both packages, native helpers and one SQL sensor, four counter/diagnostic automations and the dashboard, including entity IDs and migration.
 
 ## Current HA status and development workflow
 
@@ -70,7 +70,7 @@ Whenever the Gilles integration changes, its configuration, German/English docum
 
 ## Tested with
 
-- Home Assistant 2026.10.2 (current operating diagnostics); original packages validated with 2026.9.1
+- Home Assistant 2026.11.1 (current operating diagnostics); original packages validated with 2026.9.1
 - Gilles HPK-RA pellet boiler
 - Gilles Touch with LASAL II v5.36.4 (Jan 2024)
 - Software config: Heizkreis 1, Warmwasser 2, Puffer 3, O2 sensor present

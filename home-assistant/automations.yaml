@@ -38,9 +38,10 @@
   mode: queued
 - alias: Gilles Brennstart Diagnosebasis
   description: Speichert nur direkt beobachtete Übergänge 0→1 bei 40 numerisch verfügbaren Rohwerten und
-    die Kesseltemperatur. Bei Neustart, Standby, fehlendem Phasencode oder Ausfall/ungültigem Wert eines
-    der 40 Rohsensoren wird die laufende Diagnose verworfen. Wiederkehr der Daten aktiviert sie nicht;
-    erst der nächste gültige Start. Keine Kesselsteuerung.
+    die unveränderte Kesseltemperatur bei Start. Führt daneben das Diagnoseminimum während des beobachteten
+    Zyklus nur nach unten nach. Bei Neustart, Standby, fehlendem Phasencode oder Ausfall/ungültigem Wert
+    eines der 40 Rohsensoren wird die laufende Diagnose verworfen. Wiederkehr der Daten aktiviert sie
+    nicht; erst der nächste gültige Start. Keine Kesselsteuerung.
   triggers:
   - entity_id: sensor.gilles_brenn_phase_code
     from: '0'
@@ -64,6 +65,9 @@
   - event: start
     id: reset
     trigger: homeassistant
+  - entity_id: sensor.gilles_kesseltemperatur
+    id: temperature
+    trigger: state
   actions:
   - choose:
     - conditions:
@@ -72,6 +76,8 @@
       - condition: state
         entity_id: binary_sensor.gilles_messdaten_verfuegbar
         state: 'on'
+      - condition: template
+        value_template: "{{ is_number(states('sensor.gilles_kesseltemperatur')) }}"
       sequence:
       - action: input_datetime.set_datetime
         data:
@@ -83,13 +89,64 @@
           value: '{{ states(''sensor.gilles_kesseltemperatur'') | float }}'
         target:
           entity_id: input_number.gilles_kesseltemperatur_bei_brennstart
+      - action: input_number.set_value
+        data:
+          value: '{{ states(''sensor.gilles_kesseltemperatur'') | float }}'
+        target:
+          entity_id: input_number.gilles_kesseltemperatur_diagnoseminimum
       - action: input_boolean.turn_on
         target:
           entity_id: input_boolean.gilles_brennstart_beobachtet
-    default:
-    - action: input_boolean.turn_off
-      target:
+    - conditions:
+      - condition: trigger
+        id:
+        - reset
+        - start
+      sequence:
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.gilles_brennstart_beobachtet
+    - conditions:
+      - condition: trigger
+        id: temperature
+      - condition: template
+        value_template: >-
+          {{ not is_number(states('sensor.gilles_kesseltemperatur'))
+             or not is_number(states('input_number.gilles_kesseltemperatur_diagnoseminimum'))
+             or not is_state('binary_sensor.gilles_messdaten_verfuegbar', 'on') }}
+      sequence:
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.gilles_brennstart_beobachtet
+    - conditions:
+      - condition: trigger
+        id: temperature
+      - condition: state
         entity_id: input_boolean.gilles_brennstart_beobachtet
+        state: 'on'
+      - condition: state
+        entity_id: binary_sensor.gilles_messdaten_verfuegbar
+        state: 'on'
+      - condition: state
+        entity_id: sensor.gilles_brenn_phase_code
+        state:
+        - '1'
+        - '3'
+        - '5'
+        - '6'
+        - '7'
+        - '8'
+        - '9'
+        - '10'
+      - condition: numeric_state
+        entity_id: sensor.gilles_kesseltemperatur
+        below: input_number.gilles_kesseltemperatur_diagnoseminimum
+      sequence:
+      - action: input_number.set_value
+        data:
+          value: '{{ states(''sensor.gilles_kesseltemperatur'') | float }}'
+        target:
+          entity_id: input_number.gilles_kesseltemperatur_diagnoseminimum
   max: 5
   mode: queued
 - alias: Gilles Registerbeobachtung im Brennbetrieb
