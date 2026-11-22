@@ -73,8 +73,8 @@ Die Brennraumtür selbst ist **nicht direkt** in der Modbus-Map exportiert, sond
 | **48** | **`KesselTemp_Ist`**   | int32 | ×0.1 | °C | ✓✓ | Kesseltemperatur (live) |
 | **50** | **`AbgasTemp_Ist`** | int32 | ×0.1 | °C | ✓✓ | Abgastemperatur (live). |
 | **52** | **`RuecklaufTemp_Ist`**| int32 | ×0.1 | °C | ✓✓ | Rücklauftemperatur (live) |
-| **54** | **`O2_Ist`**           | int32 | ×0.1 | %  | ✓✓ | Restsauerstoff-Rohanzeige. Standbywert kein Verbrennungsminimum; die HA-Auswertung filtert auf Regelphase 7. |
-| 56 | `?O2Soll_Live` | int32 | ×0.1? | %? | ✓ | Abgastemperaturabhängiges O₂-Sollmodell durch eine breitere Auswertung wiederholter natürlicher Brennläufe eng gestützt. Touch-Ist/Soll-Seite gefunden; übereinstimmender Nullzustand bestätigt weder Zuordnung noch Skala. Nichtnull-Abgleich offen. |
+| **54** | **`O2_Ist`**           | int32 | ×0.1 | %  | ✓✓ | Restsauerstoff-Rohanzeige. Sehr niedrige Werte auch innerhalb Phase 7 beobachtet; ihre Höhe allein kennzeichnet keinen inaktiven Sensor. HA filtert nach Phase, nicht nach einer zusätzlichen O₂-Untergrenze. Standbywerte bleiben ausgeschlossen; Messgültigkeit und physische Ursache sind damit nicht bestätigt. |
+| 56 | `?O2Soll_Live` | int32 | ×0.1? | %? | ✓ | Abgastemperaturabhängiges O₂-Sollmodell auch im nachgelagerten Beobachtungsfenster bei unveränderten Endpunkten eng gestützt. Touch-Ist/Soll-Seite gefunden; übereinstimmender Nullzustand bestätigt weder Zuordnung noch Skala. Nichtnull-Abgleich offen. |
 | **58** | **`PrimaerIst`** | int32 | ×0.1 HA; ? real | %? | ✓✓ | Historischer Primärluft-Match. Funktionszuordnung bleibt, Skala offen. |
 | **60** | **`SekundaerIst`**     | int32 | ×0.1 | %  | ✓✓ | **Sekundärluft Ist (live)** — bleibt 0 in dieser Anlage (Touch zeigt durchgehend 0%) |
 | **62** | **`SaugzugIst`** | int32 | ×0.1 HA; ? real | %? | ✓✓ | Historischer Saugzug-Match. Funktionszuordnung bleibt, Skala offen. |
@@ -82,7 +82,7 @@ Die Brennraumtür selbst ist **nicht direkt** in der Modbus-Map exportiert, sond
 | **66** | **`AbgasSoll_Live`** | int32 | ×0.1 | °C | ✓✓ | Aktiver Abgas-Sollwert; verändert sich auch innerhalb Phase 7. Kein fester Zweizustandswert. |
 | 68 | `?REG68` | int32 | ? | ? | ? | Steigt und fällt. Konkreter Kandidat: Touch-Anzeige „aktuelle Einschubmenge“. Nichtnull-Abgleich und Skala offen; kein monotoner Verbrauchs-/Laufzeitzähler. |
 | 70 | `?`                        | int32 | ?    | ?  | ? | In allen Beobachtungen 0 |
-| 72 | `?BinaerFlag` | int32 | bool | — | ? | Aktivität während Zündung/Anbrennen erneut beobachtet; zündungsbezogener Ausgang gestützt. Konkreter Aktor unbekannt. |
+| 72 | `?BinaerFlag` | int32 | bool | — | ? | In nachbeobachteten Zyklen High ab Code 3 bis zum Übergang Anbrennen/Regelbetrieb. Startbezug gestützt; konkreter Aktor und exakte Schaltreihenfolge gegenüber REG42 unbekannt. |
 | 74 | `?`                        | int32 | ?    | ?  | ? | In allen Beobachtungen 0 |
 | 76 | `?BinaerFlag` | int32 | bool | — | ? | Wiederkehrende High-Intervalle auch bei REG42=0; nicht auf Brennbetrieb beschränkt. Funktion, Periodizität und physische Impulsdauer offen. |
 | **78** | **`?BinaerFlag`** | int32 | bool | — | ? | Lange High-Intervalle und Standbypulse erneut beobachtet; Asche-Zuordnung bleibt zurückgenommen. Pumpe/Freigabe als unbestätigte Kandidaten; historische HA-IDs bleiben erhalten. |
@@ -98,12 +98,12 @@ Historische Phasenzuordnung mit ergänzender passiver Beobachtung von Code 10. C
 | 3 | Zündung | „Zündung 589" | Primär 70%, Saugzug 80-100%, O₂ steigt auf 21% |
 | 5 | Spät-Zündung / Übergang | (zwischen 3 und 6) | Saugzug 100%, O₂ noch ~21% |
 | 6 | Anbrennphase | „Anbrennphase 34" | Saugzug 80%, Abgas steigt schnell |
-| 7 | Heizen regeln (Regelbetrieb) | „Heizen regeln" | Primär 63%, Saugzug 71%, O₂ 12-14%, Abgas 100+°C, REG[66] springt auf 240°C |
+| 7 | Heizen regeln (Regelbetrieb) | „Heizen regeln" | Luftwerte und Abgas-Soll modulieren; O₂ kann auch sehr niedrige Werte erreichen. |
 | 8 | Ausbrennen | „Ausbrennen" | Primär+Saugzug noch laufend, Abgas fällt |
 | 9 | Nachlauf / Auskühlphase | (nach Brenner aus) | nur noch Lüfter-Nachlauf |
 | 10 | Unbekannter Zykluszustand | noch kein Touch-Abgleich | im Abschaltpfad zwischen Code 9 und Standby 0 beobachtet; kein Flammennachweis |
 
-Ein zusätzlicher aufgezeichneter Abschaltpfad führte von Code 7 über 9 und 10 nach 0. Code 8 erschien darin nicht; ein sehr kurzer Schritt kann jedoch zwischen Abfragen fehlen. Daraus folgt weder, dass Code 8 generell ausgelassen wird, noch dass jeder Brennlauf dieselbe Phasenfolge hat. Die Codes 2 und 4 wurden bisher nicht beobachtet; ihre Existenz und Bedeutung sind offen.
+Der Abschaltpfad `7 → 9 → 10 → 0` wurde in weiteren natürlichen Zyklen erneut aufgezeichnet. Zusätzlich erschien `7 → 9 → 8 → 9 → 0`; eine feste oder numerisch aufsteigende Phasenfolge darf deshalb nicht vorausgesetzt werden. Sehr kurze Schritte können zwischen Abfragen fehlen. Ein fehlender Code in einer Aufzeichnung belegt daher nicht sein physisches Ausbleiben. Die Codes 2 und 4 wurden bisher nicht beobachtet; ihre Existenz und Bedeutung sind offen.
 
 ## Enum: `BoilerStatus` (REG[44])
 

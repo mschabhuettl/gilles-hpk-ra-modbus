@@ -2,6 +2,8 @@
 
 > 🇩🇪 **Deutsch** · [🇬🇧 English](HA_VALIDATION.en.md)
 
+Die folgenden Abschnitte halten jeweils den damaligen Prüfstand fest; frühere Abschnitte „Offen“ sind keine aktuelle Aufgabenliste. Der jüngste Stand steht in der Nachbeobachtung vom 22. November 2026 am Ende dieses Dokuments.
+
 Die Gilles-Konfiguration wurde mit Home Assistant 2026.9.1 an der Referenzanlage abgeglichen. Diese Prüfung ergänzt die frühere Registeridentifikation; sie beweist keine neuen Bedeutungen der bisher unbekannten Register.
 
 ## Reproduzierbare TCP-Leerlaufgrenze
@@ -79,3 +81,35 @@ python3 -m py_compile scripts/test_start_diagnostics.py scripts/test_o2_heating.
 ```
 
 Die neue Minimum-Basis wurde zusätzlich gegen private Warmstart-Verläufe nachgerechnet; die zuvor auftretenden Hinweise werden dabei unterdrückt. Diese Nachrechnung ersetzt keine exakte Wiederholung der asynchronen HA-Verarbeitung. Die Ausführung der Einschaltverzögerung, das Altern des Statistikpuffers und ein vollständiger natürlicher Brennzyklus nach der Änderung sind mit den Offline-Tests nicht bestätigt. Es wurden keine Rohsensorzustände für einen Live-Test überschrieben, keine Benachrichtigungen testweise versandt und kein Brennzyklus ausgelöst. Bestehende Rohwerte, ungefiltertes O₂-Minimum und Historien bleiben erhalten.
+
+## Nachbeobachtung natürlicher Zyklen – Dokumentationsstand 22. November 2026
+
+Die nach der Einrichtung aufgezeichneten natürlichen Brennzyklen wurden unter Home Assistant 2026.11.2 erneut rein lesend geprüft. Die relevanten Änderungshistorien wurden vollständig abgefragt und bei Bedarf paginiert. Private Betriebszeitpunkte, Messreihen und konkrete Betriebszahlen werden hier nicht veröffentlicht. Die aktive Diagnoseautomation, Warnvorlage und SQL-Abfrage wurden zurückgelesen; die zuvor eingerichtete Minimum-Basis, Trendhysterese und Einschaltverzögerung sind weiterhin vorhanden.
+
+### Startdiagnose und Zählung
+
+In sämtlichen ausgewerteten vollständigen Zyklen wurde das Diagnoseminimum mit der gespeicherten Starttemperatur initialisiert. Danach wurde es ausschließlich nach unten nachgeführt und entsprach am Zyklusende dem Minimum der aufgezeichneten Kesseltemperaturen. Die ursprüngliche Starttemperatur blieb erhalten. Bei einzelnen Zyklen wurde noch nach Eintritt in Phase 7 ein niedrigerer Wert erfasst: Das laufende Minimum erfasst somit auch einen späteren Einbruch, den eine feste Basis beim Phasenwechsel nicht abbilden würde.
+
+Die Beobachtungsmarkierung wurde bei direkt erfassten Starts gesetzt und bei Rückkehr in Standby gelöscht. Kurze Datenqualitätslücken lagen zwischen den ausgewerteten Brennzyklen; die Wiederkehr der Daten erzeugte dort weder einen zusätzlichen Start noch eine neu aktivierte Diagnose. Erst ein neuer gültiger Start aktivierte sie wieder. Ein Datenverlust während einer bereits laufenden Startdiagnose trat im geprüften Zeitraum nicht auf und ist durch diese Nachbeobachtung daher nicht praktisch nachgewiesen.
+
+Der Gesamtzähler stieg passend zu den direkt beobachteten Übergängen von 0 nach 1. Die prüfbaren Zustandsänderungen des gleitenden Startzählers stimmen mit einer unabhängigen Nachzählung im jeweils vollständig abgedeckten 24-Stunden-Fenster überein. Das bestätigt die beobachtete Zählung einschließlich des Herausfallens älterer Starts, nicht die Vollständigkeit von Starts in einer unbekannten Messlücke.
+
+Der Hinweis „Temperaturanstieg fehlt“ blieb ausgeschaltet. Das lässt sich anhand der Messwerte erklären: Nach Ablauf der konfigurierten Wartezeit lag der Anstieg über das jeweilige Diagnoseminimum in den relevanten Phasen durchgehend oberhalb der eingestellten Mindestdifferenz. Es gab damit keinen beobachteten Fall, der die Einschaltbedingung erfüllte. **Die störungsfreien Zyklen belegen die Minimum-Nachführung, aber weder das tatsächliche Ablaufen des fünfminütigen Alarmtimers noch die Hysterese eines bereits eingeschalteten Hinweises.** Dazu fehlen weiterhin ein entsprechender natürlicher Ereignisfall oder ein kontrollierter Funktionstest ohne echte Benachrichtigungen.
+
+### O₂-Quelle und Statistikpuffer
+
+Die numerischen Änderungen der gefilterten O₂-Quelle traten ausschließlich in Phase 7 auf und stimmten jeweils mit dem zugehörigen Rohwert überein. Beim Verlassen der Heizphase wechselte die Quelle auf `unknown`; sie erzeugte keinen numerischen Standby-Ersatzwert. Die gespeicherten Änderungen des Heizbetriebsminimums entsprechen einer unabhängigen Nachrechnung aus den gefilterten Daten im gleitenden 24-Stunden-Fenster, einschließlich der Vorgeschichte für die Fensterinitialisierung.
+
+Das Herausfallen älterer Minimalwerte aus diesem Fenster wurde inzwischen im natürlichen Betrieb beobachtet. Der Puffer wurde durch weitere Heizzyklen jedoch nicht vollständig leer. Sein vollständiges Leerlaufen ohne neue Heizmesswerte bleibt deshalb unbestätigt. Bei ungültigen Eingangsdaten wechselten Quelle beziehungsweise Statistik auf `unavailable` und erholten sich nach Rückkehr gültiger Daten; dies ist von einer regulären Pause außerhalb Phase 7 zu unterscheiden.
+
+Sehr niedrige O₂-Rohwerte wurden auch während Phase 7 als echte neue Eingangswerte aufgezeichnet. Der Phasenfilter allein entfernt sie deshalb nicht. Es wurde keine zusätzliche Untergrenze eingeführt, die solche Werte ausblenden würde. Diese Prüfung bestätigt die Datenverarbeitung, nicht die Messgenauigkeit, eine Herstellerfreigabe der Registerdeutung oder die Verbrennungsqualität.
+
+### Reichweite der Prüfung
+
+Die Gilles-bezogenen Treffer im abgefragten Systemprotokoll beschränkten sich auf die bekannte Warnung zum gezielten kurzen Abfrageintervall. Allgemeine Modbus-Meldungen betreffen mehrere Integrationen und erlauben ohne Zuordnung keine pauschale Aussage über die Gilles-Verbindung. Die beobachteten Datenqualitätslücken bleiben Bestandteil des Befunds; eine allgemeine Fehlerfreiheit wird nicht behauptet.
+
+Nach der Textkorrektur im Live-Dashboard wurde die gespeicherte Konfiguration erneut zurückgelesen; alle 83 referenzierten Entitäten sind vorhanden. Die O₂-Quelle ist im Standby erwartungsgemäß `unknown`, ihr Minimum bleibt numerisch und die Startphasendauer ist außerhalb eines Starts nicht verfügbar. Ein angeforderter Screenshot war wegen deaktivierter Renderfunktion nicht erhältlich; die Prüfung bestätigt Konfiguration und Referenzen, keine neu gerenderte Ansicht.
+
+Die Offline-Konsistenzprüfung wurde erneut erfolgreich ausgeführt: 40 Rohsensoren, 49 YAML-Entitäten, 39 UI-Definitionen, vier Automationen, 83 Dashboard-Verweise und fünf portable Ansichten. Alle 24 bestehenden automatisierten Tests, die Python-Kompilierung und `git diff --check` bestanden. `homeassistant.check_config` war erfolgreich.
+
+Die Prüfung veränderte keine Rohsensorzustände, schrieb keine Kesselregister und löste keinen Brennzyklus oder Testversand aus. Die Änderungen betreffen erklärende Dashboard-Texte und Dokumentation; Diagnoseautomation, Helfer, Identitäten, Historien und Abfrageintervalle bleiben erhalten.

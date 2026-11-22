@@ -10,6 +10,8 @@ A community effort to document the Modbus TCP interface of the **Gilles Touch** 
 
 [Findings and open checks](docs/REGISTER_FINDINGS.en.md): O₂ target hypothesis for REG56, nonmonotonic REG68, active REG76 pulses and evidence contradicting the ash-motor interpretation of REG78. REG46=61 is a candidate for the “buffer temperature reached” message. The rolling 24-hour start count now uses directly recorded `0→1` transitions in Recorder. Startup diagnostics compare recovery with the lowest boiler reading observed since the start; trend hysteresis and an activation delay suppress brief fluctuations. A separate O₂ statistic includes only the heating phase. Broader passive analysis continues to support REG56 as an O₂-target candidate without upgrading its confidence level. Private operating histories and screenshots are not published.
 
+The [follow-up of natural burner cycles](docs/HA_VALIDATION.en.md) confirms the running minimum baseline, recorded start counting and phase-filtered O₂ minimum, including expiry of older low samples. Low O₂ values were also recorded within the heating phase, so the number alone does not identify standby. Actual execution of the warning delay remains untested because no qualifying alarm case occurred.
+
 ## Background
 
 The Gilles HPK-RA pellet boilers are equipped with the **Gilles Touch** controller, built on a Sigmatek HZS panel running LASAL II. Modbus TCP support is advertised in the product brochure ("Modbus und/oder BAC-Net kompatibel") and runs on port 502.

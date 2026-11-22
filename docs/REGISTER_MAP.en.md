@@ -73,8 +73,8 @@ The combustion chamber door itself is **not directly** exported via Modbus — i
 | **48** | **`KesselTemp_Ist`**   | int32 | ×0.1 | °C | ✓✓ | Boiler temperature (live) |
 | **50** | **`AbgasTemp_Ist`** | int32 | ×0.1 | °C | ✓✓ | Flue gas temperature (live). |
 | **52** | **`RuecklaufTemp_Ist`**| int32 | ×0.1 | °C | ✓✓ | Return temperature (live) |
-| **54** | **`O2_Ist`**           | int32 | ×0.1 | %  | ✓✓ | Raw residual-oxygen reading. Standby readings are not combustion minima; HA evaluation filters to regulation phase 7. |
-| 56 | `?O2Soll_Live` | int32 | ×0.1? | %? | ✓ | A broader analysis of repeated natural burner cycles closely supports the exhaust-temperature-based O₂ target model. The Touch actual/target page is identified; matching zero values establish neither identity nor scale. Nonzero comparison remains open. |
+| **54** | **`O2_Ist`**           | int32 | ×0.1 | %  | ✓✓ | Raw residual-oxygen reading. Very low values also observed within phase 7; their magnitude alone does not identify an inactive sensor. HA filters by phase, not an additional O₂ lower cutoff. Standby values remain excluded; measurement validity and physical cause are not established. |
+| 56 | `?O2Soll_Live` | int32 | ×0.1? | %? | ✓ | A later observation window with unchanged endpoints also closely supports the exhaust-temperature-based O₂ target model. The Touch actual/target page is identified; matching zero values establish neither identity nor scale. Nonzero comparison remains open. |
 | **58** | **`PrimaerIst`** | int32 | ×0.1 HA; ? actual | %? | ✓✓ | Historical primary-air match. Functional identification retained, scale uncertain. |
 | **60** | **`SekundaerIst`**     | int32 | ×0.1 | %  | ✓✓ | **Secondary air actual (live)** — stays 0 in this installation (Touch shows 0% throughout) |
 | **62** | **`SaugzugIst`** | int32 | ×0.1 HA; ? actual | %? | ✓✓ | Historical induced-draft match. Functional identification retained, scale uncertain. |
@@ -82,7 +82,7 @@ The combustion chamber door itself is **not directly** exported via Modbus — i
 | **66** | **`AbgasSoll_Live`** | int32 | ×0.1 | °C | ✓✓ | Active flue target; changes within phase 7. Not a fixed binary value. |
 | 68 | `?REG68` | int32 | ? | ? | ? | Increases and decreases. Specific candidate: Touch “aktuelle Einschubmenge” (current feed amount). Nonzero comparison and scale remain open; not a monotonic consumption/runtime counter. |
 | 70 | `?`                        | int32 | ?    | ?  | ? | Always 0 in all observations |
-| 72 | `?BinaryFlag` | int32 | bool | — | ? | Activity during ignition/startup observed again; supports an ignition-related output. Exact actuator unknown. |
+| 72 | `?BinaryFlag` | int32 | bool | — | ? | In followed-up cycles, high from code 3 until the transition from initial combustion to regulation. Startup association supported; exact actuator and switching order relative to REG42 unknown. |
 | 74 | `?`                        | int32 | ?    | ?  | ? | Always 0 in all observations |
 | 76 | `?BinaryFlag` | int32 | bool | — | ? | Recurring high intervals also occur with REG42=0; not restricted to burner operation. Purpose, periodicity and physical pulse width unknown. |
 | **78** | **`?BinaryFlag`** | int32 | bool | — | ? | Long high intervals and standby pulses observed again; ash-discharge identification remains withdrawn. Pump/release remain unconfirmed candidates; legacy HA IDs retained. |
@@ -98,12 +98,12 @@ Historical phase assignment supplemented by passive observation of code 10. Code
 | 3 | Zündung (ignition) | "Zündung 589" | Primär 70%, Saugzug 80-100%, O₂ rises to 21% |
 | 5 | Late ignition / transition | (between 3 and 6) | Saugzug 100%, O₂ still ~21% |
 | 6 | Anbrennphase (initial combustion) | "Anbrennphase 34" | Saugzug 80%, exhaust rises rapidly |
-| 7 | Heizen regeln (regulating heat) | "Heizen regeln" | Primär 63%, Saugzug 71%, O₂ 12-14%, exhaust 100+°C, REG[66] jumps to 240°C |
+| 7 | Heizen regeln (regulating heat) | "Heizen regeln" | Air values and flue target modulate; O₂ can also reach very low values. |
 | 8 | Ausbrennen (burn-out) | "Ausbrennen" | Primary + Saugzug still on, exhaust falling |
 | 9 | Auskühlphase (cooldown) | (after burner off) | only blower run-on |
 | 10 | Unknown cycle state | no Touch comparison yet | observed between code 9 and standby 0 during shutdown; not evidence of a flame |
 
-An additional recorded shutdown path went from code 7 through 9 and 10 to 0. Code 8 did not appear in that recording, but a very brief step could fall between polls. This establishes neither that code 8 is always skipped nor that every cycle follows the same sequence. Codes 2 and 4 have not been observed; their existence and meaning remain unresolved.
+The shutdown path `7 → 9 → 10 → 0` was recorded again in further natural cycles. The path `7 → 9 → 8 → 9 → 0` also appeared, so neither a fixed nor a numerically increasing phase sequence can be assumed. Very brief steps can fall between polls. A code's absence from a recording therefore does not establish its physical absence. Codes 2 and 4 have not been observed; their existence and meaning remain unresolved.
 
 ## Enum: `BoilerStatus` (REG[44])
 

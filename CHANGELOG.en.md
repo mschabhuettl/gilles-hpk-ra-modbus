@@ -4,6 +4,16 @@
 
 All notable findings during the reverse engineering of the Gilles Touch Modbus map.
 
+## [0.9.1] — 2026-11-22 — Natural burner cycles checked
+
+Checked the running diagnostic minimum and start counting against complete recorded burner cycles. The temperature warning remained off where recovery satisfied the threshold. No qualifying alarm case occurred, so this does not test the activation delay or active hysteresis under fault conditions. Observed data gaps occurred outside burner cycles; a loss of data during active diagnostics still needs a separate check.
+
+In the checked histories, the O₂ source accepts only updated heating-phase readings. Its minimum persists during standby, follows the rolling window and becomes unavailable for invalid inputs. Low O₂ values also occur during heating and must not be discarded indiscriminately as standby or invalid readings. Clarified dashboard text and both documentation languages; replaced the obsolete note about still awaiting first heating samples.
+
+The REG56 model remains supported and different shutdown sequences are documented. No new confirmation of register meanings or scaling, no changes to diagnostic parameters or boiler control. The linked website articles were synchronized in German and English. Private operating data remain unpublished.
+
+Scope and limits: [HA_VALIDATION](docs/HA_VALIDATION.en.md).
+
 ## [0.9.0] — 2026-11-16 — Warm-start diagnostics and heating-phase O₂
 
 The temperature advisory now compares the rise with the lowest boiler reading recorded since a valid observed start. The original initial reading remains separate. Recovery after initial cooling can therefore satisfy a warm start's rise criterion; failure to regain the warm starting value no longer leaves that criterion unsatisfied by itself. Trend hysteresis and a five-minute activation delay suppress brief fluctuations. Standby, restart or invalid raw inputs still invalidate the diagnosis. This remains a startup diagnostic, not proof of flame or measured heat output.

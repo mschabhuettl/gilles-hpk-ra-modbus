@@ -10,6 +10,8 @@ Community-Projekt zur Dokumentation der Modbus-TCP-Schnittstelle der **Gilles To
 
 [Erkenntnisse und offene Prüfungen](docs/REGISTER_FINDINGS.md): O₂-Sollwert-Hypothese für REG56, nichtmonotones REG68, aktive REG76-Pulse und Widerspruch zur Aschemotor-Deutung von REG78. REG46=61 ist ein Kandidat für die Meldung „Puffertemperatur erreicht“. Die rollierende 24-h-Startzählung verwendet jetzt direkt aufgezeichnete Übergänge `0→1` im Recorder. Die Startdiagnose vergleicht den Wiederanstieg mit dem tiefsten beobachteten Kesselwert seit dem Start; Trendhysterese und Einschaltverzögerung unterdrücken kurze Schwankungen. Eine eigene O₂-Statistik berücksichtigt nur die Heizphase. Die breitere passive Auswertung stützt REG56 weiterhin als O₂-Sollwert-Kandidaten, ohne seine Vertrauensstufe anzuheben. Private Betriebsverläufe und Screenshots werden nicht veröffentlicht.
 
+Die [Nachprüfung natürlicher Brennzyklen](docs/HA_VALIDATION.md) bestätigt die laufende Minimum-Basis, die aufgezeichnete Startzählung und das phasenbezogene O₂-Minimum einschließlich des Ablaufs alter Tiefstwerte. Niedrige O₂-Werte wurden auch innerhalb der Heizphase aufgezeichnet; der Zahlenwert allein kennzeichnet daher keinen Standbyzustand. Die tatsächliche Auslösung der Warnverzögerung bleibt mangels passendem Alarmfall ungeprüft.
+
 ## Hintergrund
 
 Die Gilles HPK-RA Pelletkessel sind mit der **Gilles Touch** Steuerung ausgestattet, die auf einem Sigmatek HZS-Touchpanel mit LASAL II läuft. Modbus TCP ist im Produktprospekt angekündigt („Modbus und/oder BAC-Net kompatibel") und lauscht auf Port 502.

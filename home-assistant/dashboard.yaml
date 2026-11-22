@@ -100,7 +100,9 @@ views:
 
       Die Skalierung von REG58/60/62 bleibt bis zum synchronisierten Touch-Vergleich offen. Bei Primärluft
       und Saugzug besteht eine Faktor-10-Frage; ein Nullwert kann keinen Skalierungsfaktor bestätigen. O₂-Werte
-      im Standby sind kein Nachweis der Verbrennungsqualität.'
+      im Standby sind kein Nachweis der Verbrennungsqualität. Niedrige aktualisierte O₂-Werte kommen auch
+      in Phase 7 vor; der Zahlenwert allein kennzeichnet keine inaktive Sonde. Diese Werte bleiben in der
+      Heizphasen-Statistik enthalten, ohne damit ihre physische Messgültigkeit zu bestätigen.'
     type: markdown
   - entities:
     - entity: sensor.gilles_primar_ist_vermutet
@@ -171,8 +173,9 @@ views:
 
       Die bisherigen Aschezähler zählen REG78-Einschaltflanken; eine tatsächliche Ascheaustragung ist damit
       nicht bestätigt. Das O₂-Minimum berücksichtigt nur gültige Messwerte aus der Heizphase (Code 7). Standbywerte
-      werden ausgelassen. Die neue Auswertung beginnt mit den nächsten Heizdaten; frühere Rohwerte werden nicht
-      rückwirkend umgerechnet. Nach 24 Stunden ohne Heizmesswert wird kein Minimum mehr angezeigt. Pelletverbrauch
+      werden ausgelassen. Die Auswertung verwendet Heizdaten seit ihrer Einrichtung; frühere Rohwerte werden nicht
+      rückwirkend umgerechnet. Auch niedrige, während Phase 7 aktualisierte Werte bleiben enthalten; eine
+      Untergrenze zum Ausblenden solcher Werte gibt es nicht. Nach 24 Stunden ohne Heizmesswert wird kein Minimum mehr angezeigt. Pelletverbrauch
       und Wirkungsgrad bleiben ohne eigene Messung unbekannt.'
     type: markdown
   - entities:
@@ -339,8 +342,9 @@ views:
   - content: '## Register-Erkenntnisse und offene Fragen
 
 
-      **Phase 10 / Status 43:** Bedeutung offen. Phase 10 folgt in einem aufgezeichneten Abschaltpfad auf 9
-      und geht in 0 über. Status 43 bleibt auch im Standby bestehen; daraus folgt keine bestätigte Störungsmeldung.
+      **Phase 10 / Status 43:** Bedeutung offen. Aufgezeichnet sind die Abschaltpfade 7→9→10→0 und
+      7→9→8→9→0. Die Reihenfolge ist nicht fest; kurze Schritte können zwischen Abfragen fehlen. Status 43
+      bleibt auch im Standby bestehen; daraus folgt keine bestätigte Störungsmeldung.
 
 
       **REG56:** Weitere Heizverläufe stützen die O₂-Sollwert-Hypothese: REG56 / 10 folgt dem aus Abgastemperatur
@@ -350,7 +354,9 @@ views:
 
       **O₂-Min/Max:** Laut Gilles-Handbuch beziehen sich die Sollwerte auf minimale beziehungsweise maximale
       Kesselleistung. Ein kleinerer O₂-Wert bei „Max“ belegt keine vertauschten Grenzen. Das Heizphasen-Minimum
-      lässt Standbywerte aus; der Rohwert bleibt erhalten.
+      lässt Standbywerte aus; der Rohwert bleibt erhalten. Niedrige aktualisierte O₂-Werte kommen auch in
+      Phase 7 vor und werden nicht pauschal als ungültig verworfen. Der Zahlenwert allein identifiziert
+      keinen Standbyzustand.
 
 
       **REG68:** Kandidat für „aktuelle Einschubmenge“, kein Verbrauchszähler. Skala weiterhin offen.

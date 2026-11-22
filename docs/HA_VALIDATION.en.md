@@ -2,6 +2,8 @@
 
 > [🇩🇪 Deutsch](HA_VALIDATION.md) · 🇬🇧 **English**
 
+The sections below record the state of validation at their respective dates; earlier “Open questions” sections are not a current task list. The latest findings appear in the 22 November 2026 follow-up at the end of this document.
+
 The Gilles configuration was compared with the reference installation running Home Assistant 2026.9.1. This extends the earlier register work; it does not establish new meanings for unknown registers.
 
 ## Reproducible TCP idle limit
@@ -79,3 +81,35 @@ python3 -m py_compile scripts/test_start_diagnostics.py scripts/test_o2_heating.
 ```
 
 The new minimum baseline was also replayed against private warm-start traces, suppressing the previously observed advisories. This calculation does not exactly replay HA's asynchronous processing. Actual execution of the on-delay, statistics-buffer expiry and a complete natural firing cycle after deployment are not established by the offline tests. No raw sensor states were overwritten for live testing, no test notifications were sent and no burner cycle was initiated. Existing raw values, unfiltered O₂ minimum and histories are preserved.
+
+## Natural-cycle follow-up – documentation updated 22 November 2026
+
+Natural firing cycles recorded after deployment were reviewed again using read-only access on Home Assistant 2026.11.2. Relevant state-change histories were retrieved in full, with pagination where needed. Private operating timestamps, measurement series and specific operating counts are not published here. The active diagnostic automation, advisory template and SQL query were read back; the previously deployed minimum baseline, trend hysteresis and on-delay remain configured.
+
+### Startup diagnostics and counting
+
+In every complete cycle examined, the diagnostic minimum was initialized from the recorded startup temperature. It was subsequently updated only downwards and matched the minimum recorded boiler temperature at the end of the cycle. The original startup temperature was preserved. Some cycles produced a lower reading after entering phase 7: the running minimum therefore also captures a later dip that a fixed phase-entry baseline would miss.
+
+The observation flag was set on directly observed starts and cleared on return to standby. Brief data-quality gaps occurred between the examined firing cycles; data recovery neither generated an additional start nor reactivated the diagnosis. A new valid start was required to arm it again. No data loss occurred during an already active startup diagnosis in the reviewed interval, so this follow-up does not establish that reset behavior through an observed live event.
+
+The total counter increased consistently with directly observed transitions from 0 to 1. The checkable state changes of the rolling start counter agree with an independent recount within each fully covered 24-hour window. This confirms the observed counting, including older starts leaving the window; it does not establish the completeness of starts inside an unknown recording gap.
+
+The “Temperature rise missing” advisory remained off. The measurements explain this: after the configured waiting period, the rise above each cycle's diagnostic minimum stayed above the configured minimum difference throughout the relevant phases. No observed case therefore met the turn-on condition. **The uneventful cycles verify minimum tracking, but do not prove that the five-minute alarm timer runs to completion or that an already active advisory exercises its hysteresis.** Those still require a corresponding natural event or a controlled functional test without real notifications.
+
+### O₂ source and statistics buffer
+
+Numeric changes in the filtered O₂ source occurred only in phase 7 and matched the corresponding raw readings. On leaving the heating phase, the source became `unknown`; it produced no numeric substitute for standby. Recorded changes in the heating-phase minimum agree with an independent calculation from filtered samples in the rolling 24-hour window, including the earlier history needed to initialize that window.
+
+Older minima leaving that window have now been observed during natural operation. Further heating cycles prevented the buffer from becoming completely empty, however. Full expiry without new heating samples therefore remains unverified. Invalid inputs caused the source or statistics entity to become `unavailable`, followed by recovery when valid inputs returned; this differs from a normal pause outside phase 7.
+
+Very low raw O₂ readings were also recorded as genuine new inputs during phase 7. The phase filter alone consequently does not remove them. No additional lower bound was introduced to hide such values. This check validates data processing, not measurement accuracy, manufacturer confirmation of the register interpretation or combustion quality.
+
+### Scope of validation
+
+Gilles-specific entries in the queried system log were limited to the known warning about the targeted short polling interval. General Modbus messages involve multiple integrations and cannot support a blanket conclusion about the Gilles connection without attribution. Observed data-quality gaps remain part of the findings; no general error-free status is claimed.
+
+After correcting the live dashboard text, its stored configuration was read back again; all 83 referenced entities exist. The O₂ source is appropriately `unknown` in standby, its minimum remains numeric, and startup duration is unavailable outside a start. A requested screenshot could not be obtained because rendering is disabled; the check confirms configuration and references, not a newly rendered view.
+
+The offline consistency check was run again successfully: 40 raw sensors, 49 YAML entities, 39 UI definitions, four automations, 83 dashboard references and five portable views. All 24 existing automated tests, Python compilation and `git diff --check` passed. `homeassistant.check_config` succeeded.
+
+The review did not overwrite raw sensor states, write boiler registers, initiate a firing cycle or send test notifications. Changes affect explanatory dashboard text and documentation; the diagnostic automation, helpers, identities, histories and polling intervals remain intact.

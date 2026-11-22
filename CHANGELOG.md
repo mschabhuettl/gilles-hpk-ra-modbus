@@ -4,6 +4,16 @@
 
 Alle nennenswerten Erkenntnisse während des Reverse Engineerings der Gilles-Touch-Modbus-Map.
 
+## [0.9.1] — 2026-11-22 — Natürliche Brennzyklen nachgeprüft
+
+Die laufende Diagnoseminimum-Basis und Startzählung gegen vollständige aufgezeichnete Brennzyklen geprüft. Die Temperaturwarnung blieb bei erfülltem Wiederanstieg aus. Da kein echter Alarmkandidat vorlag, sind Einschaltverzögerung und aktive Hysterese damit nicht im Fehlerfall erprobt. Beobachtete Datenlücken lagen außerhalb der Brennzyklen; ein Ausfall während aktiver Diagnose bleibt gesondert zu prüfen.
+
+Die O₂-Quelle übernimmt in den geprüften Verläufen ausschließlich aktualisierte Werte der Heizphase. Das Minimum bleibt im Standby erhalten, folgt dem rollierenden Zeitfenster und wird bei ungültigen Eingängen nicht verfügbar. Niedrige O₂-Werte kommen auch im Heizbetrieb vor und dürfen nicht pauschal als Standbywert oder ungültige Messung ausgefiltert werden. Dashboard-Texte und beide Sprachfassungen der Dokumentation entsprechend präzisiert; veralteten Hinweis auf noch fehlende erste Heizdaten ersetzt.
+
+REG56-Prüfmodell erneut gestützt, unterschiedliche Abschaltfolgen dokumentiert. Keine Registerbedeutung oder Skalierung neu bestätigt, keine Diagnoseparameter oder Kesselsteuerung geändert. Die verknüpften Websiteartikel wurden auf Deutsch und Englisch abgeglichen. Private Betriebsdaten bleiben unveröffentlicht.
+
+Prüfumfang und Grenzen: [HA_VALIDATION](docs/HA_VALIDATION.md).
+
 ## [0.9.0] — 2026-11-16 — Warmstart-Diagnose und O₂ im Heizbetrieb
 
 Die Temperaturwarnung vergleicht den Anstieg jetzt mit der niedrigsten seit dem gültig beobachteten Start erfassten Kesseltemperatur. Der ursprüngliche Startwert bleibt separat erhalten. Dadurch reicht bei einem Warmstart die Erwärmung nach anfänglicher Abkühlung aus; ein noch nicht wieder erreichter warmer Startwert führt nicht weiter allein zu einem fehlenden Anstieg. Trendhysterese und fünf Minuten Einschaltverzögerung unterdrücken kurze Schwankungen. Die Diagnose wird bei Standby, Neustart oder ungültigen Rohdaten weiterhin verworfen. Es bleibt eine Startdiagnose, kein Nachweis einer Flamme oder einer gemessenen Wärmeleistung.

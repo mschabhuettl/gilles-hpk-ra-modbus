@@ -79,6 +79,8 @@ The quality tile is labeled “40 Messwerte numerisch vorhanden” (40 numeric r
 
 The warning sensors and dashboard do not send notifications themselves. An existing central notification automation must be enabled separately and its delivery route checked. This package does not enable unrelated notification automations.
 
+The follow-up of natural burner cycles confirms the running diagnostic minimum and recorded start counting. Operation without a temperature warning does not by itself test actual execution of the activation delay or hysteresis. See the [validation report](../docs/HA_VALIDATION.en.md) for observed cases and remaining limits.
+
 ## Statistics limits and unresolved registers
 
 The four statistics helpers for boiler minimum, boiler maximum, flue-gas maximum and O₂ minimum now retain up to **10,000 instead of 4,000 samples**, with `max_age: 24 h` unchanged. Frequent changes can cause the sample limit to evict older values before the time window expires. The “24 h” label therefore does not guarantee a full 24 hours. Update only the existing helpers' `sampling_size` option, preserving entity IDs and history. Check `age_coverage_ratio` and `buffer_usage_ratio` again after reloading. More buffer capacity cannot replace missing source readings.
@@ -88,6 +90,8 @@ The four statistics helpers for boiler minimum, boiler maximum, flue-gas maximum
 `sensor.gilles_o2_heizbetrieb_24h_min` evaluates only numeric source readings. It ignores `unknown`, retaining genuine heating samples during standby until `max_age: 24 h` expires. `keep_last_sample: false` prevents an expired sample from being retained indefinitely. Actual source unavailability also makes the statistic `unavailable`. Before the first qualifying heating phase, or after all samples expire, no minimum can be evaluated. The dashboard marks this state instead of inventing a number.
 
 For migration, create the new template source, then the new statistic, and switch the dashboard to it. The unfiltered raw sensor and `sensor.gilles_o2_24h_min` remain unchanged. The new metric builds its history from installation onward; existing history is not retrospectively cleaned. Parameter labels “O₂ Min/Max” refer to targets at minimum/maximum **output**, not numerical oxygen limits; see [manufacturer context and register findings](../docs/REGISTER_FINDINGS.en.md).
+
+**Low heating readings remain visible:** New low O₂ readings were also recorded after entry into phase `7`, alongside changing temperatures. The number alone does not identify standby or an inactive probe. Values passing the existing input checks remain in the heating-phase minimum; no additional lower cutoff hides those observations. The filter checks numeric inputs and phase membership, not physical measurement validity. Follow-up also shows the expected retention during standby and expiry of older low samples. An entirely empty buffer after a sufficiently long heating pause was not observed.
 
 **Rolling start count through SQL:** `sensor.gilles_brennstarts_24h` now counts HA Recorder rows whose state is `1` and whose predecessor, joined through `old_state_id` for the same entity, is `0`. The window is `now() - 24 h < last_updated_ts <= now()`. A phase `1` already active before the window does not count again. Transitions from `unavailable` or `unknown` to `1` are also excluded. The old `sum_differences_nonnegative` statistics helper undercounted sparse starts when its preceding counter sample aged out; that helper is no longer created.
 
