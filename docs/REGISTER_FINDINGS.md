@@ -4,6 +4,8 @@
 
 Eine erweiterte passive Auswertung korrigiert mehrere frühere Registerdeutungen. Diese öffentliche Zusammenfassung enthält ausschließlich verallgemeinerte technische Befunde. Rohbeobachtungen bleiben privat; Messreihen, Screenshots, konkrete Betriebszeitpunkte, Laufzeiten und anlagenspezifische Messwerte werden nicht veröffentlicht. Die Zusammenfassung allein erlaubt daher keine unabhängige Nachrechnung der beobachteten Zusammenhänge.
 
+Die [inoffizielle Spezifikation 0.1.0](spec/README.md) fasst den Befundstand 0.9.1 als lesendes Implementierungsprofil mit PDF, LaTeX-Quelle und synthetischen Prüfvektoren zusammen. Offene Deutungen bleiben auch dort ausdrücklich unbestätigt.
+
 ## REG56: berechneter O₂-Sollwert als starke Hypothese
 
 REG56 ist im Regelbetrieb anhaltend aktiv und folgt einer abgastemperaturabhängigen Beziehung. Die frühere Beschreibung als bloßer kurzer Impuls ist überholt. Eine breitere Auswertung wiederholter natürlicher Brennläufe stützt die lineare Interpolation zwischen den konfigurierten Temperatur- und O₂-Endpunkten erneut. Auch in einem späteren Beobachtungsfenster passen die Nichtnull-Werte im Regelbetrieb bei unveränderten numerischen Endpunkten eng zum Prüfmodell. Das erhöht die empirische Stützung, ersetzt aber keinen synchronisierten Vergleich mit dem Touch:

@@ -4,6 +4,14 @@
 
 All notable findings during the reverse engineering of the Gilles Touch Modbus map.
 
+## [0.10.0] — 2026-11-27 — Unofficial interface specification
+
+Added [specification 0.1.0](docs/spec/README.en.md) as German and English PDFs with a LaTeX source archive. The document version is independent of the project version. The read-only profile covers addressing, MBAP, int32 decoding, all 40 known logical values and the limits of state and scale interpretations.
+
+Both language editions generate their register tables from the same `registers.json`. Synthetic messages and decoder vectors support offline checks without a device connection. This edition consolidates the existing 0.9.1 evidence baseline only; no new measurements, register mappings or confidence upgrades. Private raw data remain unpublished.
+
+Qualified older absolute claims in the README, controller overview and methodology: unmapped quantities do not establish general inaccessibility; door indication, function support, export completeness and TCP behavior remain limited to the available observations.
+
 ## [0.9.1] — 2026-11-22 — Natural burner cycles checked
 
 Checked the running diagnostic minimum and start counting against complete recorded burner cycles. The temperature warning remained off where recovery satisfied the threshold. No qualifying alarm case occurred, so this does not test the activation delay or active hysteresis under fault conditions. Observed data gaps occurred outside burner cycles; a loss of data during active diagnostics still needs a separate check.

@@ -2,7 +2,7 @@
 
 > 🇩🇪 **Deutsch** · [🇬🇧 English](METHODOLOGY.en.md)
 
-Dieses Dokument beschreibt das Vorgehen beim Reverse Engineering der Gilles-Touch-Modbus-Map. Zweck: Reproduzierbarkeit für andere Gilles-Besitzer und Vorlage für ähnliche Projekte.
+Dieses Dokument beschreibt das historische Vorgehen beim Reverse Engineering der Gilles-Touch-Modbus-Map. Frühere Testabläufe bleiben als Verlauf dokumentiert. Maßgeblich für heutige Implementierungen sind die [aktuellen Befunde](REGISTER_FINDINGS.md) und das [inoffizielle Leseprofil](spec/README.md).
 
 ## Phase 1 — Erreichbarkeit prüfen
 
@@ -28,13 +28,13 @@ HR[2]=0, HR[3]=700      ← kombiniert int32 = 700
 ...
 ```
 
-Muster: jedes gerade 16-bit-Register ist 0, jedes ungerade hat Daten. Das ist das **klassische Sigmatek-Muster**: alle Werte sind 32-bit Big-Endian-Integers, gespeichert über zwei Register, das High-Word ist immer 0 weil die zugrundeliegenden Werte klein sind.
+Im damaligen Ausschnitt war das High Word jeweils null. Das dokumentierte Format ist ein 32-Bit-Integer aus zwei 16-Bit-Wörtern, High Word zuerst. Das High Word ist nicht grundsätzlich null und darf beim Dekodieren nicht verworfen werden.
 
-Die Map endet bei Adresse 78 (= 40 int32-Werte). Lesen ab Adresse 80 oder höher liefert keine Antwort, der Controller schließt die TCP-Verbindung.
+Der letzte bekannte int32-Wert beginnt an Adresse 78 und belegt die Wörter 78/79. Historische Versuche ab Adresse 80 ergaben keine nutzbare Antwort; das belegt keine vollständige Grenze sämtlicher Serverfunktionen.
 
 ## Phase 3 — Querverweis mit Parameter-Export
 
-Die Gilles Touch kann alle Parameter via USB-Stick als `parameter.txt` exportieren. Diese Datei enthält jeden internen LASAL-Parameter mit seinem aktuellen Wert und Namen:
+Die Gilles Touch kann benannte Parameter mit ihren aktuellen Werten via USB-Stick als `parameter.txt` exportieren. Ob der Export jeden internen LASAL-Parameter enthält, ist nicht belegt:
 
 ```
 LSE_KesselPara_Temp1.sKesselSollTag,750,Temp3_0,...
@@ -130,17 +130,17 @@ In v0.2.0 war REG[62] als „Brennraumtür" identifiziert (basierend auf der Beo
 
 **Lehre**: Korrelation ist nicht Identität. Bei Zustandsänderungen mehrere abhängige Größen prüfen, sonst weist man einem Register die falsche Semantik zu. Im Zweifel: weitere Beobachtungen abwarten, in denen die beiden Größen unabhängig variieren.
 
-Die Brennraumtür ist tatsächlich **gar nicht direkt** in der Modbus-Map exportiert — sie ist nur indirekt über REG[46]=35 erkennbar.
+Ein direkter Brennraumtürkontakt ist in der getesteten Map nicht identifiziert. REG46=35 wurde historisch bei offener Tür beobachtet; unbekannte Statuscodes erlauben keine sichere Türzuordnung.
 
 ## Warum das funktioniert
 
-Modbus hat kein Discovery-Protokoll. Ohne Dokumentation ist der einzige Weg, den Controller in bekannte Zustände zu bringen und zu beobachten, welche Register sich bewegen. Drei Quellen für „bekannte Zustände":
+Die bisher genutzten Lesezugriffe liefern keine semantische Beschreibung der Register. Die historische Zuordnung verglich deshalb Registerwerte mit bekannten Zuständen aus diesen Quellen:
 
 1. **Parameter-Export** (statische Konfiguration) — für Sollwerte und Konstanten
 2. **Touch-Anzeige** (Live-Werte) — für aktuelle Messwerte
 3. **Owner-gefahrene Test-Sequenzen** — für zustandsabhängige Werte
 
-Jede Quelle deckt verschiedene Register ab; Kombination liefert volle Abdeckung.
+Die Quellen ergänzen sich; auch ihre Kombination hat nicht alle Registerfunktionen und Skalen geklärt. Weitere Vergleiche erfolgen während natürlich auftretender Betriebszustände.
 
 Vor allem **Phase 5 (Live-Korrelation)** und **Phase 7 (Brennzyklus)** waren wertmäßig die produktivsten — pro 30-minütiger Test-Session ließen sich oft 4-7 Register identifizieren.
 

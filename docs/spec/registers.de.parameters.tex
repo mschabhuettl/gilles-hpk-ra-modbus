@@ -1,0 +1,28 @@
+% Generated from registers.json by build_spec.py; do not edit.
+\begingroup\small
+\begin{longtable}{@{}L{10mm}L{42mm}L{25mm}L{9mm}L{77mm}@{}}
+\toprule \textbf{Adr.} & \textbf{Projektname} & \textbf{Skala / Einheit} & \textbf{Grad} & \textbf{Bedeutung und Grenze}\\\midrule\endhead
+\bottomrule\endfoot
+0 & \code{sProzFoerderSchnecke} & × 0.1\newline \% & \grade{V} & Prozentualer Einstellwert der Förderschnecke; keine gemessene Brennstoffmenge oder Wärmeleistung.\\[4pt]
+2 & \code{sPrimaerMax} & × 0.1\newline \% & \grade{V} & Oberer Primärluft-Parameter. Bestätigt nicht die Skalierung des aktuellen Primärluftwerts REG58.\\[4pt]
+4 & \code{sPrimaerMin} & × 0.1\newline \% & \grade{V} & Unterer Primärluft-Parameter; vom aktuellen Primärluftwert REG58 zu unterscheiden.\\[4pt]
+6 & \code{sSekundaerMax} & × 0.1\newline \% & \grade{H} & Vermuteter oberer Sekundärluft-Parameter; Zuordnung noch nicht abschließend bestätigt.\\[4pt]
+8 & \code{sSekundaerMin} & × 0.1\newline \% & \grade{H} & Vermuteter unterer Sekundärluft-Parameter; Zuordnung noch nicht abschließend bestätigt.\\[4pt]
+10 & \code{sSaugzugMax} & × 0.1\newline \% & \grade{V} & Oberer Saugzug-Parameter. Bestätigt nicht die Skalierung des aktuellen Saugzugwerts REG62.\\[4pt]
+12 & \code{sSaugzugMin} & × 0.1\newline \% & \grade{H} & Vermuteter unterer Saugzug-Parameter; vom aktuellen Wert REG62 zu unterscheiden.\\[4pt]
+14 & \code{sO2Max} & × 0.1\newline \% & \grade{V} & O2-Sollwert bei maximaler Leistung. Max bezeichnet den Leistungspunkt, nicht zwingend den numerisch höheren O2-Wert.\\[4pt]
+16 & \code{sO2Min} & × 0.1\newline \% & \grade{V} & O2-Sollwert bei minimaler Leistung. Min bezeichnet den Leistungspunkt, nicht zwingend den numerisch niedrigeren O2-Wert.\\[4pt]
+18 & \code{sKesselSollTag} & × 0.1\newline °C & \grade{V} & Konfigurierter Kessel-Sollwert für das Tagprofil; vom aktuell wirksamen Sollwert REG64 zu unterscheiden.\\[4pt]
+20 & \code{sAschenaustrDauer} & × 0.1\newline s & \grade{V} & Konfigurierte Dauer der Ascheaustragung. Belegt weder einen laufenden Motor noch die Funktion eines binären Registers.\\[4pt]
+22 & \code{sAschenaustrPause} & × 1\newline min & \grade{V} & Konfigurierte Pause der Ascheaustragung; keine gemessene Periodizität oder Aktorfreigabe.\\[4pt]
+24 & \code{sStartSekundaer} & × 0.1\newline \% & \grade{H} & Vermuteter Sekundärluft-Startwert; kein Nachweis eines aktuell laufenden Sekundärlüfters.\\[4pt]
+26 & \code{sZuendEinschub} & × 0.1\newline s & \grade{V} & Konfigurierte Zündeinschubdauer; identifiziert keinen der unbekannten binären Betriebswerte.\\[4pt]
+28 & \code{sTempDiffStart} & × 0.1\newline °C & \grade{V} & Konfigurierte Temperaturdifferenz für den Start; die vollständigen Startbedingungen sind daraus nicht ableitbar.\\[4pt]
+30 & \code{sTempDiffStop} & × 0.1\newline °C & \grade{V} & Konfigurierte Temperaturdifferenz für den Stopp; die vollständigen Abschaltbedingungen sind daraus nicht ableitbar.\\[4pt]
+32 & \code{sTempDiffTeillast} & × 0.1\newline °C & \grade{H} & Vermutete Temperaturdifferenz für Teillast; genaue Regelwirkung nicht verifiziert.\\[4pt]
+34 & \code{sKesselSollNacht} & × 0.1\newline °C & \grade{V} & Konfigurierter Kessel-Sollwert für das Nachtprofil; vom aktuell wirksamen Sollwert REG64 zu unterscheiden.\\[4pt]
+36 & \code{sAbgasTempSollMin} & × 0.1\newline °C & \grade{V} & Unterer Abgas-Sollparameter; unterer Temperatur-Endpunkt im Prüfmodell für REG56.\\[4pt]
+38 & \code{sAbgasTempMax} & × 0.1\newline °C & \grade{H} & Vermuteter oberer Abgastemperatur-Parameter; oberer Temperatur-Endpunkt im Prüfmodell für REG56.\\[4pt]
+40 & \code{sAbgasTempMaxLimit} & × 0.1\newline °C & \grade{H} & Vermutetes Abgastemperatur-Sicherheitslimit. Die Registerzuordnung verifiziert keine Sicherheitsfunktion.\\[4pt]
+\end{longtable}
+\endgroup

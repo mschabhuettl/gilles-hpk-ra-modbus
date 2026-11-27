@@ -2,7 +2,7 @@
 
 > [🇩🇪 Deutsch (primary)](METHODOLOGY.md) · 🇬🇧 **English**
 
-This document explains the approach used to reverse-engineer the Gilles Touch Modbus map. The goal is twofold: to make the work reproducible for other Gilles owners and to provide a template for similar projects.
+This document records the historical approach used to reverse-engineer the Gilles Touch Modbus map. Earlier test sequences are retained as history. Current implementations should follow the [current findings](REGISTER_FINDINGS.en.md) and [unofficial read profile](spec/README.en.md).
 
 ## Phase 1 — Connectivity discovery
 
@@ -20,13 +20,13 @@ Found:
 
 ## Phase 2 — Map bounds & format
 
-A naive Python loop with `pymodbus` tried reading at various start addresses (0, 100, 1000, 30000, 40000). Only address 0 with count ≥2 responded. The first response revealed the structure: every even-indexed 16-bit register is 0, every odd has data. **Classic Sigmatek pattern**: all values are 32-bit big-endian integers stored across two registers.
+A naive Python loop with `pymodbus` tried reading at various start addresses (0, 100, 1000, 30000, 40000). Only address 0 with count ≥2 responded. The high word was zero in each value in that initial sample. The documented format is a 32-bit integer stored across two 16-bit words, high word first. The high word is not necessarily zero and must not be discarded when decoding.
 
-The map ends at address 78 (= 40 int32 values). Reading higher returns no response.
+The last known int32 value starts at address 78 and occupies words 78/79. Historical attempts from address 80 produced no usable response; this does not establish a complete boundary for every server function.
 
 ## Phase 3 — Cross-reference with parameter export
 
-The Gilles Touch can export all parameters to USB stick as `parameter.txt`:
+The Gilles Touch can export named parameters and their current values to a USB stick as `parameter.txt`. It has not been established that this export contains every internal LASAL parameter:
 
 ```
 LSE_KesselPara_Temp1.sKesselSollTag,750,Temp3_0,...
@@ -104,17 +104,17 @@ In v0.2.0 REG[62] was identified as "combustion chamber door" (based on the obse
 
 **Lesson**: Correlation is not identity. When state changes, multiple dependent variables can move together, leading to false semantic assignment. When in doubt: wait for further observations where the two variables vary independently.
 
-The combustion chamber door is in fact **not directly** exported via Modbus — only indirectly visible through REG[46]=35.
+A direct combustion chamber door contact has not been identified in the tested map. REG46=35 was historically observed with the door open; unknown status codes do not establish a door position.
 
 ## Why this works
 
-Modbus has no discovery protocol. Without documentation, the only way forward is to put the controller into known states and observe which registers move. Three sources of "known state":
+The reads used so far provide no semantic description of the registers. Historical mapping therefore compared register values with known states from these sources:
 
 1. **Parameter export** (static configuration) — for setpoints and constants
 2. **Touch display** (live values) — for current measurements
 3. **Owner-performed test sequences** — for state-dependent values
 
-Each source covers different registers; combining them gives full coverage.
+The sources complement each other, but have not resolved every register function and scale. Further comparisons use naturally occurring operating states.
 
 **Phase 5 (live correlation)** and **Phase 7 (burner cycle)** were the most productive — typically 4-7 register identifications per 30-minute session.
 

@@ -1,0 +1,26 @@
+% Generated from registers.json by build_spec.py; do not edit.
+\begingroup\small
+\begin{longtable}{@{}L{10mm}L{42mm}L{25mm}L{9mm}L{77mm}@{}}
+\toprule \textbf{Adr.} & \textbf{Projektname} & \textbf{Skala / Einheit} & \textbf{Grad} & \textbf{Bedeutung und Grenze}\\\midrule\endhead
+\bottomrule\endfoot
+42 & \code{BrennPhase} & × 1 (code)\newline — & \grade{V} & Brennzyklusphase als Rohcode. Code 7 umfasst Modulation; Code 10 bleibt unbenannt. Die Phasenfolge ist nicht fest oder numerisch aufsteigend; kein Flammennachweis.\\[4pt]
+44 & \code{BoilerStatus} & × 1 (code)\newline — & \grade{V} & Betriebsmodus: 1 Handbetrieb, 3 Puffer/Boiler, 5 Automatik zugeordnet. Weitere Codes offen; der Modus allein bestimmt weder Brennphase noch aktiven Kessel-Sollwert.\\[4pt]
+46 & \code{StatusBitmap} & × 1; Struktur offen\newline — & \grade{H} & Rohstatus mit beobachteten Codes 0/35/43/61. Code 35 historisch bei offener Tür; 61 vorläufig Puffertemperatur erreicht; 43 ungeklärt. Enum oder Bitfeld nicht geklärt; kein allgemeiner Fehlerindikator.\\[4pt]
+48 & \code{KesselTemp\_Ist} & × 0.1\newline °C & \grade{V} & Aktuelle Kesseltemperatur laut Steuerung; Zustandshistorie allein beweist keine frische Modbus-Messung.\\[4pt]
+50 & \code{AbgasTemp\_Ist} & × 0.1\newline °C & \grade{V} & Aktuelle Abgastemperatur laut Steuerung; kein eigenständiger Flammennachweis.\\[4pt]
+52 & \code{RuecklaufTemp\_Ist} & × 0.1\newline °C & \grade{V} & Aktuelle Rücklauftemperatur laut Steuerung; ein Temperaturverlauf identifiziert keinen Pumpenausgang.\\[4pt]
+54 & \code{O2\_Ist} & × 0.1\newline \% & \grade{V} & Restsauerstoff-Rohanzeige. Sehr niedrige Werte auch in Phase 7 beobachtet; ihre Höhe allein kennzeichnet keinen inaktiven Sensor. Standbywerte sind kein Verbrennungsminimum; Messgültigkeit und physische Ursache bleiben getrennte Fragen.\\[4pt]
+56 & \code{?O2Soll\_Live} & × 0.1 (H)\newline \%? & \grade{H} & Starker Kandidat für einen abgastemperaturabhängig berechneten O2-Sollwert. Interpolationsmodell wiederholt gestützt; Skalierung und Funktion benötigen einen gleichzeitigen Nichtnull-Abgleich mit dem Touch.\\[4pt]
+58 & \code{PrimaerIst} & HA × 0.1; offen\newline \%? & \grade{V} & Historisch als aktueller Primärluftwert identifiziert. Physische Skala offen; Faktor-10-Abweichung möglich, aber unbewiesen. HA-Skala unverändert bis zum gleichzeitigen Rohwert-/HA-/Touch-Abgleich.\\[4pt]
+60 & \code{SekundaerIst} & HA × 0.1; offen\newline \%? & \grade{V} & Historische Zuordnung zum aktuellen Sekundärluftwert beibehalten. Bisheriger Nullvergleich bestätigt keine Skala; ein Nichtnull-Abgleich fehlt. Bestehende HA-Skalierung ist keine Bestätigung.\\[4pt]
+62 & \code{SaugzugIst} & HA × 0.1; offen\newline \%? & \grade{V} & Historisch als aktueller Saugzugwert identifiziert, kein Türsignal. Physische Skala offen; Faktor-10-Abweichung möglich, aber unbewiesen. Gleichzeitiger Rohwert-/HA-/Touch-Abgleich fehlt.\\[4pt]
+64 & \code{KesselSoll\_Live} & × 0.1\newline °C & \grade{V} & Aktuell wirksamer Kessel-Sollwert. Kann auch bei gewähltem Puffer/Boiler-Modus null sein; kein Modus-Enum.\\[4pt]
+66 & \code{AbgasSoll\_Live} & × 0.1\newline °C & \grade{V} & Aktuell wirksamer Abgas-Sollwert; moduliert innerhalb der Phase 7. Kein fester Zweizustandswert oder Volllastnachweis.\\[4pt]
+68 & \code{?REG68} & offen\newline ? & \grade{U} & Veränderlicher Rohwert mit Anstiegen, Abfällen und Nullintervallen. Kandidat: aktuelle Einschubmenge am Touch. Funktion und Skala offen; kein monotoner Verbrauchs- oder Laufzeitzähler.\\[4pt]
+70 & \code{?REG70} & offen\newline ? & \grade{U} & Bisher nur null beobachtet. Funktion offen; weder dauerhaft inaktiv noch als reserviert nachgewiesen.\\[4pt]
+72 & \code{?BinaryFlag} & × 1; 0/1 beobachtet\newline — & \grade{U} & Als int32 übertragen; bisher 0/1 beobachtet. Aktivität von Code 3 bis zum Übergang Anbrennen/Regelbetrieb stützt Startbezug. Konkreter Aktor und genaue Schaltreihenfolge offen.\\[4pt]
+74 & \code{?REG74} & offen\newline ? & \grade{U} & Bisher nur null beobachtet. Funktion offen; weder dauerhaft inaktiv noch als reserviert nachgewiesen.\\[4pt]
+76 & \code{?BinaryFlag} & × 1; 0/1 beobachtet\newline — & \grade{U} & Als int32 übertragen; bisher 0/1 beobachtet. Wiederkehrende High-Intervalle auch im Standby. Funktion, Periodizität und physische Impulsdauer offen.\\[4pt]
+78 & \code{?BinaryFlag} & × 1; 0/1 beobachtet\newline — & \grade{U} & Als int32 übertragen; bisher 0/1 beobachtet. Lange High-Intervalle und Standbypulse; Pumpe/Freigabe als unbestätigte Kandidaten. Aschemotor-Zuordnung zurückgenommen; Flanken sind keine bestätigten Aschezyklen.\\[4pt]
+\end{longtable}
+\endgroup

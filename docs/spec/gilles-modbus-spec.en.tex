@@ -1,0 +1,229 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[english]{babel}
+\newcommand{\SpecVersion}{0.1.0}
+\newcommand{\SpecDate}{27 November 2026}
+\newcommand{\SpecShortStatus}{UNOFFICIAL / READ ONLY}
+\newcommand{\SpecVersionLabel}{Document version}
+\newcommand{\SpecDateLabel}{Published}
+\newcommand{\SpecBaseLabel}{Evidence baseline}
+\newcommand{\SpecFirmwareLabel}{Reference firmware}
+\newcommand{\SpecStatusLabel}{Document status}
+\usepackage{gilles-spec}
+\hypersetup{pdftitle={Gilles HPK-RA Modbus TCP - Unofficial Specification 0.1.0}}
+\begin{document}
+\SpecCover{Unofficial interface specification}{%
+Read-only implementation profile covering all 40 known logical values, the data format, state mappings and synthetic test vectors. Observations and unconfirmed interpretations are identified separately.}{%
+Independent community documentation based on reverse engineering. This is not a manufacturer document or an approval by Gilles, Hargassner or Sigmatek. It describes the tested register map; compatibility with other devices and firmware versions must not be assumed.}
+
+\tableofcontents
+\vspace{5mm}
+\SpecBox{Profile at a glance}{TCP port 502; Unit Identifier 1; Function Code 03; zero-based word addresses; 40 logical values in 80 registers; each pair of 16-bit words forms a signed 32-bit value, high word first. The known range covers word addresses 0 through 79.}
+
+\clearpage
+\section{Scope and evidence status}
+This document consolidates project version 0.9.1 into an implementable read profile. Its evidence baseline is the pinned repository commit \code{03696e9}; the document version is maintained independently of the integration version. No new burn cycle was initiated and no additional register meaning was confirmed for this edition.
+
+The reference is a Gilles HPK-RA controller with Gilles Touch and LASAL II 5.36.4. The mapping is based on parameter exports, historical Touch comparisons and passive operating observations. Private raw traces are not included in this publication. The summary therefore does not allow every observation to be independently recalculated.
+
+\par\noindent\begin{tabularx}{\linewidth}{@{}L{12mm}L{36mm}X@{}}
+\toprule
+\textbf{Grade} & \textbf{Meaning} & \textbf{Limitation}\\\midrule
+\grade{V} & Historically verified & Functional mapping supported by observations; no guarantee for every operating state or scale.\\
+\grade{H} & Strong hypothesis & Plausible mapping without a conclusive synchronous comparison.\\
+\grade{U} & Unknown & Raw value readable, function not reliably identified.\\\bottomrule
+\end{tabularx}\par
+
+The register list contains 25 values graded V, nine graded H and six graded U. The scales of \reg{58}, \reg{60} and \reg{62} remain unresolved despite their historical functional mappings. Phases and individual status codes are also subject to the limitations in Section~\ref{sec:states}.
+
+\section{Transport and read profile}
+\label{sec:transport}
+\subsection{Addressing}
+\code{REG48} denotes decimal, zero-based \emph{16-bit word address} 48, not the 48th logical value. The value occupies words 48 and 49. Its logical index is 24. For logical index $i$, the general relationship is:
+\[
+ a=2i,\qquad i\in\{0,\ldots,39\},\qquad \text{words }a\text{ and }a+1.
+\]
+No symbolic \code{4xxxx} register number is transmitted. Clients displaying such numbers must check their conversion to the PDU address actually sent. This profile uses even start addresses and complete word pairs; it makes no claim about odd start addresses.
+
+\par\noindent\begin{tabularx}{\linewidth}{@{}L{46mm}X@{}}
+\toprule
+\textbf{Field} & \textbf{Value in this profile}\\\midrule
+Transport & Modbus TCP, port 502\\
+Protocol Identifier & \code{0x0000} in the MBAP header\\
+Unit Identifier & \code{0x01}; other IDs have not been tested\\
+Function Code & \code{0x03}: Read Holding Registers\\
+Single value & Even word address and quantity \code{2}\\
+Entire known block & Start \code{0}, quantity \code{80} words; successfully read\\
+Data width & 32 bits per logical value; no \code{float32} values\\
+Write access & Outside this profile; support has not been investigated\\\bottomrule
+\end{tabularx}\par
+
+FC03 is the established read method. Historical attempts using other read functions and addresses outside the known range produced errors or no response. This does not provide a complete account of all functions implemented by the server. In particular, a holding register is not confirmed writable merely because of its name.
+
+\subsection{MBAP and response validation}
+The MBAP header consists of Transaction Identifier (2 bytes), Protocol Identifier (2 bytes), Length (2 bytes) and Unit Identifier (1 byte). The Length field counts the Unit Identifier and the following PDU. Multibyte fields in the Modbus message use network byte order. Modbus TCP does not carry a Modbus RTU CRC.
+
+An FC03 request contains the function code, start address and quantity of 16-bit words. A normal response contains the function code, Byte Count and register data. For $q$ words, Byte Count must equal $2q$. Modbus generally limits FC03 to 125 words; this does not guarantee that the Gilles controller accepts every such range. Individual pairs and the full block of 80 words are the access patterns documented in this edition.
+
+After the seven-byte MBAP header, read $\mathrm{Length}-1$ additional bytes, because the Unit ID has already been read. The complete ADU has $6+\mathrm{Length}$ bytes.
+
+TCP is a byte stream. A client must not equate one receive operation with a complete message. It assembles the MBAP header and then exactly the announced remaining length, validates Transaction Identifier, Protocol Identifier, Unit Identifier, function code and data length, and only then processes the registers.
+
+\section{Numeric format and scaling}
+\label{sec:format}
+A 32-bit value consists of the high word $w_0$ at address $a$ and the low word $w_1$ at address $a+1$. Within each word, the most significant byte comes first. Decoding uses:
+\[
+ u=2^{16}w_0+w_1,\qquad
+ r=\begin{cases}u,&u<2^{31},\\u-2^{32},&u\geq2^{31}.\end{cases}
+\]
+The two's-complement decoder is part of the int32 profile in use. It does not establish physically valid negative measurement ranges. The high word must not be discarded as a general rule, even though it is zero for small positive values.
+
+The register table specifies the conversion $x=r\cdot s$. \code{x 0.1} means $s=0.1$; \code{x 1} means no decimal scaling. Enum values and unknown signals retain their integer values. A percentage unit proves neither a speed measurement nor that energy or fuel consumption can be derived from the register.
+
+\SpecBox{Unresolved scales}{The existing HA display uses a factor of 0.1 for \reg{58}/\reg{60}/\reg{62}. This compatibility setting is not a confirmed physical scale. A factor-of-ten question remains for primary air and induced draft; a secondary-air value of zero does not distinguish between scales. Preserve raw values separately.}
+
+\section{Register directory}
+\label{sec:registers}
+Every row uses two 16-bit words and the int32 decoder from Section~\ref{sec:format}. Names are project identifiers or inherited parameter names, not a device discovery response. Question marks and grades H/U are part of the interpretation; a user interface must not hide them and imply confirmation. This table does not specify universal setpoints or operating limits for an installation.
+
+\subsection{Parameters and settings: word addresses 0 through 40}
+\input{registers.en.parameters.tex}
+
+\subsection{States and current values: word addresses 42 through 78}
+\input{registers.en.live.tex}
+
+\Needspace{12\baselineskip}
+\section{Operating phases, modes and status codes}
+\label{sec:states}
+\subsection{REG42: combustion phase}
+\begin{longtable}{@{}L{12mm}L{49mm}L{103mm}@{}}
+\toprule\textbf{Code}&\textbf{Project label}&\textbf{Interpretation and limitation}\\\midrule\endhead
+0 & Standby & No active recorded burn cycle; not a general state of all actuators.\\
+1 & Pre-purge & Historically matched to the Touch phase.\\
+3 & Ignition & Historically matched ignition phase.\\
+5 & Late ignition / transition & Observed intermediate state; provisional label.\\
+6 & Initial combustion & Historically matched startup phase after ignition.\\
+7 & Regulating heat & Regulated operation, including modulation; not evidence of full load.\\
+8 & Burnout & Historical mapping to the shutdown sequence.\\
+9 & Run-on / cooling down & Historical mapping; not proof that a specific actuator is running.\\
+10 & Unknown cycle state & Observed during shutdown; physical function unresolved.\\\bottomrule
+\end{longtable}
+Codes 2 and 4 have not been observed. Their meanings must not be inferred from the gaps. Observed shutdown paths include $7\to9\to10\to0$ and $7\to9\to8\to9\to0$. This list is not a fixed state machine. Short steps may fall between polls; a phase missing from the recording did not necessarily fail to occur physically.
+
+\subsection{REG44: operating mode}
+\par\noindent\begin{tabularx}{\linewidth}{@{}L{15mm}L{48mm}X@{}}
+\toprule\textbf{Code}&\textbf{Touch mode}&\textbf{Evidence status}\\\midrule
+1 & Manual operation & Historically identified\\
+3 & Buffer/boiler & Historically identified\\
+5 & Automatic & Historically identified\\\bottomrule
+\end{tabularx}\par
+No codes have been reliably mapped to controller off, timed operation, buffer/boiler ember preservation or emergency operation. A mode establishes neither the combustion phase nor the current boiler setpoint. \reg{64} can be zero while buffer/boiler mode remains selected.
+
+\subsection{REG46: message or status; structure unresolved}
+The historical name \code{StatusBitmap} does not establish a bit field. A client must not split the value into presumed fault bits.
+\par\noindent\begin{tabularx}{\linewidth}{@{}L{15mm}X@{}}
+\toprule\textbf{Code}&\textbf{Supported label and limitation}\\\midrule
+0 & Raw code 0; historically labelled normal, not a complete all-clear indication.\\
+35 & Historically observed with the combustion chamber door open; indirect mapping, not a universal door contact.\\
+43 & Raw code 43, meaning unresolved. Observed during shutdown and standby.\\
+61 & Suspected ``buffer temperature reached'' message; synchronous comparison across a message change remains outstanding.\\\bottomrule
+\end{tabularx}\par
+Neither 43 nor 61 may be interpreted categorically as a fault, overtemperature or evidence of an operating mode. Unknown codes remain visible as integers; a door position derived from them is then unknown.
+
+\section{Interpretation limits for key values}
+\subsection{Actual O\texorpdfstring{\textsubscript{2}}{2} value and phase context}
+\reg{54} is a raw residual-oxygen indication. Low, constant values in standby must not be used as combustion minima. However, new low values also occur during phase 7. The value alone therefore does not identify an inactive probe. The findings do not justify an additional lower threshold for hiding such values during heating.
+
+For a separate heating data source, the HA example accepts only phase 7, numeric, scaled HA source values between 0 and 21 percent, and an O\textsubscript{2} state update since phase entry. This selection is a client analysis rule, not a validity flag transmitted by the protocol. Neither \code{last\_updated} nor a numeric state proves an independent fresh device read.
+
+\subsection{REG56: interpolated O\texorpdfstring{\textsubscript{2}}{2} setpoint hypothesis}
+Nonzero values during regulated operation closely fit the following test model:
+\begin{align*}
+T&=0.1\,\reg{50},&T_{\mathrm{low}}&=0.1\,\reg{36},&T_{\mathrm{high}}&=0.1\,\reg{38},\\
+O_{\mathrm{low}}&=0.1\,\reg{16},&O_{\mathrm{high}}&=0.1\,\reg{14},\\
+O_{\mathrm{candidate}}&=O_{\mathrm{low}}+
+\frac{T-T_{\mathrm{low}}}{T_{\mathrm{high}}-T_{\mathrm{low}}}
+\left(O_{\mathrm{high}}-O_{\mathrm{low}}\right),\\
+0.1\,\reg{56}&\approx O_{\mathrm{candidate}}.
+\end{align*}
+Here the register expressions denote decoded raw integers. The model requires $T_{\mathrm{high}}\ne T_{\mathrm{low}}$. Behavior outside the observed regulation range, possible clamping and other parameter combinations remain unresolved. This model is not a verified control formula.
+
+According to the Gilles Touch manual, O\textsubscript{2} minimum and maximum refer to the setpoints at minimum and maximum \emph{boiler output}, respectively. The names do not guarantee numerical ordering of the O\textsubscript{2} values. This manufacturer description does not confirm the reverse-engineered address \reg{56}. A simultaneous nonzero comparison with the Touch residual-oxygen setpoint display (``Restsauerstoff - Soll'') is still missing.
+
+\subsection{REG68 and the binary candidates}
+\reg{68} rises and falls; it is not a monotonic consumption or runtime counter. The current feed quantity on the Touch actual/setpoint page is a specific comparison candidate; its unit and scale remain unresolved.
+
+\reg{72}, \reg{76} and \reg{78} have been observed as 0/1 signals, but remain int32 values on the wire. \reg{72} is associated with startup. \reg{76} also becomes active in standby. The former ash-motor mapping for \reg{78} has been withdrawn; pump or enable interpretations remain hypotheses. A high interval or a counted edge is not a confirmed motor runtime or ash cycle. Other numeric values must not automatically be treated as zero.
+
+\section{Connections, errors and data quality}
+Connections have been observed to close after Modbus exceptions. Historical single-word read attempts returned an ``Illegal Data Value'' exception. Previous attempts at addresses above the known range produced no usable response. These observations are not a complete exception-code matrix or an invitation to repeat boundary tests.
+
+A TCP idle close after approximately three seconds was also measured on the reference controller. The HA example therefore polls \reg{42} every two seconds as a targeted measure and leaves 200 ms between requests. Other intervals remain unchanged. This is a mitigation based on the reference installation, not a general device timing guarantee. The logger instead opens a new connection for each polling cycle.
+
+A compatible reader handles an FC03 exception as an error response with function code \code{0x83} and an exception code. No new measurement is accepted after a timeout, EOF, invalid length or mismatched transaction. Reconnection attempts and retries must be bounded; the specific backoff is a client decision. Substituting zero for a communication error is not permitted, because zero can also be a real operating value.
+
+Read values carry no measurement timestamp of their own and no documented device validity flag. A block read reduces the time between individual client reads, but does not prove an atomic controller snapshot. A receipt timestamp and a change timestamp must be distinguished from the unknown physical measurement time. Data gaps must not create fictitious starts or operating hours.
+
+\section{Synthetic messages and decoder checks}
+\label{sec:vectors}
+The following bytes are constructed examples; they contain no measurements from an installation. All hexadecimal values represent bytes. Transaction Identifier \code{0x0001} is simply an arbitrary example identifier.
+
+\subsection{Reading one int32 from word address 48}
+\begin{CodeBlock}
+Request:  00 01 00 00 00 06 01 03 00 30 00 02
+Response: 00 01 00 00 00 07 01 03 04 00 00 04 D2
+\end{CodeBlock}
+\code{0x0030} is decimal address 48; \code{0x0002} is the word quantity. The response contains four data bytes: high word \code{0x0000}, low word \code{0x04D2}. This gives $r=1234$ and, with a factor of 0.1, the synthetic value $123.4$. The example tests decoding, not a permissible boiler operating range.
+
+\subsection{Full block and exception}
+\begin{CodeBlock}
+Block request: 00 02 00 00 00 06 01 03 00 00 00 50
+Response head: 00 02 00 00 00 A3 01 03 A0
+               ... followed by exactly 160 data bytes ...
+Exception:     00 01 00 00 00 03 01 83 03
+\end{CodeBlock}
+\code{0x0050}=80 words; \code{0xA0}=160 data bytes. The block response Length field is \code{0x00A3}=163: Unit Identifier, function code, Byte Count and data. The constructed exception contains code 03 (``Illegal Data Value''). It does not specify which request a particular device will answer this way.
+
+\par\noindent\begin{tabularx}{\linewidth}{@{}L{30mm}L{30mm}X@{}}
+\toprule\textbf{High word}&\textbf{Low word}&\textbf{Expected raw int32 value}\\\midrule
+\code{0000}&\code{0000}&0\\
+\code{0000}&\code{04D2}&1234\\
+\code{0001}&\code{0002}&65538\\
+\code{7FFF}&\code{FFFF}&2147483647\\
+\code{FFFF}&\code{FFFF}&$-1$\\
+\code{8000}&\code{0000}&$-2147483648$\\\bottomrule
+\end{tabularx}\par
+
+\section{Client implementation requirements}
+These requirements define the community read profile, not additional boiler capabilities.
+\begin{longtable}{@{}L{13mm}L{151mm}@{}}
+\toprule\textbf{ID}&\textbf{Check criterion}\\\midrule\endhead
+R01 & Use only the documented FC03 reads for this profile; do not infer a write function from parameter names.\\
+R02 & Transmit zero-based word addresses, preserve the high and low words, and decode signed int32 values.\\
+R03 & Validate responses against MBAP, transaction, unit, function and complete length; account for TCP fragmentation.\\
+R04 & Apply register-specific scaling. Clearly label unconfirmed scales and meanings; retain access to raw integers.\\
+R05 & Treat exceptions, timeouts and invalid responses as missing new data, never as a substitute measurement of zero.\\
+R06 & Preserve unknown phases, modes and status codes. Do not reinterpret them as standby, all clear or door closed.\\
+R07 & Distinguish receipt time, availability and semantic validity; do not treat gaps or asynchronous values as an exactly simultaneous measurement.\\
+R08 & Preserve historical identities. Do not count REG68 as consumption or report REG78 edges as confirmed ash cycles.\\\bottomrule
+\end{longtable}
+The accompanying check script verifies register coverage and synthetic message/decoder vectors offline. It does not connect to a device or certify a device or a complete client implementation.
+
+\section{Unmapped quantities and further verification}
+The tested map has no reliable mappings for heating-circuit setpoints, domestic-hot-water mode and temperature, buffer temperatures, bunker temperature, internal operating hours, the ignition counter or a direct combustion chamber door contact. Certain configuration flags are also unmapped. ``Not identified'' does not establish that such information is absent from every possible encoding.
+
+A synchronous nonzero comparison on the Touch actual/setpoint page during naturally occurring regulated operation would be particularly informative for \reg{56}, \reg{58}/\reg{60}/\reg{62} and \reg{68}. Actual actuator indications are needed for \reg{72}/\reg{76}/\reg{78}; contact colors, timing parameters or enable settings alone do not identify an active output. The corresponding Touch indication is missing for phase 10 and status 43. Unresolved interpretations remain hypotheses until then.
+
+\section{Sources and version maintenance}
+\label{sec:sources}
+\par\noindent\begin{tabularx}{\linewidth}{@{}L{13mm}X@{}}
+\toprule\textbf{Ref.}&\textbf{Source and use}\\\midrule
+P1 & \href{https://github.com/mschabhuettl/gilles-hpk-ra-modbus/tree/03696e929aa14fee1007d7c630489978c27533fc}{Project revision 03696e9}: REGISTER\_MAP, REGISTER\_FINDINGS, HA\_VALIDATION, Modbus YAML and decoder. Source of device-specific observations.\\
+M1 & Modbus Organization: \href{https://www.modbus.org/file/secure/modbusprotocolspecification.pdf}{MODBUS Application Protocol Specification V1.1b3}, especially FC03 and exception responses. Source of the general Modbus PDU rules.\\
+M2 & Modbus Organization: \href{https://www.modbus.org/file/secure/messagingimplementationguide.pdf}{MODBUS Messaging on TCP/IP Implementation Guide V1.0b}. Source for MBAP and TCP message handling.\\
+G1 & \href{https://shop.baxi.se/documents/Gilles\%20Touch\%20-\%20manual\%20v5.25\%20(ENG).pdf}{Gilles Touch User Manual, version 5.25 and later}, section on O\textsubscript{2} at minimum and maximum output. Explains parameter terminology; does not confirm a Modbus address.\\\bottomrule
+\end{tabularx}\par
+
+Current changes are documented in the project changelog. Corrections must distinguish the address, data format, observation and remaining uncertainty. The DE and EN editions use the same register data file. Raw data and private installation identifiers do not belong in public examples.
+
+Version 0.1.0 is the first edition of this independent specification. Its text and LaTeX sources are provided under the project's MIT license; linked manufacturer and standards documents retain their own terms of use.
+\end{document}

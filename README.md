@@ -6,6 +6,12 @@ Community-Projekt zur Dokumentation der Modbus-TCP-Schnittstelle der **Gilles To
 
 > **Registerstatus:** 25 von 40 Registern historisch verifiziert (✓✓), 9 stark vermutet (✓), 4 mit unklarer Semantik (?), 2 bisher 0. REG56 ist ein starker O₂-Sollwert-Kandidat; die bisher sichere Asche-Zuordnung von REG78 wurde zurückgenommen. Die Skalierung von REG58/60/62 bleibt offen.
 
+## Inoffizielle Schnittstellenspezifikation
+
+Die [Spezifikation 0.1.0](docs/spec/README.md) beschreibt das lesende Modbus-TCP-Profil, alle 40 bekannten logischen Werte, Zustandszuordnungen und offene Skalen. Sie bündelt den Befundstand 0.9.1; diese Ausgabe bestätigt keine neue Registerbedeutung und enthält keine neuen Messungen. Die Dokumentversion wird getrennt von der Projektversion geführt.
+
+[PDF Deutsch](docs/spec/gilles-modbus-spec-v0.1.0-de.pdf) · [PDF English](docs/spec/gilles-modbus-spec-v0.1.0-en.pdf) · [LaTeX-Quellen als ZIP](docs/spec/gilles-modbus-spec-v0.1.0-sources.zip). Beide Sprachfassungen verwenden dieselbe `registers.json`; synthetische Telegramme und Decodervektoren lassen sich offline prüfen. Eigenständige Community-Dokumentation, keine Herstellerfreigabe.
+
 ## Anonymisierte Register-Erkenntnisse
 
 [Erkenntnisse und offene Prüfungen](docs/REGISTER_FINDINGS.md): O₂-Sollwert-Hypothese für REG56, nichtmonotones REG68, aktive REG76-Pulse und Widerspruch zur Aschemotor-Deutung von REG78. REG46=61 ist ein Kandidat für die Meldung „Puffertemperatur erreicht“. Die rollierende 24-h-Startzählung verwendet jetzt direkt aufgezeichnete Übergänge `0→1` im Recorder. Die Startdiagnose vergleicht den Wiederanstieg mit dem tiefsten beobachteten Kesselwert seit dem Start; Trendhysterese und Einschaltverzögerung unterdrücken kurze Schwankungen. Eine eigene O₂-Statistik berücksichtigt nur die Heizphase. Die breitere passive Auswertung stützt REG56 weiterhin als O₂-Sollwert-Kandidaten, ohne seine Vertrauensstufe anzuheben. Private Betriebsverläufe und Screenshots werden nicht veröffentlicht.
@@ -18,7 +24,7 @@ Die Gilles HPK-RA Pelletkessel sind mit der **Gilles Touch** Steuerung ausgestat
 
 Obwohl Hargassner Gilles 2020 übernommen hat, sind die existierenden HPK-RA-Steuerungen **nicht** kompatibel mit der Hargassner-Modbus-Map (Adressen ≥40287, andere Datentypen). Die Gilles Touch exportiert eine eigene, kleinere Map ab Adresse 0.
 
-**Es gibt keine öffentliche Dokumentation dieser Map.** Dieses Repository ist das Ergebnis von Reverse Engineering an einer realen Installation.
+Während der Untersuchung lag keine passende Hersteller-Registermap vor. Dieses Repository dokumentiert das Reverse Engineering an einer realen Installation.
 
 ## Was steckt drin
 
@@ -40,10 +46,10 @@ Mit der HA-Integration auf einen Blick sichtbar:
 
 - **Kesseltemperatur** (Ist & Soll, mit automatischem Tag/Nacht-Wechsel)
 - **Abgastemperatur** und **Rücklauftemperatur** (Live)
-- **Restsauerstoff (O₂)** und alle Verbrennungs-Parameter
+- **Restsauerstoff (O₂)** und die zugeordneten Verbrennungsparameter
 - **Brennzyklus-Phase** als Klartext: Vorlüften, Zündung, Anbrennen, Heizen regeln, Ausbrennen, Auskühlen
-- **Primär-/Saugzug-Werte** (REG62-Skalierung noch am Touch abgleichen; Sekundär war bisher 0)
-- **Brennraumtür-Zustand** (über StatusBitmap erkannt)
+- **Luft-/Saugzug-Werte** (Skalierungen von REG58/60/62 noch am Touch abgleichen)
+- **Indirekter Brennraumtür-Hinweis** (REG46=35 historisch bei offener Tür beobachtet; unbekannte Codes ergeben keine sichere Türposition)
 - **REG78-Signal und Einschaltflanken** (bisher als Ascheaustragung bezeichnet; Funktion wieder offen)
 - **Betriebsmodus**: Handbetrieb, Puffer/Boiler, Automatik (weitere noch nicht beobachtet)
 
@@ -66,7 +72,7 @@ Mit der HA-Integration auf einen Blick sichtbar:
 
 ## Aktueller HA-Stand und Entwicklungsablauf
 
-Die Bereinigung vom 7. September 2026 ergänzt Verfügbarkeitsprüfungen, erfasste Betriebsstatistiken und korrigierte Dashboard-Verweise. Die Referenzsteuerung schließt inaktive TCP-Verbindungen nach ungefähr drei Sekunden; ein Lesezugriff auf REG42 alle zwei Sekunden hält die HA-Verbindung aktiv. Siehe [Messung und Grenzen](docs/HA_VALIDATION.md).
+Die Bereinigung vom 7. September 2026 ergänzt Verfügbarkeitsprüfungen, erfasste Betriebsstatistiken und korrigierte Dashboard-Verweise. An der Referenzsteuerung wurde ein TCP-Leerlaufende nach ungefähr drei Sekunden gemessen; REG42-Abfragen alle zwei Sekunden sind die gezielte Gegenmaßnahme, keine allgemeine Stabilitätsgarantie. Siehe [Messung und Grenzen](docs/HA_VALIDATION.md).
 
 Bei weiteren Gilles-Änderungen werden Konfiguration, deutsche/englische Dokumentation und Changelog im selben Arbeitsschritt aktualisiert und auf GitHub veröffentlicht. Der dauerhafte Arbeitsablauf steht in [AGENTS.md](AGENTS.md).
 
@@ -79,9 +85,9 @@ Bei weiteren Gilles-Änderungen werden Konfiguration, deutsche/englische Dokumen
 
 Falls du eine andere Gilles-Heizung hast und die Map verifizieren oder ergänzen willst — gerne ein Issue oder einen PR.
 
-## Was NICHT in der Modbus-Map ist
+## Noch nicht zugeordnete Größen
 
-Durch gezielte Tests bestätigt — die folgenden Daten sind **nicht** über Modbus zugänglich:
+Für die folgenden Größen fehlt in der getesteten Map eine belastbare Zuordnung. Das beweist nicht, dass sie grundsätzlich unzugänglich oder nirgends codiert sind:
 
 - Heizkreis-Sollwerte und -Modi (Vorlauf, Raumtemperatur)
 - Warmwasser-Modus und -Temperatur (Boiler)
@@ -89,10 +95,10 @@ Durch gezielte Tests bestätigt — die folgenden Daten sind **nicht** über Mod
 - Heizkreis-Vorlauftemperaturen
 - Bunkertemperatur
 - Betriebsstunden / Pelletverbrauch / Anzahl Zündungen
-- Brennraumtür-Direktsignal (nur indirekt über StatusBitmap REG[46]=35)
+- Brennraumtür-Direktsignal (REG46=35 ist lediglich ein historisch beobachteter indirekter Hinweis)
 - Konfigurations-Flags
 
-Wenn du diese Werte brauchst: entweder über den Hargassner-Servicepartner eine erweiterte Modbus-Map freischalten lassen, oder über VNC-Screen-Scraping vom Touch.
+Weitere Zuordnungen benötigen einen zeitgleichen Vergleich mit der Touch-Anzeige. Ob der Hersteller eine zusätzliche Registermap oder Freischaltung anbietet, ist durch dieses Projekt nicht belegt. Siehe [offene Prüfungen](docs/REGISTER_FINDINGS.md).
 
 ## Lizenz
 
@@ -100,5 +106,5 @@ MIT — siehe [LICENSE](LICENSE).
 
 ## Haftungsausschluss
 
-Dieses Projekt ist nicht mit Gilles oder Hargassner verbunden. Das Reverse Engineering erfolgte ausschließlich **lesend** (keine Modbus-Schreibvorgänge) an einem privat betriebenen Kessel. Keine Garantie für Korrektheit oder Vollständigkeit — Verwendung auf eigene Verantwortung. Das Ändern von Steuerungsparametern via Modbus kann die Verbrennung und Sicherheit beeinflussen; nur Register beschreiben, deren Funktion vollständig verstanden ist.
+Dieses Projekt ist nicht mit Gilles oder Hargassner verbunden. Das Reverse Engineering erfolgte ausschließlich **lesend** (keine Modbus-Schreibvorgänge) an einem privat betriebenen Kessel. Keine Garantie für Korrektheit oder Vollständigkeit — Verwendung auf eigene Verantwortung. Schreibzugriffe sind nicht untersucht und gehören nicht zum dokumentierten Leseprofil.
 

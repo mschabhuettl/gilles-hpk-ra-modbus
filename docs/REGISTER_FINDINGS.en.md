@@ -4,6 +4,8 @@
 
 Extended passive analysis revises several earlier register interpretations. This public summary contains only generalized technical findings. Raw observations remain private; time series, screenshots, specific operating times, durations and installation-specific measurements are not published. This summary alone therefore cannot support independent recalculation of the observed relationships.
 
+The [unofficial specification 0.1.0](spec/README.en.md) consolidates the 0.9.1 evidence baseline into a read-only implementation profile with PDF, LaTeX source and synthetic test vectors. Unresolved interpretations remain explicitly unconfirmed there as well.
+
 ## REG56: calculated O₂ target as a strong hypothesis
 
 REG56 remains active during regulation and follows an exhaust-temperature-dependent relationship. Its former description as a brief pulse is obsolete. A broader analysis of repeated natural burner cycles again supports linear interpolation between the configured temperature and O₂ endpoints. Nonzero readings during regulation also closely follow the model in a later observation window with unchanged numeric endpoints. This strengthens the empirical evidence but does not replace a synchronized comparison with Touch:

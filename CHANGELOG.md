@@ -4,6 +4,14 @@
 
 Alle nennenswerten Erkenntnisse während des Reverse Engineerings der Gilles-Touch-Modbus-Map.
 
+## [0.10.0] — 2026-11-27 — Inoffizielle Schnittstellenspezifikation
+
+[Spezifikation 0.1.0](docs/spec/README.md) als deutsche und englische PDF-Ausgabe sowie LaTeX-Quellarchiv ergänzt. Die Dokumentversion ist unabhängig von der Projektversion. Das lesende Profil beschreibt Adressierung, MBAP, int32-Dekodierung, alle 40 bekannten logischen Werte und die Grenzen der Zustands- und Skaleninterpretation.
+
+Beide Sprachfassungen erzeugen ihre Registertabellen aus derselben `registers.json`. Synthetische Telegramme und Decodervektoren ermöglichen eine Offlineprüfung ohne Geräteverbindung. Die Ausgabe bündelt ausschließlich die bestehende Befundbasis 0.9.1; keine neuen Messungen, Registerzuordnungen oder Vertrauensstufen. Private Rohdaten bleiben unveröffentlicht.
+
+Ältere absolute Aussagen in README, Steuerungsübersicht und Methodik präzisiert: unbekannte Zuordnungen sind kein Nachweis grundsätzlicher Unzugänglichkeit; Türhinweis, Funktionsumfang, Exportvollständigkeit und TCP-Verhalten bleiben auf die belegten Beobachtungen begrenzt.
+
 ## [0.9.1] — 2026-11-22 — Natürliche Brennzyklen nachgeprüft
 
 Die laufende Diagnoseminimum-Basis und Startzählung gegen vollständige aufgezeichnete Brennzyklen geprüft. Die Temperaturwarnung blieb bei erfülltem Wiederanstieg aus. Da kein echter Alarmkandidat vorlag, sind Einschaltverzögerung und aktive Hysterese damit nicht im Fehlerfall erprobt. Beobachtete Datenlücken lagen außerhalb der Brennzyklen; ein Ausfall während aktiver Diagnose bleibt gesondert zu prüfen.

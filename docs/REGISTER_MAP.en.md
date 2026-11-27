@@ -6,6 +6,8 @@
 **Controller firmware:** LASAL II v5.36.4 (10.01.2024)
 **Confidence levels:** ✓✓ = empirically verified · ✓ = strongly indicated by value match · ? = unknown
 
+The [unofficial specification 0.1.0](spec/README.en.md) consolidates this read-only profile as PDF and LaTeX source, including the data format and synthetic test vectors. It uses the 0.9.1 evidence baseline and confirms no additional mappings or scales.
+
 ## Status
 
 | Confidence | Count | Meaning |

@@ -1,0 +1,26 @@
+% Generated from registers.json by build_spec.py; do not edit.
+\begingroup\small
+\begin{longtable}{@{}L{10mm}L{42mm}L{25mm}L{9mm}L{77mm}@{}}
+\toprule \textbf{Addr.} & \textbf{Project name} & \textbf{Scale / unit} & \textbf{Grade} & \textbf{Meaning and limits}\\\midrule\endhead
+\bottomrule\endfoot
+42 & \code{BrennPhase} & × 1 (code)\newline — & \grade{V} & Burner-cycle phase as a raw code. Code 7 includes modulation; code 10 remains unnamed. The sequence is not fixed or numerically increasing; not evidence of a flame.\\[4pt]
+44 & \code{BoilerStatus} & × 1 (code)\newline — & \grade{V} & Operating mode: 1 manual, 3 buffer/boiler, 5 automatic identified. Other codes unresolved; mode alone determines neither burner phase nor the active boiler target.\\[4pt]
+46 & \code{StatusBitmap} & × 1; structure unknown\newline — & \grade{H} & Raw status with observed codes 0/35/43/61. Code 35 historically matched an open door; 61 provisionally means buffer temperature reached; 43 unresolved. Enum versus bitfield unknown; not a general fault indicator.\\[4pt]
+48 & \code{KesselTemp\_Ist} & × 0.1\newline °C & \grade{V} & Current boiler temperature reported by the controller; state history alone does not establish a fresh Modbus measurement.\\[4pt]
+50 & \code{AbgasTemp\_Ist} & × 0.1\newline °C & \grade{V} & Current flue-gas temperature reported by the controller; not independent evidence of a flame.\\[4pt]
+52 & \code{RuecklaufTemp\_Ist} & × 0.1\newline °C & \grade{V} & Current return temperature reported by the controller; a temperature trace does not identify a pump output.\\[4pt]
+54 & \code{O2\_Ist} & × 0.1\newline \% & \grade{V} & Raw residual-oxygen reading. Very low values also observed in phase 7; magnitude alone does not identify an inactive sensor. Standby values are not combustion minima; measurement validity and physical cause are separate questions.\\[4pt]
+56 & \code{?O2Soll\_Live} & × 0.1 (H)\newline \%? & \grade{H} & Strong candidate for an O2 target calculated from flue-gas temperature. Interpolation model repeatedly supported; scale and function still require simultaneous nonzero comparison with Touch.\\[4pt]
+58 & \code{PrimaerIst} & HA × 0.1; unresolved\newline \%? & \grade{V} & Historically identified as the current primary-air value. Physical scale unresolved; a factor-of-ten difference is possible but unproven. HA scale unchanged pending simultaneous raw/HA/Touch comparison.\\[4pt]
+60 & \code{SekundaerIst} & HA × 0.1; unresolved\newline \%? & \grade{V} & Historical current-secondary-air identification retained. Matching zero values establishes no scale; nonzero comparison is missing. The existing HA scale is not confirmation.\\[4pt]
+62 & \code{SaugzugIst} & HA × 0.1; unresolved\newline \%? & \grade{V} & Historically identified as the current induced-draft value, not a door signal. Physical scale unresolved; a factor-of-ten difference is possible but unproven. Simultaneous raw/HA/Touch comparison is missing.\\[4pt]
+64 & \code{KesselSoll\_Live} & × 0.1\newline °C & \grade{V} & Currently active boiler target. Can be zero while buffer/boiler mode remains selected; not a mode enum.\\[4pt]
+66 & \code{AbgasSoll\_Live} & × 0.1\newline °C & \grade{V} & Currently active flue-gas target; modulates within phase 7. Not a fixed two-state value or evidence of full load.\\[4pt]
+68 & \code{?REG68} & unknown\newline ? & \grade{U} & Variable raw value with increases, decreases and zero intervals. Candidate: current feed amount shown on Touch. Function and scale unresolved; not a monotonic consumption or runtime counter.\\[4pt]
+70 & \code{?REG70} & unknown\newline ? & \grade{U} & Only zero observed so far. Function unknown; neither permanent inactivity nor reserved status established.\\[4pt]
+72 & \code{?BinaryFlag} & × 1; 0/1 observed\newline — & \grade{U} & Transferred as int32; 0/1 observed so far. Activity from code 3 until the initial-combustion/regulation transition supports a startup association. Exact actuator and switching order unresolved.\\[4pt]
+74 & \code{?REG74} & unknown\newline ? & \grade{U} & Only zero observed so far. Function unknown; neither permanent inactivity nor reserved status established.\\[4pt]
+76 & \code{?BinaryFlag} & × 1; 0/1 observed\newline — & \grade{U} & Transferred as int32; 0/1 observed so far. Recurring high intervals also occur in standby. Function, periodicity and physical pulse width unresolved.\\[4pt]
+78 & \code{?BinaryFlag} & × 1; 0/1 observed\newline — & \grade{U} & Transferred as int32; 0/1 observed so far. Long high intervals and standby pulses; pump/release remain unconfirmed candidates. Ash-motor identification withdrawn; edges are not confirmed ash cycles.\\[4pt]
+\end{longtable}
+\endgroup

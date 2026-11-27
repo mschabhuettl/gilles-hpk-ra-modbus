@@ -1,0 +1,362 @@
+[
+  {
+    "address": 0,
+    "name": "sProzFoerderSchnecke",
+    "scale": "x 0.1",
+    "unit": "%",
+    "confidence": "verified",
+    "description_de": "Prozentualer Einstellwert der Förderschnecke; keine gemessene Brennstoffmenge oder Wärmeleistung.",
+    "description_en": "Conveyor-screw percentage setting; not a measured fuel quantity or heat output."
+  },
+  {
+    "address": 2,
+    "name": "sPrimaerMax",
+    "scale": "x 0.1",
+    "unit": "%",
+    "confidence": "verified",
+    "description_de": "Oberer Primärluft-Parameter. Bestätigt nicht die Skalierung des aktuellen Primärluftwerts REG58.",
+    "description_en": "Upper primary-air parameter. Does not confirm the scale of the current primary-air value REG58."
+  },
+  {
+    "address": 4,
+    "name": "sPrimaerMin",
+    "scale": "x 0.1",
+    "unit": "%",
+    "confidence": "verified",
+    "description_de": "Unterer Primärluft-Parameter; vom aktuellen Primärluftwert REG58 zu unterscheiden.",
+    "description_en": "Lower primary-air parameter; distinct from the current primary-air value REG58."
+  },
+  {
+    "address": 6,
+    "name": "sSekundaerMax",
+    "scale": "x 0.1",
+    "unit": "%",
+    "confidence": "strong_hypothesis",
+    "description_de": "Vermuteter oberer Sekundärluft-Parameter; Zuordnung noch nicht abschließend bestätigt.",
+    "description_en": "Presumed upper secondary-air parameter; identification remains unconfirmed."
+  },
+  {
+    "address": 8,
+    "name": "sSekundaerMin",
+    "scale": "x 0.1",
+    "unit": "%",
+    "confidence": "strong_hypothesis",
+    "description_de": "Vermuteter unterer Sekundärluft-Parameter; Zuordnung noch nicht abschließend bestätigt.",
+    "description_en": "Presumed lower secondary-air parameter; identification remains unconfirmed."
+  },
+  {
+    "address": 10,
+    "name": "sSaugzugMax",
+    "scale": "x 0.1",
+    "unit": "%",
+    "confidence": "verified",
+    "description_de": "Oberer Saugzug-Parameter. Bestätigt nicht die Skalierung des aktuellen Saugzugwerts REG62.",
+    "description_en": "Upper induced-draft parameter. Does not confirm the scale of the current induced-draft value REG62."
+  },
+  {
+    "address": 12,
+    "name": "sSaugzugMin",
+    "scale": "x 0.1",
+    "unit": "%",
+    "confidence": "strong_hypothesis",
+    "description_de": "Vermuteter unterer Saugzug-Parameter; vom aktuellen Wert REG62 zu unterscheiden.",
+    "description_en": "Presumed lower induced-draft parameter; distinct from the current value REG62."
+  },
+  {
+    "address": 14,
+    "name": "sO2Max",
+    "scale": "x 0.1",
+    "unit": "%",
+    "confidence": "verified",
+    "description_de": "O2-Sollwert bei maximaler Leistung. Max bezeichnet den Leistungspunkt, nicht zwingend den numerisch höheren O2-Wert.",
+    "description_en": "O2 target at maximum output. Max identifies the output point, not necessarily the numerically higher O2 value."
+  },
+  {
+    "address": 16,
+    "name": "sO2Min",
+    "scale": "x 0.1",
+    "unit": "%",
+    "confidence": "verified",
+    "description_de": "O2-Sollwert bei minimaler Leistung. Min bezeichnet den Leistungspunkt, nicht zwingend den numerisch niedrigeren O2-Wert.",
+    "description_en": "O2 target at minimum output. Min identifies the output point, not necessarily the numerically lower O2 value."
+  },
+  {
+    "address": 18,
+    "name": "sKesselSollTag",
+    "scale": "x 0.1",
+    "unit": "°C",
+    "confidence": "verified",
+    "description_de": "Konfigurierter Kessel-Sollwert für das Tagprofil; vom aktuell wirksamen Sollwert REG64 zu unterscheiden.",
+    "description_en": "Configured boiler target for the day profile; distinct from the currently active target REG64."
+  },
+  {
+    "address": 20,
+    "name": "sAschenaustrDauer",
+    "scale": "x 0.1",
+    "unit": "s",
+    "confidence": "verified",
+    "description_de": "Konfigurierte Dauer der Ascheaustragung. Belegt weder einen laufenden Motor noch die Funktion eines binären Registers.",
+    "description_en": "Configured ash-discharge duration. Establishes neither a running motor nor the function of a binary-valued register."
+  },
+  {
+    "address": 22,
+    "name": "sAschenaustrPause",
+    "scale": "x 1",
+    "unit": "min",
+    "confidence": "verified",
+    "description_de": "Konfigurierte Pause der Ascheaustragung; keine gemessene Periodizität oder Aktorfreigabe.",
+    "description_en": "Configured ash-discharge pause; not measured periodicity or proof that an actuator is enabled."
+  },
+  {
+    "address": 24,
+    "name": "sStartSekundaer",
+    "scale": "x 0.1",
+    "unit": "%",
+    "confidence": "strong_hypothesis",
+    "description_de": "Vermuteter Sekundärluft-Startwert; kein Nachweis eines aktuell laufenden Sekundärlüfters.",
+    "description_en": "Presumed secondary-air startup value; does not establish a currently running secondary-air fan."
+  },
+  {
+    "address": 26,
+    "name": "sZuendEinschub",
+    "scale": "x 0.1",
+    "unit": "s",
+    "confidence": "verified",
+    "description_de": "Konfigurierte Zündeinschubdauer; identifiziert keinen der unbekannten binären Betriebswerte.",
+    "description_en": "Configured ignition-feed duration; does not identify any unknown binary-valued operating register."
+  },
+  {
+    "address": 28,
+    "name": "sTempDiffStart",
+    "scale": "x 0.1",
+    "unit": "°C",
+    "confidence": "verified",
+    "description_de": "Konfigurierte Temperaturdifferenz für den Start; die vollständigen Startbedingungen sind daraus nicht ableitbar.",
+    "description_en": "Configured startup temperature difference; does not establish the complete startup conditions."
+  },
+  {
+    "address": 30,
+    "name": "sTempDiffStop",
+    "scale": "x 0.1",
+    "unit": "°C",
+    "confidence": "verified",
+    "description_de": "Konfigurierte Temperaturdifferenz für den Stopp; die vollständigen Abschaltbedingungen sind daraus nicht ableitbar.",
+    "description_en": "Configured shutdown temperature difference; does not establish the complete shutdown conditions."
+  },
+  {
+    "address": 32,
+    "name": "sTempDiffTeillast",
+    "scale": "x 0.1",
+    "unit": "°C",
+    "confidence": "strong_hypothesis",
+    "description_de": "Vermutete Temperaturdifferenz für Teillast; genaue Regelwirkung nicht verifiziert.",
+    "description_en": "Presumed partial-load temperature difference; exact control behavior is unverified."
+  },
+  {
+    "address": 34,
+    "name": "sKesselSollNacht",
+    "scale": "x 0.1",
+    "unit": "°C",
+    "confidence": "verified",
+    "description_de": "Konfigurierter Kessel-Sollwert für das Nachtprofil; vom aktuell wirksamen Sollwert REG64 zu unterscheiden.",
+    "description_en": "Configured boiler target for the night profile; distinct from the currently active target REG64."
+  },
+  {
+    "address": 36,
+    "name": "sAbgasTempSollMin",
+    "scale": "x 0.1",
+    "unit": "°C",
+    "confidence": "verified",
+    "description_de": "Unterer Abgas-Sollparameter; unterer Temperatur-Endpunkt im Prüfmodell für REG56.",
+    "description_en": "Lower flue-gas target parameter; lower temperature endpoint in the model under test for REG56."
+  },
+  {
+    "address": 38,
+    "name": "sAbgasTempMax",
+    "scale": "x 0.1",
+    "unit": "°C",
+    "confidence": "strong_hypothesis",
+    "description_de": "Vermuteter oberer Abgastemperatur-Parameter; oberer Temperatur-Endpunkt im Prüfmodell für REG56.",
+    "description_en": "Presumed upper flue-gas temperature parameter; upper temperature endpoint in the model under test for REG56."
+  },
+  {
+    "address": 40,
+    "name": "sAbgasTempMaxLimit",
+    "scale": "x 0.1",
+    "unit": "°C",
+    "confidence": "strong_hypothesis",
+    "description_de": "Vermutetes Abgastemperatur-Sicherheitslimit. Die Registerzuordnung verifiziert keine Sicherheitsfunktion.",
+    "description_en": "Presumed flue-gas temperature safety limit. Register identification does not verify a safety function."
+  },
+  {
+    "address": 42,
+    "name": "BrennPhase",
+    "scale": "x 1 (code)",
+    "unit": "—",
+    "confidence": "verified",
+    "description_de": "Brennzyklusphase als Rohcode. Code 7 umfasst Modulation; Code 10 bleibt unbenannt. Die Phasenfolge ist nicht fest oder numerisch aufsteigend; kein Flammennachweis.",
+    "description_en": "Burner-cycle phase as a raw code. Code 7 includes modulation; code 10 remains unnamed. The sequence is not fixed or numerically increasing; not evidence of a flame."
+  },
+  {
+    "address": 44,
+    "name": "BoilerStatus",
+    "scale": "x 1 (code)",
+    "unit": "—",
+    "confidence": "verified",
+    "description_de": "Betriebsmodus: 1 Handbetrieb, 3 Puffer/Boiler, 5 Automatik zugeordnet. Weitere Codes offen; der Modus allein bestimmt weder Brennphase noch aktiven Kessel-Sollwert.",
+    "description_en": "Operating mode: 1 manual, 3 buffer/boiler, 5 automatic identified. Other codes unresolved; mode alone determines neither burner phase nor the active boiler target."
+  },
+  {
+    "address": 46,
+    "name": "StatusBitmap",
+    "scale": "x 1 (code; structure unresolved)",
+    "unit": "—",
+    "confidence": "strong_hypothesis",
+    "description_de": "Rohstatus mit beobachteten Codes 0/35/43/61. Code 35 historisch bei offener Tür; 61 vorläufig Puffertemperatur erreicht; 43 ungeklärt. Enum oder Bitfeld nicht geklärt; kein allgemeiner Fehlerindikator.",
+    "description_en": "Raw status with observed codes 0/35/43/61. Code 35 historically matched an open door; 61 provisionally means buffer temperature reached; 43 unresolved. Enum versus bitfield unknown; not a general fault indicator."
+  },
+  {
+    "address": 48,
+    "name": "KesselTemp_Ist",
+    "scale": "x 0.1",
+    "unit": "°C",
+    "confidence": "verified",
+    "description_de": "Aktuelle Kesseltemperatur laut Steuerung; Zustandshistorie allein beweist keine frische Modbus-Messung.",
+    "description_en": "Current boiler temperature reported by the controller; state history alone does not establish a fresh Modbus measurement."
+  },
+  {
+    "address": 50,
+    "name": "AbgasTemp_Ist",
+    "scale": "x 0.1",
+    "unit": "°C",
+    "confidence": "verified",
+    "description_de": "Aktuelle Abgastemperatur laut Steuerung; kein eigenständiger Flammennachweis.",
+    "description_en": "Current flue-gas temperature reported by the controller; not independent evidence of a flame."
+  },
+  {
+    "address": 52,
+    "name": "RuecklaufTemp_Ist",
+    "scale": "x 0.1",
+    "unit": "°C",
+    "confidence": "verified",
+    "description_de": "Aktuelle Rücklauftemperatur laut Steuerung; ein Temperaturverlauf identifiziert keinen Pumpenausgang.",
+    "description_en": "Current return temperature reported by the controller; a temperature trace does not identify a pump output."
+  },
+  {
+    "address": 54,
+    "name": "O2_Ist",
+    "scale": "x 0.1",
+    "unit": "%",
+    "confidence": "verified",
+    "description_de": "Restsauerstoff-Rohanzeige. Sehr niedrige Werte auch in Phase 7 beobachtet; ihre Höhe allein kennzeichnet keinen inaktiven Sensor. Standbywerte sind kein Verbrennungsminimum; Messgültigkeit und physische Ursache bleiben getrennte Fragen.",
+    "description_en": "Raw residual-oxygen reading. Very low values also observed in phase 7; magnitude alone does not identify an inactive sensor. Standby values are not combustion minima; measurement validity and physical cause are separate questions."
+  },
+  {
+    "address": 56,
+    "name": "?O2Soll_Live",
+    "scale": "x 0.1 (hypothesis)",
+    "unit": "%?",
+    "confidence": "strong_hypothesis",
+    "description_de": "Starker Kandidat für einen abgastemperaturabhängig berechneten O2-Sollwert. Interpolationsmodell wiederholt gestützt; Skalierung und Funktion benötigen einen gleichzeitigen Nichtnull-Abgleich mit dem Touch.",
+    "description_en": "Strong candidate for an O2 target calculated from flue-gas temperature. Interpolation model repeatedly supported; scale and function still require simultaneous nonzero comparison with Touch."
+  },
+  {
+    "address": 58,
+    "name": "PrimaerIst",
+    "scale": "HA x 0.1; unresolved",
+    "unit": "%?",
+    "confidence": "verified",
+    "description_de": "Historisch als aktueller Primärluftwert identifiziert. Physische Skala offen; Faktor-10-Abweichung möglich, aber unbewiesen. HA-Skala unverändert bis zum gleichzeitigen Rohwert-/HA-/Touch-Abgleich.",
+    "description_en": "Historically identified as the current primary-air value. Physical scale unresolved; a factor-of-ten difference is possible but unproven. HA scale unchanged pending simultaneous raw/HA/Touch comparison."
+  },
+  {
+    "address": 60,
+    "name": "SekundaerIst",
+    "scale": "HA x 0.1; unresolved",
+    "unit": "%?",
+    "confidence": "verified",
+    "description_de": "Historische Zuordnung zum aktuellen Sekundärluftwert beibehalten. Bisheriger Nullvergleich bestätigt keine Skala; ein Nichtnull-Abgleich fehlt. Bestehende HA-Skalierung ist keine Bestätigung.",
+    "description_en": "Historical current-secondary-air identification retained. Matching zero values establishes no scale; nonzero comparison is missing. The existing HA scale is not confirmation."
+  },
+  {
+    "address": 62,
+    "name": "SaugzugIst",
+    "scale": "HA x 0.1; unresolved",
+    "unit": "%?",
+    "confidence": "verified",
+    "description_de": "Historisch als aktueller Saugzugwert identifiziert, kein Türsignal. Physische Skala offen; Faktor-10-Abweichung möglich, aber unbewiesen. Gleichzeitiger Rohwert-/HA-/Touch-Abgleich fehlt.",
+    "description_en": "Historically identified as the current induced-draft value, not a door signal. Physical scale unresolved; a factor-of-ten difference is possible but unproven. Simultaneous raw/HA/Touch comparison is missing."
+  },
+  {
+    "address": 64,
+    "name": "KesselSoll_Live",
+    "scale": "x 0.1",
+    "unit": "°C",
+    "confidence": "verified",
+    "description_de": "Aktuell wirksamer Kessel-Sollwert. Kann auch bei gewähltem Puffer/Boiler-Modus null sein; kein Modus-Enum.",
+    "description_en": "Currently active boiler target. Can be zero while buffer/boiler mode remains selected; not a mode enum."
+  },
+  {
+    "address": 66,
+    "name": "AbgasSoll_Live",
+    "scale": "x 0.1",
+    "unit": "°C",
+    "confidence": "verified",
+    "description_de": "Aktuell wirksamer Abgas-Sollwert; moduliert innerhalb der Phase 7. Kein fester Zweizustandswert oder Volllastnachweis.",
+    "description_en": "Currently active flue-gas target; modulates within phase 7. Not a fixed two-state value or evidence of full load."
+  },
+  {
+    "address": 68,
+    "name": "?REG68",
+    "scale": "unknown",
+    "unit": "?",
+    "confidence": "unknown",
+    "description_de": "Veränderlicher Rohwert mit Anstiegen, Abfällen und Nullintervallen. Kandidat: aktuelle Einschubmenge am Touch. Funktion und Skala offen; kein monotoner Verbrauchs- oder Laufzeitzähler.",
+    "description_en": "Variable raw value with increases, decreases and zero intervals. Candidate: current feed amount shown on Touch. Function and scale unresolved; not a monotonic consumption or runtime counter."
+  },
+  {
+    "address": 70,
+    "name": "?REG70",
+    "scale": "unknown",
+    "unit": "?",
+    "confidence": "unknown",
+    "description_de": "Bisher nur null beobachtet. Funktion offen; weder dauerhaft inaktiv noch als reserviert nachgewiesen.",
+    "description_en": "Only zero observed so far. Function unknown; neither permanent inactivity nor reserved status established."
+  },
+  {
+    "address": 72,
+    "name": "?BinaryFlag",
+    "scale": "x 1 (raw 0/1 observed)",
+    "unit": "—",
+    "confidence": "unknown",
+    "description_de": "Als int32 übertragen; bisher 0/1 beobachtet. Aktivität von Code 3 bis zum Übergang Anbrennen/Regelbetrieb stützt Startbezug. Konkreter Aktor und genaue Schaltreihenfolge offen.",
+    "description_en": "Transferred as int32; 0/1 observed so far. Activity from code 3 until the initial-combustion/regulation transition supports a startup association. Exact actuator and switching order unresolved."
+  },
+  {
+    "address": 74,
+    "name": "?REG74",
+    "scale": "unknown",
+    "unit": "?",
+    "confidence": "unknown",
+    "description_de": "Bisher nur null beobachtet. Funktion offen; weder dauerhaft inaktiv noch als reserviert nachgewiesen.",
+    "description_en": "Only zero observed so far. Function unknown; neither permanent inactivity nor reserved status established."
+  },
+  {
+    "address": 76,
+    "name": "?BinaryFlag",
+    "scale": "x 1 (raw 0/1 observed)",
+    "unit": "—",
+    "confidence": "unknown",
+    "description_de": "Als int32 übertragen; bisher 0/1 beobachtet. Wiederkehrende High-Intervalle auch im Standby. Funktion, Periodizität und physische Impulsdauer offen.",
+    "description_en": "Transferred as int32; 0/1 observed so far. Recurring high intervals also occur in standby. Function, periodicity and physical pulse width unresolved."
+  },
+  {
+    "address": 78,
+    "name": "?BinaryFlag",
+    "scale": "x 1 (raw 0/1 observed)",
+    "unit": "—",
+    "confidence": "unknown",
+    "description_de": "Als int32 übertragen; bisher 0/1 beobachtet. Lange High-Intervalle und Standbypulse; Pumpe/Freigabe als unbestätigte Kandidaten. Aschemotor-Zuordnung zurückgenommen; Flanken sind keine bestätigten Aschezyklen.",
+    "description_en": "Transferred as int32; 0/1 observed so far. Long high intervals and standby pulses; pump/release remain unconfirmed candidates. Ash-motor identification withdrawn; edges are not confirmed ash cycles."
+  }
+]

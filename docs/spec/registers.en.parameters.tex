@@ -1,0 +1,28 @@
+% Generated from registers.json by build_spec.py; do not edit.
+\begingroup\small
+\begin{longtable}{@{}L{10mm}L{42mm}L{25mm}L{9mm}L{77mm}@{}}
+\toprule \textbf{Addr.} & \textbf{Project name} & \textbf{Scale / unit} & \textbf{Grade} & \textbf{Meaning and limits}\\\midrule\endhead
+\bottomrule\endfoot
+0 & \code{sProzFoerderSchnecke} & × 0.1\newline \% & \grade{V} & Conveyor-screw percentage setting; not a measured fuel quantity or heat output.\\[4pt]
+2 & \code{sPrimaerMax} & × 0.1\newline \% & \grade{V} & Upper primary-air parameter. Does not confirm the scale of the current primary-air value REG58.\\[4pt]
+4 & \code{sPrimaerMin} & × 0.1\newline \% & \grade{V} & Lower primary-air parameter; distinct from the current primary-air value REG58.\\[4pt]
+6 & \code{sSekundaerMax} & × 0.1\newline \% & \grade{H} & Presumed upper secondary-air parameter; identification remains unconfirmed.\\[4pt]
+8 & \code{sSekundaerMin} & × 0.1\newline \% & \grade{H} & Presumed lower secondary-air parameter; identification remains unconfirmed.\\[4pt]
+10 & \code{sSaugzugMax} & × 0.1\newline \% & \grade{V} & Upper induced-draft parameter. Does not confirm the scale of the current induced-draft value REG62.\\[4pt]
+12 & \code{sSaugzugMin} & × 0.1\newline \% & \grade{H} & Presumed lower induced-draft parameter; distinct from the current value REG62.\\[4pt]
+14 & \code{sO2Max} & × 0.1\newline \% & \grade{V} & O2 target at maximum output. Max identifies the output point, not necessarily the numerically higher O2 value.\\[4pt]
+16 & \code{sO2Min} & × 0.1\newline \% & \grade{V} & O2 target at minimum output. Min identifies the output point, not necessarily the numerically lower O2 value.\\[4pt]
+18 & \code{sKesselSollTag} & × 0.1\newline °C & \grade{V} & Configured boiler target for the day profile; distinct from the currently active target REG64.\\[4pt]
+20 & \code{sAschenaustrDauer} & × 0.1\newline s & \grade{V} & Configured ash-discharge duration. Establishes neither a running motor nor the function of a binary-valued register.\\[4pt]
+22 & \code{sAschenaustrPause} & × 1\newline min & \grade{V} & Configured ash-discharge pause; not measured periodicity or proof that an actuator is enabled.\\[4pt]
+24 & \code{sStartSekundaer} & × 0.1\newline \% & \grade{H} & Presumed secondary-air startup value; does not establish a currently running secondary-air fan.\\[4pt]
+26 & \code{sZuendEinschub} & × 0.1\newline s & \grade{V} & Configured ignition-feed duration; does not identify any unknown binary-valued operating register.\\[4pt]
+28 & \code{sTempDiffStart} & × 0.1\newline °C & \grade{V} & Configured startup temperature difference; does not establish the complete startup conditions.\\[4pt]
+30 & \code{sTempDiffStop} & × 0.1\newline °C & \grade{V} & Configured shutdown temperature difference; does not establish the complete shutdown conditions.\\[4pt]
+32 & \code{sTempDiffTeillast} & × 0.1\newline °C & \grade{H} & Presumed partial-load temperature difference; exact control behavior is unverified.\\[4pt]
+34 & \code{sKesselSollNacht} & × 0.1\newline °C & \grade{V} & Configured boiler target for the night profile; distinct from the currently active target REG64.\\[4pt]
+36 & \code{sAbgasTempSollMin} & × 0.1\newline °C & \grade{V} & Lower flue-gas target parameter; lower temperature endpoint in the model under test for REG56.\\[4pt]
+38 & \code{sAbgasTempMax} & × 0.1\newline °C & \grade{H} & Presumed upper flue-gas temperature parameter; upper temperature endpoint in the model under test for REG56.\\[4pt]
+40 & \code{sAbgasTempMaxLimit} & × 0.1\newline °C & \grade{H} & Presumed flue-gas temperature safety limit. Register identification does not verify a safety function.\\[4pt]
+\end{longtable}
+\endgroup

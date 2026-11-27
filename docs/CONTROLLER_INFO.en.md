@@ -26,9 +26,9 @@ The Gilles Touch controller used in HPK-RA boilers is based on **industrial-grad
 - **Stack:** Sigmatek's built-in Modbus TCP server
 - **Activation:** Appears to be active by default once the boiler is networked. We could not find a menu setting to toggle it.
 - **Limitations observed:**
-  - Only Function Code 03 (Read Holding Registers) is supported. Coils (FC01), Discrete Inputs (FC02), and Input Registers (FC04) all return errors or no response.
-  - Map exposes exactly 40 logical values (80 16-bit registers) starting at address 0. Higher addresses return no response.
-  - The TCP connection is closed after each Modbus exception. Clients must reconnect.
+  - Function Code 03 (Read Holding Registers) is the established read method. Historical attempts using FC01, FC02 and FC04 produced errors or no response; this is not a complete list of supported functions.
+  - The known range contains 40 logical values in 80 16-bit registers starting at address 0. Historical attempts above this range produced no usable response.
+  - Connections have been observed to close after Modbus exceptions. Clients must handle such closures and reconnect when needed.
   - Minimum count for reads appears to be 2 registers (1-register reads return "Illegal Data Value" exception).
   - The reference installation closes TCP after about three idle seconds (measured 2026-09-07). HA therefore reads REG42 every two seconds.
   - The Python logger sets `retries=1` directly on its client and reconnects per reading. HA 2026.9.1 sets retries internally to three; YAML `retries: 1` does not override it. [Evidence and limitations](HA_VALIDATION.en.md).
@@ -45,22 +45,22 @@ Both values are visible at the Touch under **Allgemeines → Version**.
 
 A `Save to USB` function in **Allgemeines → Load/Save** writes three files to a connected USB stick:
 
-1. `parameter.txt` — Plain-text export of all named LASAL parameters with current values. Extremely useful for reverse engineering: every Modbus value corresponds to one of these parameters (though the order in Modbus differs from the order in parameter.txt).
+1. `parameter.txt` — Plain-text export of named LASAL parameters with current values. Comparisons support several register mappings; completeness and a counterpart for every Modbus value have not been established. The order differs from the Modbus map.
 2. `moduser.para` — Binary serialized parameter set. Not human-readable; appears to be Sigmatek's internal LASAL format.
 3. `moduser.conf` — Tiny config file declaring which subsystems are configured (e.g., `Heizkreis_1`, `Warmwasser_2`, `Puffer_3`).
 
 The `parameter.txt` from a sample installation is in [`reference/parameter-export-sample.txt`](../reference/parameter-export-sample.txt).
 
-## Why the map is so small
+## Scope of the known map
 
-Gilles likely chose to expose only a curated subset of parameters via Modbus, focused on:
+The values mapped so far mainly cover:
 
 - Combustion control parameters (lambda air ratios, O2 limits, flue gas limits)
 - Boiler setpoints (day/night, hysteresis)
 - Boiler-side live measurements (kessel temp, O2 actual)
-- Status flags (operating mode, door state)
+- Operating mode and status codes; the REG46=35 door indication is indirect
 
-Heating-circuit, DHW, buffer, and pellet-feed-system data are managed internally by the LASAL application but not surfaced on the Modbus interface. This is a deliberate design choice, not a limitation of the underlying platform — Sigmatek HZS could easily expose thousands of registers.
+Reliable Modbus mappings are missing for further heating-circuit, DHW, buffer and feed-system quantities. REG68 remains a candidate for current feed quantity with unresolved unit and scale. These gaps do not establish a manufacturer design decision or inaccessibility in principle. The [unofficial read profile](spec/README.en.md) records the known scope and its limits.
 
 ## Hargassner relationship
 

@@ -6,6 +6,8 @@
 **Steuerungs-Firmware:** LASAL II v5.36.4 (10.01.2024)
 **Vertrauensgrade:** ✓✓ = empirisch verifiziert · ✓ = stark vermutet via Werte-Match · ? = unbekannt
 
+Die [inoffizielle Spezifikation 0.1.0](spec/README.md) bündelt dieses lesende Profil als PDF und LaTeX-Quelle, einschließlich Datenformat und synthetischer Prüfvektoren. Sie basiert auf dem Befundstand 0.9.1 und bestätigt keine zusätzlichen Zuordnungen oder Skalen.
+
 ## Stand
 
 | Vertrauen | Anzahl | Bedeutung |

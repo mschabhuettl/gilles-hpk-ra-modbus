@@ -1,0 +1,70 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{gilles-spec}[2026/11/27 Unofficial Gilles specification]
+\RequirePackage[a4paper,top=22mm,bottom=22mm,left=19mm,right=19mm,headheight=14pt]{geometry}
+\RequirePackage{fontspec}
+\setmainfont{P052-Roman.otf}[BoldFont=P052-Bold.otf,ItalicFont=P052-Italic.otf,BoldItalicFont=P052-BoldItalic.otf]
+\setsansfont{NimbusSans-Regular.otf}[BoldFont=NimbusSans-Bold.otf,ItalicFont=NimbusSans-Italic.otf,BoldItalicFont=NimbusSans-BoldItalic.otf]
+\setmonofont{NimbusMonoPS-Regular.otf}[Scale=0.88,BoldFont=NimbusMonoPS-Bold.otf,ItalicFont=NimbusMonoPS-Italic.otf,BoldItalicFont=NimbusMonoPS-BoldItalic.otf]
+\RequirePackage[table]{xcolor}
+\definecolor{Ink}{HTML}{162A3A}
+\definecolor{Accent}{HTML}{087E8B}
+\definecolor{Muted}{HTML}{526574}
+\definecolor{Tint}{HTML}{EFF5F6}
+\RequirePackage{booktabs,longtable,tabularx,array,amsmath}
+\RequirePackage{fancyhdr}
+\RequirePackage{microtype}
+\RequirePackage{titlesec,needspace,etoolbox}
+\RequirePackage{fancyvrb}
+\RequirePackage{hyperref}
+\hypersetup{colorlinks=true,linkcolor=Accent,urlcolor=Accent,pdfauthor={gilles-hpk-ra-modbus contributors},pdfsubject={Unofficial read-only Modbus TCP profile},pdfkeywords={Gilles,HPK-RA,Modbus TCP,unofficial,register map}}
+\titleformat{\section}{\Large\sffamily\bfseries\color{Ink}}{\thesection}{0.65em}{}
+\titleformat{\subsection}{\large\sffamily\bfseries\color{Ink}}{\thesubsection}{0.65em}{}
+\titlespacing*{\section}{0pt}{17pt}{8pt}
+\titlespacing*{\subsection}{0pt}{12pt}{5pt}
+\pretocmd{\section}{\Needspace{7\baselineskip}}{}{}
+\pretocmd{\subsection}{\Needspace{5\baselineskip}}{}{}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\sffamily\small\color{Muted}GILLES HPK-RA / MODBUS TCP}
+\fancyhead[R]{\sffamily\small\color{Muted}\SpecShortStatus}
+\fancyfoot[L]{\sffamily\footnotesize\color{Muted}\SpecVersion\quad /\quad \SpecDate}
+\fancyfoot[R]{\sffamily\small\color{Muted}\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+\renewcommand{\footrulewidth}{0pt}
+\widowpenalty=10000
+\clubpenalty=10000
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+\setlength{\emergencystretch}{2em}
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.2}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcommand{\reg}[1]{\texttt{REG#1}}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\oxygen}{O\textsubscript{2}}
+\newcommand{\grade}[1]{\textsf{\textbf{#1}}}
+\newcommand{\SpecBox}[2]{\par\medskip\noindent\colorbox{Tint}{\parbox{\dimexpr\linewidth-2\fboxsep\relax}{\vspace{5pt}\textsf{\textbf{\color{Ink}#1}}\par\smallskip #2\vspace{5pt}}}\par\medskip}
+\DefineVerbatimEnvironment{CodeBlock}{Verbatim}{fontsize=\small,frame=single,framesep=7pt,rulecolor=\color{Accent}}
+\newcommand{\SpecCover}[3]{%
+\begin{titlepage}\thispagestyle{empty}
+{\sffamily\bfseries\color{Accent}\large COMMUNITY TECHNICAL REFERENCE}\par
+\vspace{24mm}
+{\sffamily\bfseries\color{Ink}\fontsize{35}{40}\selectfont Gilles HPK-RA\par Modbus TCP\par}
+\vspace{9mm}
+{\sffamily\color{Muted}\fontsize{20}{25}\selectfont #1\par}
+\vspace{13mm}{\color{Accent}\rule{\linewidth}{1.2pt}}\par
+\vspace{6mm}
+\begin{tabularx}{\linewidth}{@{}L{40mm}X@{}}
+\textsf{\SpecVersionLabel} & \SpecVersion\\
+\textsf{\SpecDateLabel} & \SpecDate\\
+\textsf{\SpecBaseLabel} & \code{gilles-hpk-ra-modbus} 0.9.1 / \code{03696e9}\\
+\textsf{\SpecFirmwareLabel} & Gilles Touch / LASAL II 5.36.4\\
+\end{tabularx}\par
+\vspace{10mm}
+#2\par
+\vfill
+\SpecBox{\SpecStatusLabel}{#3}
+\vspace{7mm}
+\href{https://github.com/mschabhuettl/gilles-hpk-ra-modbus}{github.com/mschabhuettl/gilles-hpk-ra-modbus}\par
+\href{https://matthiasschabhuettl.com/projects/gilles-hpk-ra-modbus}{matthiasschabhuettl.com/projects/gilles-hpk-ra-modbus}
+\end{titlepage}}

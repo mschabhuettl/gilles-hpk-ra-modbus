@@ -26,9 +26,9 @@ Die Gilles-Touch-Steuerung in den HPK-RA-Kesseln basiert auf **industrieller Sig
 - **Stack:** Sigmateks integrierter Modbus-TCP-Server
 - **Aktivierung:** Scheint by default aktiv zu sein, sobald der Kessel im Netzwerk ist. Wir haben keinen Menüpunkt gefunden, um das umzuschalten.
 - **Beobachtete Einschränkungen:**
-  - Nur Function Code 03 (Read Holding Registers) wird unterstützt. Coils (FC01), Discrete Inputs (FC02) und Input Registers (FC04) liefern Fehler oder keine Antwort.
-  - Map exportiert genau 40 logische Werte (80 16-bit-Register) ab Adresse 0. Höhere Adressen liefern keine Antwort.
-  - Die TCP-Verbindung wird nach jeder Modbus-Exception geschlossen. Clients müssen neu verbinden.
+  - Function Code 03 (Read Holding Registers) ist der belegte Leseweg. Historische Versuche mit FC01, FC02 und FC04 ergaben Fehler oder keine Antwort; das ist keine vollständige Liste unterstützter Funktionen.
+  - Der bekannte Bereich umfasst 40 logische Werte in 80 16-Bit-Registern ab Adresse 0. Historische Versuche oberhalb dieses Bereichs ergaben keine nutzbare Antwort.
+  - Nach Modbus-Exceptions wurde ein Verbindungsende beobachtet. Clients müssen einen solchen Abbruch behandeln und bei Bedarf neu verbinden.
   - Mindest-Count für Reads scheint 2 Register zu sein (1-Register-Reads liefern „Illegal Data Value"-Exception).
   - Die Referenzanlage schließt TCP nach etwa drei Sekunden Leerlauf (Messung 2026-09-07). HA liest deshalb REG42 alle zwei Sekunden.
   - Der Python-Logger setzt `retries=1` direkt am Client und verbindet pro Abfrage neu. HA 2026.9.1 setzt Wiederholungen intern auf drei; der YAML-Schlüssel `retries: 1` überschreibt das nicht. [Messbeleg und Grenzen](HA_VALIDATION.md).
@@ -45,22 +45,22 @@ Beide Werte sind am Touch unter **Allgemeines → Version** sichtbar.
 
 Eine `Save to USB`-Funktion in **Allgemeines → Load/Save** schreibt drei Dateien auf einen angeschlossenen USB-Stick:
 
-1. `parameter.txt` — Klartext-Export aller benannten LASAL-Parameter mit aktuellen Werten. Extrem nützlich für Reverse Engineering: jeder Modbus-Wert entspricht einem dieser Parameter (allerdings unterscheidet sich die Reihenfolge in Modbus von der in parameter.txt).
+1. `parameter.txt` — Klartext-Export benannter LASAL-Parameter mit aktuellen Werten. Der Vergleich stützt mehrere Registerzuordnungen; Vollständigkeit und eine Entsprechung für jeden Modbus-Wert sind nicht belegt. Die Reihenfolge unterscheidet sich von der Modbus-Map.
 2. `moduser.para` — Binär serialisierter Parametersatz. Nicht human-readable; scheint Sigmateks internes LASAL-Format zu sein.
 3. `moduser.conf` — Winzige Konfigurationsdatei, die deklariert welche Subsysteme konfiguriert sind (z.B. `Heizkreis_1`, `Warmwasser_2`, `Puffer_3`).
 
 Die `parameter.txt` von einer Beispielinstallation liegt in [`reference/parameter-export-sample.txt`](../reference/parameter-export-sample.txt).
 
-## Warum ist die Map so klein?
+## Umfang der bekannten Map
 
-Gilles hat offenbar gewählt, nur eine kuratierte Teilmenge von Parametern via Modbus zu exportieren — fokussiert auf:
+Die bisher zugeordneten Werte betreffen vor allem:
 
 - Verbrennungs-Steuerungsparameter (Lambda-Luftverhältnisse, O2-Grenzen, Abgas-Grenzen)
 - Kessel-Sollwerte (Tag/Nacht, Hysterese)
 - Kessel-seitige Live-Messwerte (Kesseltemp, O2-Ist)
-- Status-Flags (Betriebsmodus, Türstatus)
+- Betriebsmodus und Statuscodes; der Türhinweis aus REG46=35 ist indirekt
 
-Heizkreis-, Warmwasser-, Puffer- und Pellet-Zuführungs-Daten werden intern von der LASAL-Anwendung verwaltet, aber nicht über die Modbus-Schnittstelle herausgegeben. Das ist eine bewusste Design-Entscheidung, nicht eine Einschränkung der zugrundeliegenden Plattform — Sigmatek HZS könnte problemlos tausende Register exportieren.
+Für weitere Heizkreis-, Warmwasser-, Puffer- und Zuführungsgrößen fehlen belastbare Modbus-Zuordnungen. REG68 bleibt ein Kandidat für eine aktuelle Einschubmenge mit offener Einheit und Skala. Aus diesen Lücken lässt sich keine Herstellerentscheidung oder grundsätzliche Unzugänglichkeit ableiten. Das [inoffizielle Leseprofil](spec/README.md) hält den bekannten Umfang und seine Grenzen fest.
 
 ## Hargassner-Beziehung
 
